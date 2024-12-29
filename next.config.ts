@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  reactStrictMode: true,
+  // Remove the experimental appDir key for Next.js 15.x
 };
 
 export default nextConfig;
