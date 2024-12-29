@@ -1,10 +1,12 @@
 import MaxWidthWrapper from "@/components/MaxWidthWrapper"; // Ensure this exists and works
+import { image } from "framer-motion/client";
 import { ArrowBigDown, ArrowBigDownDash, ArrowBigDownDashIcon, ArrowDown, ChevronDown, Plus, Star } from "lucide-react";
+import { Ma_Shan_Zheng } from "next/font/google";
 import Link from "next/link";
 import React from 'react';
 
 export default function Home() {
-  const images = ["/air.jpg", "/air2.jpg", "/b.jpg", "/b1.jpg","/car.jpg"];
+  const images = ["/air.jpg", "/air2.jpg", "/b.jpg", "/b1.jpg","/car.jpg","wom.jpg","half.jpg"];
   const products = [
     { tag: "House For Rent", rating: 4.95, reviews: 22 },
     { tag: "Car For Sale", rating: 4.25, reviews: 22 },
@@ -14,9 +16,9 @@ export default function Home() {
   ];
 
   return (
-    <div className="bg-slate-50" >
+    <div className="bg-white" >
       <section >
-      <MaxWidthWrapper>
+      <MaxWidthWrapper className="p-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-2 sm:px-4">
             <div className="col-span-1 sm:col-span-2 grid grid-rows-2 gap-4 ">
               <div className="row-span-1">
@@ -116,8 +118,8 @@ export default function Home() {
       </section>
 
 
-
-    <section className="bg-white py-10">
+{/* for the card of home page look kinda aza but it is aworking progress  */}
+    <section className="bg-slate-50 py-10">
       <MaxWidthWrapper>
         <div className="px-8">
 
@@ -128,7 +130,7 @@ export default function Home() {
           <div key={index} className="flex flex-col items-center">
 
             <div className="relative group overflow-hidden rounded-lg shadow-md w-full h-64">
-              <Link 
+              <Link
               href="#">
               <img
                 src={image}
@@ -155,18 +157,62 @@ export default function Home() {
           </div>
         ))}
       </div>
-
-
-
-
-
-
-
-
-
       </div>
       </MaxWidthWrapper>
     </section>
+{/* for the one image ad */}
+  <section>
+    <MaxWidthWrapper className="p-4">
+      <div>
+      <Link
+        href="#">
+          <img
+            src={images[6]}
+            alt="plane" 
+            className="h-[330] w-full rounded-3xl"/>
+        </Link>
+      
+      </div>
+    </MaxWidthWrapper>
+  </section>
+
+{/* for the image and text with flex  */}
+
+  <section >
+    <MaxWidthWrapper 
+    className="flex flex-col md:flex-row items-center gap-6 p-6 bg-white rounded-lg shadow-md ">
+
+      <div className="flex-shrink-0">
+        <div className="relative">
+          <img
+            src={images[4]}
+            alt="City View"
+            className="rounded-lg w-[1200] h-[500] object-cover"
+          />
+          <span className="absolute top-2 left-2 bg-green-100 text-green-700 text-sm font-medium px-3 py-1 rounded-full shadow object-cover ">
+            Looking for something in Addis?
+          </span>
+        </div>
+      </div>
+
+    
+      <div className="flex-1">
+        <h2 className="text-xl font-semibold text-green-700 mb-4">
+          Our Range of Services
+        </h2>
+        <p className="text-gray-700 leading-relaxed">
+          Looking for something in Addis? Whether you're buying or selling <br />
+          duty-free cars, searching for houses to rent, or looking to rent out <br />
+          your car, we've got you covered. Connect with us to explore these 
+          services and much more.
+        </p>
+      </div>
+      </MaxWidthWrapper>
+    </section>
+
+    
+
+
 
 
     </div>
