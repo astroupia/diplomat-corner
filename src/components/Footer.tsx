@@ -1,4 +1,6 @@
     import React from "react";
+    import { SignUpButton, SignInButton, UserButton, useUser } from "@clerk/nextjs";
+
 
     const Footer: React.FC = () => {
     return (
@@ -77,14 +79,10 @@
             <h2 className="text-lg font-semibold text-primary mb-2">Account</h2>
             <ul>
                 <li>
-                <a href="#" className="text-black hover:text-gray-800">
-                    Log In
-                </a>
+                <SignInButton />
                 </li>
                 <li>
-                <a href="#" className="text-black hover:text-gray-800">
-                    Sign Up
-                </a>
+                <SignUpButton />
                 </li>
                 <li>
                 <a href="#" className="text-black hover:text-gray-800">
