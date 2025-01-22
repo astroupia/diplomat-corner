@@ -1,10 +1,12 @@
 import MaxWidthWrapper from "@/components/MaxWidthWrapper"; 
 import { image } from "framer-motion/client";
-import { ArrowBigDown, ArrowBigDownDash, ArrowBigDownDashIcon, ArrowDown, ChevronDown, Plus, Star } from "lucide-react";
+import {  ChevronDown, Plus, Star } from "lucide-react";
 import Link from "next/link";
 import React from 'react';
-import CardAbout from "@/components/CardAbout";
-import ContactForm from '../components/ContactForm';
+import page from "@/components/CardContaner";
+import Page from "@/components/CardContaner";
+
+
 
 
 export default function Home() {
@@ -179,11 +181,15 @@ export default function Home() {
         <MaxWidthWrapper className="flex flex-col md:flex-row items-center gap-6 p-6 rounded-lg shadow-md mx-auto">
           <div className="flex-shrink-0 w-full sm:w-[500px]">
             <div className="relative">
+              <Link
+                href="/AboutUs">
+              
               <img
                 src={images[4]}
                 alt="City View"
                 className="rounded-lg w-full h-[500px] object-cover"
               />
+              </Link>
               <span className="absolute top-2 left-2 bg-white text-primary text-sm font-medium px-3 py-1 rounded-full shadow">
                 Looking for something in Addis?
               </span>
@@ -204,46 +210,15 @@ export default function Home() {
         </MaxWidthWrapper>
       </section>
 
-      {/*Text Section About Us*/}
-      <section className="bg-slate-100">
-        <MaxWidthWrapper>
-          <div className="flex flex-col items-center justify-center p-6 sm:p-12">
-            <h2 className="text-4xl sm:text-5xl font-semibold mb-6 text-center text-primary" >
-              WHO WE ARE
-            </h2>
-            <p className="text-gray-700 leading-relaxed text-lg sm:text-xl px-4 sm:px-14 text-center">
-            Diplomat Corner has been serving the diplomatic community in Ethiopia since 2015, providing a wide range of services, including property management, 
-            house hunting, disposal of duty-free vehicles, car rental services, used household items sales, liaison services, online shopping, and more. Our commitment 
-            to value creation and excellent customer service has grown our subscriber base to over 3,200, consisting of embassies, UN agencies, AU organs, international organizations, 
-            and multinational companies.
-              </p>
-          </div>
-        </MaxWidthWrapper>
-      </section>
-
       <section>
         <MaxWidthWrapper>
           <div>
-            <CardAbout/>
+            <Page />
           </div>
         </MaxWidthWrapper>
       </section>
 
-      <section>
-        <MaxWidthWrapper>
-          <div>
-            <ContactForm/>
-          </div>
-        </MaxWidthWrapper>
-      </section>
-    
-
-
-
-
-
-
-
+ 
     </div>
   );
 }
