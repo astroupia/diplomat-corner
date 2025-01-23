@@ -30,7 +30,7 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <NavBar  isAuthenticated={true} />
+        <NavBar  />
         <SignedOut>
             <SignUpButton />
           </SignedOut>
