@@ -20,7 +20,7 @@ const NavBar = () => {
         <div className="flex items-center justify-between flex-wrap gap-4">
           {/* Left Section: Brand Logo */}
             <div className="flex items-center">
-            <Link href="/app/page">
+            <Link href="/">
                 <span className="text-black font-bold text-lg">
                 Diplomat
                 <br /><span className="text-primary">Corner</span>
@@ -33,10 +33,10 @@ const NavBar = () => {
 
 
             <div className="flex-1 hidden lg:flex justify-center gap-6 text-lg text-gray-600 font-semibold px-6">
-            <Link href="#" className="hover:text-primary transition">
+            <Link href="/Car" className="hover:text-primary transition">
                 Car For Sale
             </Link>
-            <Link href="#" className="hover:text-primary transition">
+            <Link href="/HouseForRent" className="hover:text-primary transition">
                 House For Rent
             </Link>
             <Link href="#" className="hover:text-primary transition">
@@ -46,7 +46,7 @@ const NavBar = () => {
                 Items For Sale
             </Link>
             <Link
-            href="/AboutUs" className="hover:text-primary transition">
+            href="/aboutus" className="hover:text-primary transition">
                 About Us
             </Link>
         </div>
