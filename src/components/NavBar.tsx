@@ -49,6 +49,10 @@ const NavBar = () => {
             href="/aboutus" className="hover:text-primary transition">
                 About Us
             </Link>
+            <Link
+            href="/Product" className="hover:text-primary transition">
+                Manage Products
+            </Link>
         </div>
 
           {/* Right Section: Search, Notifications, and Authentication */}
