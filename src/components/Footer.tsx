@@ -29,12 +29,12 @@
             <h2 className="text-lg font-semibold text-primary mb-2">Services</h2>
             <ul>
                 <li>
-                <a href="#" className="text-black hover:text-gray-800">
+                <a href="" className="text-black hover:text-gray-800">
                     Car For Sale
                 </a>
                 </li>
                 <li>
-                <a href="#" className="text-black hover:text-gray-800">
+                <a href="/HouseForRent" className="text-black hover:text-gray-800">
                     House For Rent
                 </a>
                 </li>
@@ -46,6 +46,11 @@
                 <li>
                 <a href="#" className="text-black hover:text-gray-800">
                     Items For Sale
+                </a>
+                </li>
+                <li>
+                <a href="/aboutus" className="text-black hover:text-gray-800">
+                    About Us
                 </a>
                 </li>
             </ul>
