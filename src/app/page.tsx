@@ -1,10 +1,6 @@
-import MaxWidthWrapper from "@/components/MaxWidthWrapper"; 
-import { image } from "framer-motion/client";
-import {  ChevronDown, Plus, Star } from "lucide-react";
+import MaxWidthWrapper from "@/components/MaxWidthWrapper";
+import { ChevronDown, Plus, Star } from "lucide-react";
 import Link from "next/link";
-import React from 'react';
-import page from "@/components/CardContaner";
-import Page from "@/components/CardContaner";
 
 
 
@@ -210,15 +206,9 @@ export default function Home() {
         </MaxWidthWrapper>
       </section>
 
-      <section>
-        <MaxWidthWrapper>
-          <div>
-            <Page />
-          </div>
-        </MaxWidthWrapper>
-      </section>
+      
 
- 
+
     </div>
   );
 }
