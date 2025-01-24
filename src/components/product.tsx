@@ -3,6 +3,7 @@
 import { Upload, Wifi, Home, Car, Check, PlayCircle, Church, Dumbbell, Circle, CheckCircle, ShoppingCart, Plus, Pen, Tv } from "lucide-react";
 import { useState } from "react";
 import MaxWidthWrapper from "./MaxWidthWrapper";
+import Link from "next/link";
 
 const ProductForm = () => {
   const [selected, setSelected] = useState<string[]>([]);
@@ -50,15 +51,21 @@ const ProductForm = () => {
         {/* Main Content */}
         <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-4 lg:p-6 ">
           {/* Buttons for Product Type */}
-          <div className="flex flex-col pl-7 sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
-            <button className="flex items-center justify-center space-x-2 bg-primary text-white px-6 py-3 rounded-lg shadow-md w-full sm:w-auto">
+          <div className="flex flex-col pl-7 sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6 h-30">
+            <Link
+            href="/CarProduct">
+            <button className="flex items-center justify-center space-x-2 bg-white  text-primary px-6 py-3 border border-primary rounded-lg shadow-md w-full sm:w-auto hover:bg-secondary ">
               <Car size={20} />
               <span className="font-semibold">Car For Sale</span>
             </button>
-            <button className="flex items-center justify-center space-x-2 bg-white text-green-800 px-6 py-3 rounded-lg shadow-md border border-green-800 w-full sm:w-auto">
+            </Link>
+            <Link
+            href="/Product">
+            <button className="flex items-center justify-center space-x-2 bg-secondary text-primary px-6 py-3 rounded-lg shadow-md border border-primary w-full sm:w-auto ">
               <Home size={20} />
               <span className="font-semibold">House For Rent</span>
             </button>
+            </Link>
           </div>
   
           {/* Form Section */}
