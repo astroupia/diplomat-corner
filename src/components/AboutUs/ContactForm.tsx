@@ -1,7 +1,7 @@
     "use client";
 
     import React, { useState } from 'react';
-    import { Phone, Mail, MapPin, Twitter, Instagram , MessageCircle, Bell,LucideGithub} from 'lucide-react';
+    import { Phone, Mail, MapPin, Twitter, Instagram , MessageCircle, Bell,LucideGithub,CheckCircle,Circle } from 'lucide-react';
 
     const ContactForm: React.FC = () => {
     const [formData, setFormData] = useState({
@@ -107,23 +107,30 @@
                 />
             </div>
             <div className="mb-4">
-                <label className="block text-sm font-medium mb-1">Select Subject</label>
-                <div className="flex space-x-4">
-                {['General Inquiry', 'Advert has errors', 'Want admin'].map((option) => (
-                    <label key={option} className="flex items-center space-x-2">
-                    <input
-                        type="radio"
-                        name="subject"
-                        value={option}
-                        checked={formData.subject === option}
-                        onChange={handleChange}
-                        className="form-radio text-primary"
-                    />
-                    <span>{option}</span>
-                    </label>
-                ))}
-                </div>
-            </div>
+                <label className="block text-sm font-medium mb-1 text-green-800">Select Subject</label>
+                    <div className="flex flex-wrap space-x-4">
+                        {['General Inquiry', 'Advert has errors', 'Want admin'].map((option) => (
+                            <button
+                                key={option}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
+                                formData.subject === option
+                                    ? "bg-primary text-white border border-primary"
+                                    : " text-black border "
+                                }`}
+                                onClick={() => handleChange({ target: { name: "subject", value: option } })}
+                            >
+                                {formData.subject === option ? (
+                                <CheckCircle size={16} />
+                                ) : (
+                                <Circle size={16} />
+                                )}
+                                <span>{option}</span>
+                            </button>
+                            ))}
+                        </div>
+                        </div>
+
+
             <div className="mb-4">
                 <label htmlFor="message" className="block text-sm font-medium mb-1">Message</label>
                 <textarea
