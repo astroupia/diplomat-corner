@@ -84,6 +84,6 @@ import Card from "./CardHouse";
         </div>
         </div>
     );
-    };
+    };  
 
     export default Page;
