@@ -1,4 +1,4 @@
-"use client"; // Add this directive to ensure client-side execution
+"use client"; 
 
 import { Upload, Wifi, Home, Car, Check, PlayCircle, Church, Dumbbell, Circle, CheckCircle, ShoppingCart, Plus, Pen, Tv } from "lucide-react";
 import { useState } from "react";
