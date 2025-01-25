@@ -31,16 +31,16 @@
         {/* Contact Information */}
         <div className="relative w-full md:w-1/3 bg-primary text-white p-6 rounded-l-lg">
             <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
-            <p className="mb-6">Say something to start a live chat!</p>
-            <ul>
+            <p className="mb-36">Say something to start a live chat!</p>
+            <ul className='space-y-8'>
             <li className="mb-4 flex items-center">
-                <Phone className="mr-2" /> +1012 3456 789
+                <Phone className="mr-2" /> +251910111213
             </li>
             <li className="mb-4 flex items-center">
-                <Mail className="mr-2" /> demo@gmail.com
+                <Mail className="mr-2" /> ethio@gmail.com
             </li>
             <li className="mb-4 flex items-center">
-                <MapPin className="mr-2" /> 132 Dartmouth Street Boston, MA 02156
+                <MapPin className="mr-2" /> Addis Ababa, Dembel Kebede Building
             </li>
             </ul>
             {/* Social Media Icons */}
@@ -67,7 +67,7 @@
                     type="text"
                     name="firstName"
                     id="firstName"
-                    className="w-full border border-gray-300 rounded-md p-2"
+                        className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                     onChange={handleChange}
                     value={formData.firstName}
                 />
@@ -78,19 +78,48 @@
                     type="text"
                     name="lastName"
                     id="lastName"
-                    className="w-full border border-gray-300 rounded-md p-2"
+                        className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                     onChange={handleChange}
                     value={formData.lastName}
                 />
                 </div>
             </div>
-            <div className="mb-4">
+            <div className="grid grid-cols-2 gap-4 mb-4">
+  <div>
+    <label htmlFor="email" className="block text-sm font-medium mb-1">
+      Email
+    </label>
+    <input
+      type="email"
+      name="email"
+      id="email"
+      className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
+      onChange={handleChange}
+      value={formData.email}
+    />
+  </div>
+  <div>
+    <label htmlFor="phone" className="block text-sm font-medium mb-1">
+      Phone Number
+    </label>
+    <input
+      type="tel"
+      name="phone"
+      id="phone"
+      className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
+      onChange={handleChange}
+      value={formData.phone}
+    />
+  </div>
+</div>
+
+            {/* <div className="mb-4">
                 <label htmlFor="email" className="block text-sm font-medium mb-1">Email</label>
                 <input
                 type="email"
                 name="email"
                 id="email"
-                className="w-full border border-gray-300 rounded-md p-2"
+                className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                 onChange={handleChange}
                 value={formData.email}
                 />
@@ -101,11 +130,11 @@
                 type="tel"
                 name="phone"
                 id="phone"
-                className="w-full border border-gray-300 rounded-md p-2"
+                    className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                 onChange={handleChange}
                 value={formData.phone}
                 />
-            </div>
+            </div> */}
             <div className="mb-4">
                 <label className="block text-sm font-medium mb-1 text-green-800">Select Subject</label>
                     <div className="flex flex-wrap space-x-4">
@@ -137,8 +166,8 @@
                 name="message"
                 id="message"
                 rows={4}
-                className="w-full border border-gray-300 rounded-md p-2"
-                onChange={handleChange}
+                className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
+               onChange={handleChange}
                 value={formData.message}
                 />
             </div>
