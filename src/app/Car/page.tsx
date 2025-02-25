@@ -1,8 +1,7 @@
-import Home from "@/components/CarContaner/CarContaner";
-
+import Home from "@/components/car-container/CarContaner";
 
 const Car = () => {
-    return <Home />;
-    };
+  return <Home />;
+};
 
 export default Car;
