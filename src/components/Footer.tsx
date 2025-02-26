@@ -69,7 +69,7 @@
                 </a>
                 </li>
                 <li>
-                <a href="/Product" className="text-black hover:text-gray-800">
+                <a href="/Ad" className="text-black hover:text-gray-800">
                     Shop
                 </a>
                 </li>
