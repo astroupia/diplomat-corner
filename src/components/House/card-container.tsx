@@ -1,5 +1,5 @@
     import React from "react";
-import Card from "./CardHouse";
+import Card from "./card-house";
 
     const Page: React.FC = () => {
     const properties = [

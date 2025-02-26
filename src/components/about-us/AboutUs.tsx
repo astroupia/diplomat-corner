@@ -1,4 +1,5 @@
-import MaxWidthWrapper from "@/components/MaxWidthWrapper"; 
+
+import MaxWidthWrapper from "@/components/max-width-wrapper";
 import React from 'react';
 import CardAbout from "./CardAbout";
 import ContactForm from './ContactForm';

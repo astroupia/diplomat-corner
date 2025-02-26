@@ -1,8 +1,8 @@
 "use client";
-import React, { useState } from "react";
-import {Upload,Wifi,Home,Car,CheckCircle,Circle,ShoppingCart,Plus,Pen,Tv,} from "lucide-react";
-import MaxWidthWrapper from "./MaxWidthWrapper";
+import { Car, CheckCircle, Circle, Home, Pen, Plus, ShoppingCart, Tv, Upload } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import MaxWidthWrapper from "./max-width-wrapper";
 
 const ManageProductsAndAds = () => {
     const [selectedTransmission, setSelectedTransmission] = useState("WiFi");
@@ -37,10 +37,12 @@ const ManageProductsAndAds = () => {
                     <Tv size={20} className="mr-2" />
                     Adverts
                 </li>
+                <Link href="/Ad">
                 <li className="pl-4 flex flex-row items-center text-primary">
                     <Plus size={16} className="mr-2" />
                     Add Adverts
                 </li>
+                </Link>
                 <li className="pl-4 flex flex-row items-center text-primary">
                     <Pen size={16} className="mr-2" />
                     Edit Adverts
@@ -71,7 +73,7 @@ const ManageProductsAndAds = () => {
                 {/* Form Section */}
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 rounded-3xl p-4 lg:p-6">
                 {/* Left Section */}
-                <div className="col-span-12 lg:col-span-8 space-y-6 bg-secondary p-4 lg:p-6 rounded-3xl shadow-md border-3 border-primary">
+                <div className="col-span-12 lg:col-span-8 space-y-6 bg-secondary p-4 lg:p-6 rounded-3xl shadow-md border-3 border-primary ">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <label className="block text-sm font-semibold text-primary">
@@ -125,7 +127,7 @@ const ManageProductsAndAds = () => {
                         Transmission
                         </label>
                         <div className="flex flex-wrap space-x-2">
-                        {["WiFi", "Manual"].map((option) => (
+                        {["Automatic", "Manual"].map((option) => (
                             <button
                             key={option}
                             className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${

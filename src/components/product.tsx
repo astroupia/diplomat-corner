@@ -1,9 +1,10 @@
 "use client"; 
 
-import { Upload, Wifi, Home, Car, Check, PlayCircle, Church, Dumbbell, Circle, CheckCircle, ShoppingCart, Plus, Pen, Tv } from "lucide-react";
-import { useState } from "react";
-import MaxWidthWrapper from "./MaxWidthWrapper";
+import { Car, CheckCircle, Circle, Home, Pen, PlayCircle, Plus, ShoppingCart, Tv, Upload } from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import MaxWidthWrapper from "./max-width-wrapper";
+
 
 const ProductForm = () => {
   const [selected, setSelected] = useState<string[]>([]);
@@ -43,8 +44,11 @@ const ProductForm = () => {
             <li className="pl-4 flex flex-row text-primary"><Plus/> Add Products</li>
             <li className="pl-4 text-primary flex flex-row"><Pen/> Edit Products</li>
             <li className="flex flex-row"><Tv/>Adverts</li>
-            <li className="pl-4 flex flex-row text-primary"><Plus/>Add Adverts</li>
-            <li className="pl-4 flex flex-row text-primary"><Pen/> Edit Adverts</li>
+            <Link href="/Ad">
+            <li className="pl-4 flex flex-row text-primary"><Plus/>Add Adverts</li></Link>
+            <Link
+            href="/Ad"><li className="pl-4 flex flex-row text-primary"><Pen/> Edit Adverts</li>
+            </Link>
           </ul>
         </aside>
   

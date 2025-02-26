@@ -1,15 +1,15 @@
-import MaxWidthWrapper from "@/components/MaxWidthWrapper";
-import { ChevronDown, Fullscreen, Plus, Star } from "lucide-react";
-import Link from "next/link";
+import MaxWidthWrapper from "@/components/max-width-wrapper";
+import { ChevronDown, Plus, Star } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import {
-  Air,
-  Air_Two,
-  B,
-  B2,
-  Product_Car,
-  Woman,
-  Half,
+    Air,
+    Air_Two,
+    B,
+    B2,
+    Half,
+    Product_Car,
+    Woman,
 } from "../../public/assets/images";
 
 export default function Home() {
