@@ -149,9 +149,7 @@ const ContactForm: React.FC = () => {
                         : " text-black border "
                     }`}
                     onClick={() =>
-                      handleChange({
-                        target: { name: "subject", value: option },
-                      })
+                      setFormData({ ...formData, subject: option })
                     }
                   >
                     {formData.subject === option ? (
