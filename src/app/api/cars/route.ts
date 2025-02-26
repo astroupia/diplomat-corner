@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/dbConnect';
-import Car from '@/models/car';
+import dbConnect from '@/lib/db-connect';
+import Car from '../../../models/car';
 export async function GET() {
   try {
     await dbConnect(); // Ensure DB connection
