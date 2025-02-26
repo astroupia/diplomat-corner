@@ -1,5 +1,5 @@
 import React from "react";
-import { SignUpButton, SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignUpButton, SignInButton } from "@clerk/nextjs";
 
 const Footer: React.FC = () => {
   return (
