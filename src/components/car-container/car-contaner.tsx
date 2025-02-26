@@ -1,5 +1,5 @@
 import React from "react";
-import Card from "./CarCard";
+import Card from "./car-card";
 
 const Page: React.FC = () => {
   const cars = [

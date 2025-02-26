@@ -1,9 +1,9 @@
-import ProductForm from "@/components/product";
+import ManageHouse from "@/components/manage-house";
 
 export default function Home() {
-    return (
-        <div>
-        <ProductForm />
-        </div>
-    );
+  return (
+    <div>
+      <ManageHouse />
+    </div>
+  );
 }
