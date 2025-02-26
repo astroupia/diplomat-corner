@@ -1,4 +1,5 @@
 import React from "react";
+
 import { SignUpButton, SignInButton } from "@clerk/nextjs";
 
 const Footer: React.FC = () => {
