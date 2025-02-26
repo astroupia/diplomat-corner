@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import connectToDatabase from "@/lib/db-connect";
+import { connectToDatabase } from "@/lib/db-connect";
 import { CreateUserParams, UpdateUserParams } from "@/lib/types/user";
 import User from "@/lib/models/user.model"; // Import the User model
 
