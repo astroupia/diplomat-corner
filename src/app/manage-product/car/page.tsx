@@ -1,9 +1,9 @@
-import ManageProductsAndAds from "@/components/car-product";
+import ManageCar from "@/components/manage-car";
 
 export default function Home() {
-    return (
-        <div>
-            <ManageProductsAndAds/>
-        </div>
-    );
+  return (
+    <div>
+      <ManageCar />
+    </div>
+  );
 }
