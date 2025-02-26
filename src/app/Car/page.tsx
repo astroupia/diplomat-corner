@@ -1,9 +1,7 @@
-import Page from "@/components/car/car-container";
-
+import CarContainer from "@/components/car/car-container";
 
 const Car = () => {
-    return <Page/>;
-    };
-
+  return <CarContainer />;
+};
 
 export default Car;
