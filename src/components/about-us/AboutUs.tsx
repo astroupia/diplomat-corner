@@ -1,3 +1,4 @@
+
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import React from 'react';
 import CardAbout from "./CardAbout";
