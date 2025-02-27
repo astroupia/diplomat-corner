@@ -1,6 +1,6 @@
-import CarContainer from "@/components/car/car-container";
+import CardContainer from "@/components/house/card-container";
 
 const HouseForRent = () => {
-  return <CarContainer />;
+  return <CardContainer />;
 };
 export default HouseForRent;
