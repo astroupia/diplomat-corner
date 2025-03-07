@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Car, Upload, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function AddCarPage() {
   return (
@@ -196,7 +197,7 @@ export default function AddCarPage() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="relative aspect-square rounded-md border overflow-hidden">
-                  <img
+                  <Image
                     src="/placeholder.svg"
                     alt="Vehicle preview"
                     className="object-cover w-full h-full"
@@ -210,7 +211,7 @@ export default function AddCarPage() {
                   </Button>
                 </div>
                 <div className="relative aspect-square rounded-md border overflow-hidden">
-                  <img
+                  <Image
                     src="/placeholder.svg"
                     alt="Vehicle preview"
                     className="object-cover w-full h-full"
@@ -224,7 +225,7 @@ export default function AddCarPage() {
                   </Button>
                 </div>
                 <div className="relative aspect-square rounded-md border overflow-hidden">
-                  <img
+                  <Image
                     src="/placeholder.svg"
                     alt="Vehicle preview"
                     className="object-cover w-full h-full"
