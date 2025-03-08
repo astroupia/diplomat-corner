@@ -34,7 +34,7 @@ const Footer: React.FC = () => {
             </li>
             <li>
               <a
-                href="/HouseForRent"
+                href="/manage-product/house/page"
                 className="text-black hover:text-gray-800"
               >
                 House For Rent
