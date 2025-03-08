@@ -81,7 +81,7 @@ const NavBar = () => {
                       <Megaphone className="w-6 h-6" />
                     </Link>
                     <Link
-                      href="/Product"
+                      href="/manage-product/house"
                       className="px-2 hover:text-primary transition"
                     >
                       Manage Products
