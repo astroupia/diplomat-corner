@@ -1,6 +1,7 @@
+// components/ContactForm.tsx
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useTransition } from "react";
 import {
   Phone,
   Mail,
@@ -11,35 +12,50 @@ import {
   CheckCircle,
   Circle,
 } from "lucide-react";
-
+import { submitContactForm } from "@/lib/actions/Review.actions";
 const ContactForm: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    subject: "General Inquiry",
+    subject: "General Inquiry" as "General Inquiry" | "Advert has errors" | "Want admin",
     message: "",
   });
+  const [isPending, startTransition] = useTransition();
+  const [submitResult, setSubmitResult] = useState<{
+    success: boolean;
+    message: string;
+    errors?: any[];
+  } | null>(null);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    startTransition(async () => {
+      const result = await submitContactForm(new FormData(e.target as HTMLFormElement));
+      setSubmitResult(result);
+      if (result.success) {
+        setFormData({
+          firstName: "",
+          lastName: "",
+          email: "",
+          phone: "",
+          subject: "General Inquiry",
+          message: "",
+        });
+      }
+    });
   };
 
   return (
     <div className="flex flex-wrap bg-gray-100 p-8">
-      {/* Contact Information */}
       <div className="relative w-full md:w-1/3 bg-primary text-white p-6 rounded-l-lg">
         <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
         <p className="mb-36">Say something to start a live chat!</p>
@@ -54,29 +70,18 @@ const ContactForm: React.FC = () => {
             <MapPin className="mr-2" /> Addis Ababa, Dembel Kebede Building
           </li>
         </ul>
-        {/* Social Media Icons */}
         <div className="absolute bottom-4 left-6 flex space-x-4">
-          <a href="#" className="text-white hover:text-gray-200">
-            <Twitter />
-          </a>
-          <a href="#" className="text-white hover:text-gray-200">
-            <Instagram />
-          </a>
-          <a href="#" className="text-white hover:text-gray-200">
-            <LucideGithub />
-          </a>
+          <a href="#" className="text-white hover:text-gray-200"><Twitter /></a>
+          <a href="#" className="text-white hover:text-gray-200"><Instagram /></a>
+          <a href="#" className="text-white hover:text-gray-200"><LucideGithub /></a>
         </div>
       </div>
 
-      {/* Contact Form */}
       <div className="w-full md:w-2/3 bg-white p-6 rounded-r-lg shadow-lg">
         <form onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label
-                htmlFor="firstName"
-                className="block text-sm font-medium mb-1"
-              >
+              <label htmlFor="firstName" className="block text-sm font-medium mb-1">
                 First Name
               </label>
               <input
@@ -86,13 +91,11 @@ const ContactForm: React.FC = () => {
                 className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                 onChange={handleChange}
                 value={formData.firstName}
+                disabled={isPending}
               />
             </div>
             <div>
-              <label
-                htmlFor="lastName"
-                className="block text-sm font-medium mb-1"
-              >
+              <label htmlFor="lastName" className="block text-sm font-medium mb-1">
                 Last Name
               </label>
               <input
@@ -102,6 +105,7 @@ const ContactForm: React.FC = () => {
                 className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                 onChange={handleChange}
                 value={formData.lastName}
+                disabled={isPending}
               />
             </div>
           </div>
@@ -117,6 +121,7 @@ const ContactForm: React.FC = () => {
                 className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                 onChange={handleChange}
                 value={formData.email}
+                disabled={isPending}
               />
             </div>
             <div>
@@ -130,6 +135,7 @@ const ContactForm: React.FC = () => {
                 className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
                 onChange={handleChange}
                 value={formData.phone}
+                disabled={isPending}
               />
             </div>
           </div>
@@ -139,29 +145,28 @@ const ContactForm: React.FC = () => {
               Select Subject
             </label>
             <div className="flex flex-wrap space-x-4">
-              {["General Inquiry", "Advert has errors", "Want admin"].map(
-                (option) => (
-                  <button
-                    key={option}
-                    className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                      formData.subject === option
-                        ? "bg-primary text-white border border-primary"
-                        : " text-black border "
-                    }`}
-                    onClick={() =>
-                      setFormData({ ...formData, subject: option })
-                    }
-                  >
-                    {formData.subject === option ? (
-                      <CheckCircle size={16} />
-                    ) : (
-                      <Circle size={16} />
-                    )}
-                    <span>{option}</span>
-                  </button>
-                )
-              )}
+              {["General Inquiry", "Advert has errors", "Want admin"].map((option) => (
+                <button
+                  key={option}
+                  type="button"
+                  disabled={isPending}
+                  className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
+                    formData.subject === option
+                      ? "bg-primary text-white border border-primary"
+                      : "text-black border"
+                  }`}
+                  onClick={() => setFormData({ ...formData, subject: option })}
+                >
+                  {formData.subject === option ? (
+                    <CheckCircle size={16} />
+                  ) : (
+                    <Circle size={16} />
+                  )}
+                  <span>{option}</span>
+                </button>
+              ))}
             </div>
+            <input type="hidden" name="subject" value={formData.subject} />
           </div>
 
           <div className="mb-4">
@@ -175,14 +180,33 @@ const ContactForm: React.FC = () => {
               className="w-full border-b border-gray-300 p-2 focus:outline-none focus:border-primary"
               onChange={handleChange}
               value={formData.message}
+              disabled={isPending}
             />
           </div>
-          <button
-            type="submit"
-            className="bg-primary text-white py-2 px-4 rounded-md hover:bg-hoverPrimary"
-          >
-            Send Message
-          </button>
+
+          <div>
+            <button
+              type="submit"
+              disabled={isPending}
+              className="bg-primary text-white py-2 px-4 rounded-md disabled:opacity-50"
+            >
+              {isPending ? 'Sending...' : 'Send Message'}
+            </button>
+            {submitResult && (
+              <div className="mt-2">
+                <p className={`text-sm ${submitResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                  {submitResult.message}
+                </p>
+                {submitResult.errors && (
+                  <ul className="text-sm text-red-600 list-disc pl-5">
+                    {submitResult.errors.map((error, index) => (
+                      <li key={index}>{error.message}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
         </form>
       </div>
     </div>
