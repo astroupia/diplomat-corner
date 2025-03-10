@@ -77,7 +77,7 @@ const NavBar = () => {
                   <>
                     <UserButton />
                     {/* Notification Icon */}
-                    <Link href="#" className="text-primary">
+                    <Link href="/notifications" className="text-primary">
                       <Megaphone className="w-6 h-6" />
                     </Link>
                     <Link
