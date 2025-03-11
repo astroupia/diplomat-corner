@@ -12,7 +12,7 @@ export async function createAdvertisement(adDetails: Partial<IAdvertisement>) {
   });
 
   await advertisement.save();
-  return { success: true, id: advertisement._id.toString() }; // Convert ObjectId to string
+  return { success: true, id: advertisement._id.toString() }; 
 }
 
 export async function updateAdvertisement(adId: string, updatedDetails: Partial<IAdvertisement>) {
@@ -46,7 +46,6 @@ export async function getAdvertisementDetails(adId: string) {
     throw new Error("Advertisement not found");
   }
 
-  // Convert the entire document to a plain object and ensure _id is a string
   return {
     ...advertisement.toObject(),
     _id: advertisement._id.toString(),
@@ -57,7 +56,6 @@ export async function listAllAdvertisements() {
   await connectToDatabase();
 
   const advertisements = await Advertisement.find();
-  // Convert all documents to plain objects and ensure _id is a string
   return advertisements.map((ad) => ({
     ...ad.toObject(),
     _id: ad._id.toString(),
@@ -80,7 +78,7 @@ export async function scheduleAdvertisement(
   });
 
   await advertisement.save();
-  return { success: true, id: advertisement._id.toString() }; // Convert ObjectId to string
+  return { success: true, id: advertisement._id.toString() }; 
 }
 
 export async function setAdvertisementPriority(adId: string, priority: "High" | "Medium" | "Low") {
