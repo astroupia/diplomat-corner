@@ -1,4 +1,3 @@
-// lib/models/Review.ts (not Contact.ts)
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IReview extends Document {  // Changed from IContact to IReview

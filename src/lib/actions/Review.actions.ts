@@ -1,4 +1,3 @@
-// app/actions/contact.ts
 'use server';
 
 import { connectToDatabase } from '@/lib/db-connect';
