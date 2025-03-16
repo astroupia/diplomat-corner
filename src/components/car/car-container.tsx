@@ -1,20 +1,37 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Card from "./car-card";
+import Card from "@/components/car/car-card";
+import { ICar } from "@/lib/models/car.model";
 
 const CarContainer: React.FC = () => {
-  const [cars, setCars] = useState([]);
+  const [cars, setCars] = useState<ICar[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCars = async () => {
       try {
         const response = await fetch("/api/cars");
+        console.log("Response Status:", response.status);
+        console.log("Response Headers:", response.headers.get("content-type"));
+
+        if (!response.ok) {
+          const text = await response.text();
+          console.error("Response Text:", text);
+          throw new Error(`Failed to fetch cars: ${response.status} ${response.statusText}`);
+        }
+
         const data = await response.json();
-        setCars(data);
+        // Ensure data is an array before setting state
+        if (Array.isArray(data)) {
+          setCars(data);
+        } else {
+          throw new Error("Invalid data format: Expected an array");
+        }
       } catch (error) {
         console.error("Error fetching cars:", error);
+        setError((error as Error).message);
       } finally {
         setLoading(false);
       }
@@ -27,7 +44,7 @@ const CarContainer: React.FC = () => {
       {/* Cover Section */}
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: 'url("/ci.jpg")' }}
+        style={{ backgroundImage: 'url("/ci.jpg")' }} // Placeholder: replace with actual image
       >
         <div className="text-center text-white">
           <h1 className="text-4xl font-bold">Cars</h1>
@@ -49,13 +66,20 @@ const CarContainer: React.FC = () => {
 
           {loading ? (
             <p className="text-center">Loading cars...</p>
+          ) : error ? (
+            <p className="text-center text-red-600">{error}</p>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {cars.map((car: any, index: number) => (
-                <Card key={index} {...car} />
-              ))}
+              {cars.length > 0 ? (
+                cars.map((car) => (
+                  <Card key={car._id} {...car} _id={car._id} />
+                ))
+              ) : (
+                <p className="text-center">No cars available.</p>
+              )}
             </div>
           )}
+          <p className="text-right text-sm text-gray-500 mt-4">All Properties for Sale</p>
         </div>
       </div>
     </div>

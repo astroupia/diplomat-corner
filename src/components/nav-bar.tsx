@@ -37,17 +37,17 @@ const NavBar: React.FC<NavBarProps> = () => {
 
   return (
     <nav
-      className={`bg-white border border-primary rounded-3xl px-6 py-2 fixed top-0 left-0 right-0 z-10 shadow-md m-4 transition-all duration-300 ease-in-out ${
+      className={`bg-white border border-primary rounded-3xl px-6 py-2 fixed top-0 left-4 right-4 z-10 shadow-md m-4 transition-all duration-300 ease-in-out ${
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 -translate-y-4 pointer-events-none"
       }`}
     >
-      <section>
+      <section className="w-full">
         <MaxWidthWrapper>
-          <div className="flex items-center justify-between flex-wrap gap-4">
+          <div className="flex items-center justify-between gap-4 flex-wrap min-w-0">
             {/* Left Section: Brand Logo */}
-            <div className="flex items-center">
+            <div className="flex items-center flex-shrink-0">
               <Link href="/">
                 <span className="text-black font-bold text-base">
                   <div className="flex flex-col">
@@ -59,7 +59,7 @@ const NavBar: React.FC<NavBarProps> = () => {
             </div>
 
             {/* Middle Section: Navigation Links */}
-            <div className="flex-1 hidden lg:flex justify-center gap-6 text-lg text-black font-semibold px-6">
+            <div className="flex-1 hidden lg:flex justify-center gap-6 text-lg text-black font-semibold px-6 min-w-0">
               <Link href="/car" className="hover:text-primary transition">
                 Car For Sale
               </Link>
@@ -78,13 +78,13 @@ const NavBar: React.FC<NavBarProps> = () => {
             </div>
 
             {/* Right Section: Search, Notifications, and Authentication */}
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 flex-shrink-0 min-w-0">
               {/* Search Bar */}
               <div className="relative">
                 <input
                   type="text"
                   placeholder="Search"
-                  className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary"
+                  className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-32 lg:w-40"
                 />
                 <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary">
                   <Link href="#">
@@ -102,7 +102,6 @@ const NavBar: React.FC<NavBarProps> = () => {
                 ) : (
                   <>
                     <UserButton />
-                    {/* Notification Icon */}
                     <Link href="/notifications" className="text-primary">
                       <Megaphone className="w-6 h-6" />
                     </Link>

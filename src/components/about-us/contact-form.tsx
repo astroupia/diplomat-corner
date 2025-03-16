@@ -1,4 +1,3 @@
-// components/ContactForm.tsx
 "use client";
 
 import React, { useState, useTransition } from "react";
@@ -13,6 +12,7 @@ import {
   Circle,
 } from "lucide-react";
 import { submitContactForm } from "@/lib/actions/Review.actions";
+
 const ContactForm: React.FC = () => {
   const [formData, setFormData] = useState({
     firstName: "",
@@ -55,7 +55,7 @@ const ContactForm: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-wrap bg-gray-100 p-8">
+    <div className="flex flex-wrap bg-gray-100 p-8 relative">
       <div className="relative w-full md:w-1/3 bg-primary text-white p-6 rounded-l-lg">
         <h2 className="text-2xl font-bold mb-4">Contact Information</h2>
         <p className="mb-36">Say something to start a live chat!</p>
@@ -190,11 +190,15 @@ const ContactForm: React.FC = () => {
               disabled={isPending}
               className="bg-primary text-white py-2 px-4 rounded-md disabled:opacity-50"
             >
-              {isPending ? 'Sending...' : 'Send Message'}
+              {isPending ? "Sending..." : "Send Message"}
             </button>
             {submitResult && (
               <div className="mt-2">
-                <p className={`text-sm ${submitResult.success ? 'text-green-600' : 'text-red-600'}`}>
+                <p
+                  className={`text-sm ${
+                    submitResult.success ? "text-green-600" : "text-red-600"
+                  }`}
+                >
                   {submitResult.message}
                 </p>
                 {submitResult.errors && (
@@ -208,6 +212,18 @@ const ContactForm: React.FC = () => {
             )}
           </div>
         </form>
+      </div>
+
+      {/* Circles added at the root level to avoid clipping */}
+      <div className="absolute bottom-0 right-0 transform translate-x-1/4 -translate-y-1/4 pointer-events-none">
+        <div
+          className="w-32 h-32 rounded-full bg-[#FFF9F9] opacity-40"
+          style={{ filter: "blur(20px)" }}
+        ></div>
+        <div
+          className="w-24 h-24 rounded-full bg-[#FFF9F9] opacity-60"
+          style={{ filter: "blur(15px)", marginLeft: "-20px", marginTop: "-10px" }}
+        ></div>
       </div>
     </div>
   );
