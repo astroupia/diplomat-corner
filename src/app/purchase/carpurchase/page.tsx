@@ -1,9 +1,11 @@
-import CarDetailPage from "@/app/purchase/carpurchase/page";
+import CarPurchase from "@/components/purchase/carpurchase";
 
-export default function Home() {
-  return (
-    <div>
-      <CarDetailPage />
-    </div>
-  );
+interface CarPurchasePageProps {
+  params: { id: string };
 }
+
+export default function CarPurchasePage({ params }: CarPurchasePageProps) {
+  return <CarPurchase params={params} />;
+}
+
+export const dynamic = "force-dynamic";
