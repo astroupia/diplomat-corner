@@ -1,10 +1,8 @@
 import React from "react";
 import { Car, MapPin, Fuel } from "lucide-react";
 import Image from "next/image";
-import { ICar } from "@/lib/models/car.model"; // Import ICar for reference
 import Link from "next/link";
 
-// Define CardProps based on ICar, excluding Document methods
 interface CardProps {
   _id: string;
   Name: string;
@@ -12,7 +10,7 @@ interface CardProps {
   Mileage: number;
   MilesPerGallon: number;
   Speed: number;
-  listedBy?: string; // Optional prop
+  listedBy?: string;
 }
 
 const Card: React.FC<CardProps> = ({
@@ -22,15 +20,18 @@ const Card: React.FC<CardProps> = ({
   Mileage,
   MilesPerGallon,
   Speed,
-  listedBy = "Admin", // Default value
+  listedBy = "Admin",
 }) => {
   return (
-    <Link href={`/cars/${_id}`} className="block">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
+    <Link href={`/purchase/carpurchase${_id}`} className="block">
+      <div
+        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+        onClick={() => console.log(`Navigating to /cars/${_id}`)} // Debug navigation
+      >
         <Image
           width={300}
           height={200}
-          src="/ford-f150.jpg" // Placeholder: replace with dynamic image or actual path
+          src="/ford-f150.jpg" // Replace with dynamic image if available
           alt={Name}
           className="w-full h-48 object-cover"
         />
@@ -53,7 +54,7 @@ const Card: React.FC<CardProps> = ({
               <span>{MilesPerGallon} MPG</span>
             </div>
           </div>
-          <p className="text-gray-500 text-sm mt-2">List by {listedBy}</p>
+          <p className="text-gray-500 text-sm mt-2">Listed by {listedBy}</p>
         </div>
       </div>
     </Link>

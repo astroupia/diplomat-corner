@@ -27,8 +27,7 @@ const PurchaseSchema: Schema = new Schema({
     mpg: { type: Number, required: true },
     topSpeed: { type: Number, required: true },
   },
-  timestamp: { type: String, required: true },
+  timestamp: { type: String, required: true, default: () => new Date().toISOString() },
 });
 
-export default mongoose.models.Purchase ||
-  mongoose.model<IPurchase>("Purchase", PurchaseSchema);
+export default mongoose.models.Purchase || mongoose.model<IPurchase>("Purchase", PurchaseSchema);
