@@ -1,7 +1,7 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/db-connect"; // Adjust path if needed
-import { CarModel } from "@/lib/models/car.managment.model"; // Adjust path if needed
+import carModel from "@/lib/models/car.model";
 
 interface CarFormData {
   brandName: string;
@@ -33,7 +33,7 @@ export async function createCar(formData: CarFormData): Promise<{
     console.log("Database connection established:", connection.connection.readyState);
 
     // Create and save the car
-    const newCar = new CarModel(formData);
+    const newCar = new carModel(formData);
     const savedCar = await newCar.save();
     console.log("Car saved successfully with ID:", savedCar._id);
 
