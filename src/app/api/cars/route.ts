@@ -1,42 +1,74 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db-connect";
-import Car, { ICar } from "@/lib/models/car.model";
+import Car from "@/lib/models/car.model";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectToDatabase();
-    const cars = await Car.find().sort({ Timestamp: -1 });
-    const response = cars.map((car) => ({
-      ...car.toObject(),
-      _id: car._id.toString(),
-    }));
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("API Error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch cars: " + (error as Error).message },
-      { status: 500 }
-    );
+    const cars = await Car.find({});
+    console.log("Fetched cars:", cars);
+    return NextResponse.json(cars, { status: 200 });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Error fetching cars:", err.message, err.stack);
+    return NextResponse.json([], { status: 200 }); // Return empty array on error
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
-    const carData = await request.json();
+    const body = await req.json();
+    const {
+      name,
+      userId,
+      description,
+      advertisementType,
+      price,
+      paymentMethod,
+      mileage,
+      speed,
+      mpg,
+      timestamp,
+    } = body;
+
+    if (!name || !userId || !description || !advertisementType || !price || !paymentMethod || !mileage || !speed || !mpg || !timestamp) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    if (!["Rent", "Sale"].includes(advertisementType)) {
+      return NextResponse.json(
+        { error: "Invalid advertisementType. Must be 'Rent' or 'Sale'" },
+        { status: 400 }
+      );
+    }
+
     const newCar = new Car({
-      ...carData,
-      Timestamp: new Date().toISOString(),
+      name,
+      userId,
+      description,
+      advertisementType,
+      price,
+      paymentMethod,
+      mileage,
+      speed,
+      mpg,
+      timestamp,
     });
-    const savedCar = await newCar.save();
-    return NextResponse.json({
-      success: true,
-      id: savedCar._id.toString(),
-    });
-  } catch (error) {
-    console.error("API Error:", error);
+
+    await newCar.save();
     return NextResponse.json(
-      { error: "Failed to create car: " + (error as Error).message },
+      { message: "Car created successfully", car: newCar },
+      { status: 201 }
+    );
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error("Detailed error in POST /api/cars:", err.message, err.stack);
+    return NextResponse.json(
+      { error: "Internal server error", details: err.message },
       { status: 500 }
     );
   }
