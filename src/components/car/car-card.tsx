@@ -2,6 +2,7 @@ import React from "react";
 import { Car, MapPin, Fuel } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import Product_Car from "@/assets/images/Product_Car.jpg";
 
 interface CardProps {
   _id: string;
@@ -31,7 +32,7 @@ const Card: React.FC<CardProps> = ({
         <Image
           width={300}
           height={200}
-          src="/ford-f150.jpg" // Replace with dynamic image if available
+          src="/car.jpg" // Replace with dynamic image if available
           alt={Name}
           className="w-full h-48 object-cover"
         />

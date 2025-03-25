@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from "react";
 import Card from "@/components/car/car-card";
 import { ICar } from "@/lib/models/car.model";
-
 const CarContainer: React.FC = () => {
   const [cars, setCars] = useState<ICar[]>([]);
   const [loading, setLoading] = useState(true);
