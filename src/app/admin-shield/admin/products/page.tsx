@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Car, Home, Plus, Upload, Package } from "lucide-react";
-import { ProductsTable } from "@/components/products-table";
-import { ProductCard } from "@/components/product-card";
+import { ProductsTable } from "@/components/admin/products-table";
+import { ProductCard } from "@/components/admin/products-card";
 
-export default function ProductsPage() {
+export default function Page() {
   return (
     <div className="main-content main-content-expanded space-y-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
@@ -16,7 +16,7 @@ export default function ProductsPage() {
             <Upload className="mr-2 h-4 w-4" />
             Bulk Upload
           </Button>
-          <Button variant="green">
+          <Button variant="default">
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>

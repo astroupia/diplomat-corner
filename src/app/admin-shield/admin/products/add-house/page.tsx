@@ -19,7 +19,7 @@ export default function AddHousePage() {
     <div className="main-content space-y-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link href="/admin/products/houses">
+          <Link href="/admin-shield/admin/products/houses">
             <Button variant="outline" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>

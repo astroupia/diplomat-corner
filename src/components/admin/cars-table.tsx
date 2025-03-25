@@ -266,7 +266,7 @@ export function CarsTable({ listingType, pending = false }: CarsTableProps) {
   const router = useRouter();
 
   const handleRowClick = (id: string) => {
-    router.push(`/admin/products/cars/${id}`);
+    router.push(`/admin-shield/admin/products/cars/${id}`);
   };
 
   const filteredData = React.useMemo(() => {

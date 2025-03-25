@@ -35,7 +35,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "./ui/badge";
+import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
 
 export type House = {
@@ -278,7 +278,7 @@ export function HousesTable({
   const router = useRouter();
 
   const handleRowClick = (id: string) => {
-    router.push(`/admin/products/houses/${id}`);
+    router.push(`/admin-shield/admin/products/houses/${id}`);
   };
 
   const filteredData = React.useMemo(() => {

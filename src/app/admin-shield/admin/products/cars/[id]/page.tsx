@@ -39,7 +39,7 @@ export default function CarDetailPage({ params }: { params: { id: string } }) {
     <div className="main-content space-y-4 p-4 md:p-8">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Link href="/admin/products/cars">
+          <Link href="/admin-shield/admin/products/cars">
             <Button variant="outline" size="icon">
               <ArrowLeft className="h-4 w-4" />
             </Button>

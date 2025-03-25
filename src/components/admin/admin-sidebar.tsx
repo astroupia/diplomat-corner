@@ -30,7 +30,10 @@ export function AdminSidebar() {
       )}
     >
       <div className="flex h-16 items-center justify-between border-b px-4">
-        <Link href="/admin/dashboard" className="flex items-center gap-2">
+        <Link
+          href="/admin-shield/admin/dashboard"
+          className="flex items-center gap-2"
+        >
           {isOpen && (
             <span className="text-lg font-bold text-diplomat-green">
               Diplomat Corner
@@ -47,54 +50,54 @@ export function AdminSidebar() {
       </div>
       <div className="space-y-1 py-4 overflow-y-auto h-[calc(100vh-4rem)]">
         <NavItem
-          href="/admin/dashboard"
+          href="/admin-shield/admin/dashboard"
           icon={<LayoutDashboard className="h-5 w-5" />}
           label="Dashboard"
-          isActive={pathname === "/admin/dashboard"}
+          isActive={pathname === "/admin-shield/admin/dashboard"}
           isOpen={isOpen}
         />
         <NavItem
-          href="/admin/products"
+          href="/admin-shield/admin/products"
           icon={<Package className="h-5 w-5" />}
           label="Products"
-          isActive={pathname.startsWith("/admin/products")}
+          isActive={pathname.startsWith("/admin-shield/admin/products")}
           isOpen={isOpen}
         />
         <NavItem
-          href="/admin/products/houses"
+          href="/admin-shield/admin/products/houses"
           icon={<Home className="h-5 w-5" />}
           label="Houses"
-          isActive={pathname === "/admin/products/houses"}
+          isActive={pathname === "/admin-shield/admin/products/houses"}
           isOpen={isOpen}
           indent
         />
         <NavItem
-          href="/admin/products/cars"
+          href="/admin-shield/admin/products/cars"
           icon={<Car className="h-5 w-5" />}
           label="Cars"
-          isActive={pathname === "/admin/products/cars"}
+          isActive={pathname === "/admin-shield/admin/products/cars"}
           isOpen={isOpen}
           indent
         />
         <NavItem
-          href="/admin/advertisements"
+          href="/admin-shield/admin/advertisements"
           icon={<ImageIcon className="h-5 w-5" />}
           label="Advertisements"
-          isActive={pathname.startsWith("/admin/advertisements")}
+          isActive={pathname.startsWith("/admin-shield/admin/advertisements")}
           isOpen={isOpen}
         />
         <NavItem
-          href="/admin/payments"
+          href="/admin-shield/admin/payments"
           icon={<CreditCard className="h-5 w-5" />}
           label="Payments"
-          isActive={pathname === "/admin/payments"}
+          isActive={pathname === "/admin-shield/admin/payments"}
           isOpen={isOpen}
         />
         <NavItem
-          href="/admin/statistics"
+          href="/admin-shield/admin/statistics"
           icon={<BarChart3 className="h-5 w-5" />}
           label="Statistics"
-          isActive={pathname === "/admin/statistics"}
+          isActive={pathname === "/admin-shield/admin/statistics"}
           isOpen={isOpen}
         />
       </div>

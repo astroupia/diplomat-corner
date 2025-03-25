@@ -43,7 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Badge } from "./ui/badge";
+import { Badge } from "@/components/ui/badge";
 
 export type Product = {
   id: string;
