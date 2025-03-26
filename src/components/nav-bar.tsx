@@ -37,7 +37,7 @@ const NavBar: React.FC<NavBarProps> = () => {
 
   return (
     <nav
-    className={`bg-white border border-b-primary px-6 py-2 fixed top-0 left-0 right-0 z-10 shadow-md m-0 transition-all duration-700 ease-in ${
+    className={`bg-white border border-b-primary px-6 py-2 fixed top-0 left-0 right-0 z-10 shadow-md m-0 transition-all duration-700 ease-out ${
       isVisible
         ? "opacity-100 translate-y-0 "
         : "opacity-0 -translate-y-9  pointer-events-none"
