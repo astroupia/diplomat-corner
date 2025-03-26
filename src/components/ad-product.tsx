@@ -32,7 +32,7 @@ interface CarFormData {
   description: string;
 }
 
-const ManageCar = () => {
+const ManageAds = () => {
   const [selectedTransmission, setSelectedTransmission] = useState<string>("Automatic");
   const [selectedFuel, setSelectedFuel] = useState<string>("Gasoline");
   const [selectedBodyType, setSelectedBodyType] = useState<string>("Truck");
@@ -492,4 +492,4 @@ const ManageCar = () => {
   );
 };
 
-export default ManageCar;
+export default ManageAds;

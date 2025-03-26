@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
           <h2 className="text-lg font-semibold text-primary mb-2">Connect</h2>
           <ul>
             <li>
-              <Link href="#" className="text-black hover:text-gray-800">
+              <Link href="/advertisment" className="text-black hover:text-gray-800">
                 Contact
               </Link>
             </li>

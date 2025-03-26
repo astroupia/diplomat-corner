@@ -37,20 +37,22 @@ const NavBar: React.FC<NavBarProps> = () => {
 
   return (
     <nav
-      className={`bg-white border border-primary rounded-3xl px-6 py-2 fixed top-0 left-4 right-4 z-10 shadow-md m-4 transition-all duration-300 ease-in-out ${
-        isVisible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 -translate-y-4 pointer-events-none"
-      }`}
-    >
+    className={`bg-white border border-b-primary px-6 py-2 fixed top-0 left-0 right-0 z-10 shadow-md m-0 transition-all duration-700 ease-in ${
+      isVisible
+        ? "opacity-100 translate-y-0 "
+        : "opacity-0 -translate-y-9  pointer-events-none"
+    }`}
+  >
+  
+
       <section className="w-full">
         <MaxWidthWrapper>
-          <div className="flex items-center justify-between gap-4 flex-wrap min-w-0">
+          <div className="flex items-center justify-between flex-wrap min-w-0">
             {/* Left Section: Brand Logo */}
             <div className="flex items-center flex-shrink-0">
               <Link href="/">
                 <span className="text-black font-bold text-base">
-                  <div className="flex flex-col">
+                  <div className="flex flex-col pl-2">
                     <h3>Diplomat</h3>
                     <span className="mt-[-5px] text-primary">Corner</span>
                   </div>
@@ -60,7 +62,7 @@ const NavBar: React.FC<NavBarProps> = () => {
 
             {/* Middle Section: Navigation Links */}
             <div className="flex-1 hidden lg:flex justify-center gap-6 text-lg text-black font-semibold px-6 min-w-0">
-              <Link href="/car" className="hover:text-primary transition">
+              <Link href="/Car" className="hover:text-primary transition">
                 Car For Sale
               </Link>
               <Link
@@ -107,7 +109,7 @@ const NavBar: React.FC<NavBarProps> = () => {
                     </Link>
                     <Link
                       href="/manage-product/house"
-                      className="px-2 hover:text-primary transition"
+                      className="px-2 hover:text-primary transition pl-3"
                     >
                       Manage Products
                     </Link>
