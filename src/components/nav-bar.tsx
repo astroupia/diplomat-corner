@@ -62,7 +62,7 @@ const NavBar: React.FC<NavBarProps> = () => {
 
             {/* Middle Section: Navigation Links */}
             <div className="flex-1 hidden lg:flex justify-center gap-6 text-lg text-black font-semibold px-6 min-w-0">
-              <Link href="/Car" className="hover:text-primary transition">
+              <Link href="/car" className="hover:text-primary transition">
                 Car For Sale
               </Link>
               <Link

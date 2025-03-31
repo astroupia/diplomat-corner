@@ -124,10 +124,12 @@ const ManageCar = () => {
         <div className="flex flex-col lg:flex-row bg-secondary h-auto lg:h-screen bg-primary-light p-4 lg:p-6">
           <aside className="w-full lg:w-1/5 bg-secondary rounded-3xl shadow-md p-4 border-2 border-primary lg:mb-0 lg:pr-7 lg:mr-4 mb-6">
             <ul className="space-y-4 text-primary font-semibold text-sm md:text-base">
+              <Link href="/adverisment">
               <li className="flex flex-row items-center">
                 <ShoppingCart size={20} className="mr-2" />
                 Products
               </li>
+              </Link>
               <li className="pl-4 flex flex-row items-center text-primary">
                 <Plus size={16} className="mr-2" />
                 Add Products

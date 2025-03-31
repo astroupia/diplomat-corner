@@ -1,48 +1,59 @@
 import React from "react";
 import { Bed, Bath, Ruler } from "lucide-react";
 import Image from "next/image";
-import { House } from "../../../public/assets/images";
+import Link from "next/link";
+import { HouseDetails } from "@/lib/actions/house.Actions";
 
-interface CardProps {
-  address: string;
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  size: number;
+
+interface CardProps extends HouseDetails {
+  listedBy?: string; // Optional, defaults to "Admin"
 }
 
 const CardHouse: React.FC<CardProps> = ({
-  address,
+  id,
+  name,
   price,
-  bedrooms,
-  bathrooms,
+  bedroom,
+  bathroom,
   size,
+  listedBy = "Admin",
 }) => {
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Image src={House} alt="Property" className="w-full h-48 object-cover" />
-      <div className="p-4">
-        <h2 className="text-lg font-semibold">{address}</h2>
-        <p className="text-green-600 text-xl font-bold">
-          ${price.toLocaleString()}
-        </p>
-        <div className="flex justify-between text-gray-700 mt-2">
-          <div className="flex items-center gap-1">
-            <Bed size={18} />
-            <span>{bedrooms}</span>
+    <Link href={`/houses/${id}`} className="block">
+      <div
+        className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
+        onClick={() => console.log(`Navigating to /houses/${id}`)} // Debug navigation
+      >
+        <Image
+          width={300}
+          height={200}
+          src="./c.jpg"// Replace with dynamic image if available
+          alt={name}
+          className="w-full h-48 object-cover"
+        />
+        <div className="p-4">
+          <h2 className="text-lg font-semibold">{name}</h2>
+          <p className="text-green-600 text-xl font-bold">
+            ${price.toLocaleString()}
+          </p>
+          <div className="flex justify-between text-gray-700 mt-2">
+            <div className="flex items-center gap-1">
+              <Bed size={18} />
+              <span>{bedroom} Beds</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Bath size={18} />
+              <span>{bathroom} Baths</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Ruler size={18} />
+              <span>{size.toLocaleString()} ft²</span>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <Bath size={18} />
-            <span>{bathrooms}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Ruler size={18} />
-            <span>{size.toLocaleString()} ft²</span>
-          </div>
+          <p className="text-gray-500 text-sm mt-2">Listed by {listedBy}</p>
         </div>
-        <p className="text-gray-500 text-sm mt-2">List by Admin</p>
       </div>
-    </div>
+    </Link>
   );
 };
 

@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/db-connect";
-import Car from "@/lib/models/car.model";
+  import { NextResponse } from "next/server";
+  import { connectToDatabase } from "@/lib/db-connect";
+  import Car from "@/lib/models/car.model";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+  export async function GET(request: Request, { params }: { params: { id: string } }) {
   try {
     await connectToDatabase();
     console.log(`API: Fetching car with ID: ${params.id}`);
@@ -23,10 +23,10 @@ export async function GET(request: Request, { params }: { params: { id: string }
       Description: car.Description,
     };
     console.log("API: Returning car data:", carData);
-    return NextResponse.json(carData);
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : "Unknown server error";
-    console.error(`API Error for /api/carpurchase/${params.id}:`, errorMessage);
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
+      return NextResponse.json(carData);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown server error";
+      console.error(`API Error for /api/carpurchase/${params.id}:`, errorMessage);
+      return NextResponse.json({ error: errorMessage }, { status: 500 });
+    }
   }
-}

@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import mongoose from "mongoose";
+import House from "@/lib/models/house.model";
 
-export type House = {
+export interface HouseDetails {
   id: string;
   name: string;
   userId: string;
@@ -14,52 +15,24 @@ export type House = {
   parkingSpace: number;
   bathroom: number;
   size: number;
-  timestamp: string;
+  houseType: "House" | "Apartment" | "Guest House";
+  timestamp?: string;
+}
+
+const toPlainObject = (doc: any) => {
+  return doc ? JSON.parse(JSON.stringify(doc)) : null;
 };
 
 export async function createHouse(formData: FormData) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/houses`, {
-    method: "POST",
-    body: JSON.stringify({
-      id: crypto.randomUUID(),
+  try {
+    console.log("createHouse called with:", Object.fromEntries(formData)); // Debug
+    await mongoose.connect(process.env.MONGODB_URI!);
+    console.log("Connected to MongoDB"); // Debug
+
+    const houseDetails: HouseDetails = {
+      id: formData.get("id") as string,
       name: formData.get("name") as string,
       userId: formData.get("userId") as string,
-      description: formData.get("description") as string,
-      advertisementType: "Rent",
-      price: Number(formData.get("price")),
-      paymentMethod: formData.get("paymentMethod") as "Monthly" | "Quarterly" | "Annual",
-      bedroom: Number(formData.get("bedroom")),
-      parkingSpace: Number(formData.get("parkingSpace")),
-      bathroom: Number(formData.get("bathroom")),
-      size: Number(formData.get("size")),
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
-
-  revalidatePath("/houses");
-  return await response.json();
-}
-
-export async function deleteHouse(houseId: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/houses?houseId=${houseId}`,
-    {
-      method: "DELETE",
-    }
-  );
-
-  revalidatePath("/houses");
-  return await response.json();
-}
-
-export async function updateHouseDetails(houseId: string, formData: FormData) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/houses`, {
-    method: "PUT",
-    body: JSON.stringify({
-      id: houseId,
-      name: formData.get("name") as string,
       description: formData.get("description") as string,
       advertisementType: formData.get("advertisementType") as "Rent" | "Sale",
       price: Number(formData.get("price")),
@@ -68,19 +41,16 @@ export async function updateHouseDetails(houseId: string, formData: FormData) {
       parkingSpace: Number(formData.get("parkingSpace")),
       bathroom: Number(formData.get("bathroom")),
       size: Number(formData.get("size")),
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+      houseType: formData.get("houseType") as "House" | "Apartment" | "Guest House",
+      timestamp: new Date().toISOString(),
+    };
+    console.log("House details prepared:", houseDetails); // Debug
 
-  revalidatePath("/houses");
-  return await response.json();
-}
-
-export async function getHouseDetails(houseId: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/houses?houseId=${houseId}`
-  );
-  return await response.json() as House;
+    const house = await new House(houseDetails).save();
+    console.log("House saved to DB:", house); // Debug
+    return { success: true, house: toPlainObject(house) };
+  } catch (error) {
+    console.error("Error creating house:", error);
+    return { success: false, error: (error as Error).message };
+  }
 }

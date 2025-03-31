@@ -2,7 +2,7 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/db-connect";
-import Car from "@/lib/models/car.model"; // Use car.model.ts
+import Car from "@/lib/models/car.model";
 
 interface CarFormData {
   brandName: string;
@@ -23,6 +23,7 @@ interface CarFormData {
 
 export async function createCar(formData: CarFormData) {
   try {
+    // Ensure the database is connected before proceeding
     await connectToDatabase();
 
     const newCar = new Car({
@@ -39,6 +40,7 @@ export async function createCar(formData: CarFormData) {
     });
 
     const savedCar = await newCar.save();
+    console.log("Car saved successfully:", savedCar._id);
     return {
       success: true,
       message: "Car saved successfully",
@@ -46,7 +48,7 @@ export async function createCar(formData: CarFormData) {
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error in createCar:", errorMessage);
+    console.error("Error in createCar:", errorMessage, error);
     return {
       success: false,
       message: `Failed to save car: ${errorMessage}`,

@@ -2,30 +2,24 @@
 
 import React, { useEffect, useState } from "react";
 import CardHouse from "@/components/house/card-house";
-import { House } from "@/lib/actions/house.Actions";
+import { HouseDetails } from "@/lib/actions/house.Actions";
 
 const CardContainer: React.FC = () => {
-  const [houses, setHouses] = useState<House[]>([]);
+  const [houses, setHouses] = useState<HouseDetails[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHouses = async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
-      
       try {
-        const response = await fetch(`${apiUrl}/api/houses`);
-        console.log("Response Status:", response.status);
-        console.log("Response Headers:", response.headers.get("content-type"));
-
+        console.log("Fetching houses from /api/houses");
+        const response = await fetch("/api/houses");
+        console.log("Response status:", response.status);
         if (!response.ok) {
-          const text = await response.text();
-          console.error("Response Text:", text);
           throw new Error(`Failed to fetch houses: ${response.status} ${response.statusText}`);
         }
-
         const data = await response.json();
-        // Ensure data is an array before setting state
+        console.log("Fetched data:", data);
         if (Array.isArray(data)) {
           setHouses(data);
         } else {
@@ -34,7 +28,6 @@ const CardContainer: React.FC = () => {
       } catch (error) {
         console.error("Error fetching houses:", error);
         setError((error as Error).message);
-        // Fallback data in case of error
         setHouses([
           {
             id: "1",
@@ -48,6 +41,7 @@ const CardContainer: React.FC = () => {
             parkingSpace: 2,
             bathroom: 4,
             size: 2096,
+            houseType: "House",
             timestamp: new Date().toISOString(),
           },
         ]);
@@ -59,53 +53,42 @@ const CardContainer: React.FC = () => {
   }, []);
 
   return (
-    <div>
-      {/* Cover Section */}
+    <div className="flex flex-col min-h-screen">
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: 'url("/c.jpg")' }}
       >
         <div className="text-center text-white">
-          <h1 className="text-4xl font-bold">Properties</h1>
-          <p className="text-lg mt-2">Service / House for Rent</p>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Properties</h1>
+          <p className="text-base sm:text-lg mt-2">Service / House for Rent</p>
         </div>
       </div>
-
-      {/* Main Content */}
-      <div className="bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold">All Properties</h2>
-            <select className="border border-gray-300 rounded px-3 py-1 text-gray-600">
+      <div className="bg-gray-50 py-6 sm:py-8 flex-1">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-4">
+            <h2 className="text-xl sm:text-2xl font-bold">All Properties</h2>
+            <select className="border border-gray-300 rounded px-3 py-1 text-gray-600 text-sm sm:text-base w-full sm:w-auto">
               <option>Default Order</option>
               <option>Price Low to High</option>
               <option>Price High to Low</option>
             </select>
           </div>
-
           {loading ? (
-            <p className="text-center">Loading properties...</p>
+            <p className="text-center text-gray-600">Loading properties...</p>
           ) : error ? (
             <p className="text-center text-red-600">{error}</p>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {houses.length > 0 ? (
                 houses.map((house) => (
-                  <CardHouse
-                    key={house.id}
-                    address={house.name}
-                    price={house.price}
-                    bedrooms={house.bedroom}
-                    bathrooms={house.bathroom}
-                    size={house.size}
-                  />
+                  <CardHouse key={house.id} {...house} />
                 ))
               ) : (
-                <p className="text-center">No properties available.</p>
+                <p className="text-center text-gray-600 col-span-full">No properties available.</p>
               )}
             </div>
           )}
-          <p className="text-right text-sm text-gray-500 mt-4">All Properties for Rent</p>
+          <p className="text-right text-sm text-gray-500 mt-4 sm:mt-6">All Properties for Rent</p>
         </div>
       </div>
     </div>
