@@ -244,27 +244,6 @@ const ManageHouse: React.FC = () => {
                     </p>
                   </div>
 
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-primary">Price</label>
-                    <input
-                      type="number"
-                      name="price"
-                      className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
-                      placeholder="1000"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs sm:text-sm font-semibold text-primary">Description</label>
-                    <textarea
-                      name="description"
-                      className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
-                      placeholder="House description"
-                      required
-                    />
-                  </div>
-
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-xs sm:text-sm font-semibold text-primary">Condition</label>
@@ -284,6 +263,16 @@ const ManageHouse: React.FC = () => {
                         placeholder="Frequent"
                       />
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-primary">Price</label>
+                    <input
+                      type="number"
+                      name="price"
+                      className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
+                      placeholder="1000"
+                      required
+                    />
                   </div>
 
                   <div>
@@ -346,6 +335,15 @@ const ManageHouse: React.FC = () => {
                         </label>
                       ))}
                     </div>
+                  </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-primary">Description</label>
+                    <textarea
+                      name="description"
+                      className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
+                      placeholder="House description"
+                      required
+                    />
                   </div>
 
                   <button
