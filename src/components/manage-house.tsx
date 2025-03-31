@@ -13,13 +13,18 @@ import {
   Upload,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { createHouse } from "@/lib/actions/house.Actions";
+
 const ManageHouse: React.FC = () => {
   const [selected, setSelected] = useState<string[]>([]);
   const [paymentTerm, setPaymentTerm] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
+  const [houseType, setHouseType] = useState<"House" | "Apartment" | "Guest House">("House");
+  const [buttonText, setButtonText] = useState<string>("Send");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const essentials = [
     "WiFi",
@@ -39,15 +44,51 @@ const ManageHouse: React.FC = () => {
     );
   };
 
-  const handleSubmit = async (formData: FormData) => {
-    formData.append("id", crypto.randomUUID());
-    formData.append("name", (formData.get("address") as string) || "New House Listing");
-    formData.append("userId", "user-id-here"); // Replace with actual user ID
-    formData.append("description", "House listing");
-    formData.append("advertisementType", "Rent");
-    formData.append("parkingSpace", "0");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setButtonText("Sending");
 
-    await createHouse(formData);
+    const formData = new FormData(e.currentTarget);
+    formData.append("id", crypto.randomUUID());
+    formData.append("name", formData.get("address") as string || "New House Listing");
+    formData.append("userId", "user-id-here"); // Replace with actual user ID
+    formData.append("description", formData.get("description") as string || "House listing");
+    formData.append("advertisementType", "Rent");
+    formData.append("price", formData.get("price") as string || "0");
+    formData.append("paymentMethod", paymentTerm || "Monthly");
+    formData.append("parkingSpace", "0");
+    formData.append("bedroom", formData.get("bedroom") as string || "0");
+    formData.append("bathroom", formData.get("bathroom") as string || "0");
+    formData.append("size", formData.get("size") as string || "0");
+    formData.append("houseType", houseType);
+
+    try {
+      const result = await createHouse(formData);
+      if (result.success) {
+        setButtonText("Sent");
+        setTimeout(() => {
+          setButtonText("Send");
+          setSelected([]);
+          setPaymentTerm("");
+          setCurrency("");
+          setHouseType("House");
+          if (formRef.current) {
+            formRef.current.reset();
+          }
+        }, 2000);
+      } else {
+        setButtonText("Not Sent");
+        console.error("Error:", result.error);
+        setTimeout(() => setButtonText("Send"), 2000);
+      }
+    } catch (error) {
+      setButtonText("Not Sent");
+      console.error("Submission error:", error);
+      setTimeout(() => setButtonText("Send"), 2000);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,35 +98,35 @@ const ManageHouse: React.FC = () => {
           Manage Products and Ads
         </h1>
 
-        <div className="flex flex-col lg:flex-row bg-secondary min-h-[calc(100vh-120px)] p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-0 overflow-hidden">
-          {/* Sidebar */}
-          <aside className="w-full lg:w-1/5 bg-secondary rounded-3xl shadow-md p-3 sm:p-4 border-2 border-primary lg:mr-4">
+        <div className="flex flex-col lg:flex-row bg-secondary min-h-[calc(100vh-120px)] p-2 sm:p-4 lg:p-6 space-y-4 lg:space-y-0 lg:space-x-4">
+          {/* Left Sidebar */}
+          <aside className="w-full lg:w-1/5 bg-secondary rounded-3xl shadow-md p-3 sm:p-4 border-2 border-primary">
             <ul className="space-y-3 sm:space-y-4 text-primary font-semibold text-xs sm:text-sm md:text-base">
-              <li className="flex items-center gap-2">
-                <ShoppingCart size={16} className="sm:size-5" />
+              <li className="flex flex-row items-center gap-2">
+                <ShoppingCart size={16} className="sm:w-5 sm:h-5" />
                 Products
               </li>
-              <li className="pl-2 sm:pl-4 flex items-center gap-2">
-                <Plus size={16} className="sm:size-5" />
+              <li className="pl-2 sm:pl-4 flex flex-row items-center gap-2">
+                <Plus size={16} className="sm:w-5 sm:h-5" />
                 Add Products
               </li>
-              <li className="pl-2 sm:pl-4 flex items-center gap-2">
-                <Pen size={16} className="sm:size-5" />
+              <li className="pl-2 sm:pl-4 flex flex-row items-center gap-2">
+                <Pen size={16} className="sm:w-5 sm:h-5" />
                 Edit Products
               </li>
-              <li className="flex items-center gap-2">
-                <Tv size={16} className="sm:size-5" />
+              <li className="flex flex-row items-center gap-2">
+                <Tv size={16} className="sm:w-5 sm:h-5" />
                 Adverts
               </li>
               <Link href="/advertisment">
-                <li className="pl-2 sm:pl-4 flex items-center gap-2">
-                  <Plus size={16} className="sm:size-5" />
+                <li className="pl-2 sm:pl-4 flex flex-row items-center gap-2">
+                  <Plus size={16} className="sm:w-5 sm:h-5" />
                   Add Adverts
                 </li>
               </Link>
               <Link href="/Ad">
-                <li className="pl-2 sm:pl-4 flex items-center gap-2">
-                  <Pen size={16} className="sm:size-5" />
+                <li className="pl-2 sm:pl-4 flex flex-row items-center gap-2">
+                  <Pen size={16} className="sm:w-5 sm:h-5" />
                   Edit Adverts
                 </li>
               </Link>
@@ -93,62 +134,66 @@ const ManageHouse: React.FC = () => {
           </aside>
 
           {/* Main Content */}
-          <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-2 sm:p-4 lg:p-6 overflow-y-auto">
-            <div className="flex flex-col sm:flex-row gap-3 mb-4 sm:mb-6 pl-0 sm:pl-4 lg:pl-7">
+          <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-2 sm:p-4 lg:p-6 flex flex-col">
+            <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4 mb-4 sm:mb-6 pl-0 sm:pl-4 lg:pl-7">
               <Link href="/manage-product/car">
-                <button className="flex items-center justify-center gap-2 bg-white text-primary px-3 py-2 sm:px-4 sm:py-2 border border-primary rounded-lg shadow-md w-full sm:w-auto hover:bg-secondary text-xs sm:text-sm md:text-base">
-                  <Car size={16} className="sm:size-5" />
+                <button className="flex items-center justify-center space-x-2 bg-white text-primary px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 border border-primary rounded-lg shadow-md w-full sm:w-auto hover:bg-secondary text-xs sm:text-sm md:text-base">
+                  <Car size={16} className="sm:w-5 sm:h-5" />
                   <span className="font-semibold">Car For Sale</span>
                 </button>
               </Link>
               <Link href="#">
-                <button className="flex items-center justify-center gap-2 bg-secondary text-primary px-3 py-2 sm:px-4 sm:py-2 border border-primary rounded-lg shadow-md w-full sm:w-auto text-xs sm:text-sm md:text-base">
-                  <Home size={16} className="sm:size-5" />
+                <button className="flex items-center justify-center space-x-2 bg-secondary text-primary px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 rounded-lg shadow-md border border-primary w-full sm:w-auto text-xs sm:text-sm md:text-base">
+                  <Home size={16} className="sm:w-5 sm:h-5" />
                   <span className="font-semibold">House For Rent</span>
                 </button>
               </Link>
             </div>
 
-            {/* Form */}
-            <form action={handleSubmit} className="h-full">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-6">
-                {/* Left Section */}
-                <div className="lg:col-span-8 space-y-4 sm:space-y-6 bg-secondary p-4 sm:p-6 rounded-3xl shadow-md border-2 border-primary overflow-y-auto max-h-[70vh]">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <form ref={formRef} onSubmit={handleSubmit} className="flex-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-3 sm:gap-4 lg:gap-6 rounded-3xl border-primary p-2 sm:p-4 lg:p-6 h-full">
+                {/* Middle Section */}
+                <div className="col-span-1 md:col-span-1 lg:col-span-8 space-y-3 sm:space-y-4 lg:space-y-6 bg-secondary p-2 sm:p-4 lg:p-6 rounded-3xl shadow-md border-2 border-primary overflow-y-auto max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-150px)]">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-xs sm:text-sm font-semibold text-primary">Bedroom</label>
                       <input
                         type="number"
                         name="bedroom"
-                        className="w-full p-2 border-b-2 border-primary bg-secondary text-xs sm:text-sm md:text-base focus:outline-none"
+                        className="w-full p-1 sm:p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-secondary text-xs sm:text-sm md:text-base"
                         placeholder="5"
                         required
                       />
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                      <button type="button" className="flex flex-col items-center gap-1 bg-white text-primary px-3 py-2 rounded-lg shadow-md w-full sm:w-auto">
-                        <Home size={20} className="sm:size-6 lg:size-9" />
-                        <span className="text-xs sm:text-sm font-semibold">House</span>
-                      </button>
-                      <button type="button" className="flex flex-col items-center gap-1 bg-secondary text-primary px-3 py-2 rounded-lg shadow-md border border-primary w-full sm:w-auto">
-                        <Home size={20} className="sm:size-6 lg:size-9" />
-                        <span className="text-xs sm:text-sm font-semibold">Apartment</span>
-                      </button>
-                      <button type="button" className="flex flex-col items-center gap-1 bg-secondary text-primary px-3 py-2 rounded-lg shadow-md border border-primary w-full sm:w-auto">
-                        <PlayCircle size={20} className="sm:size-6 lg:size-9" />
-                        <span className="text-xs sm:text-sm font-semibold">Guest House</span>
-                      </button>
+                    <div className="flex flex-col md:flex-row items-start md:items-center gap-2 sm:gap-3 lg:gap-4">
+                      {["House", "Apartment", "Guest House"].map((type) => (
+                        <button
+                          key={type}
+                          type="button"
+                          onClick={() => setHouseType(type as "House" | "Apartment" | "Guest House")}
+                          className={`flex flex-col items-center space-y-1 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 lg:py-2 rounded-lg shadow-md w-full md:w-auto ${
+                            houseType === type
+                              ? "bg-primary text-white"
+                              : "bg-secondary text-primary border border-primary"
+                          }`}
+                        >
+                          {type === "House" && <Home size={20} className="sm:w-6 sm:h-6 lg:w-9 lg:h-9" />}
+                          {type === "Apartment" && <Home size={20} className="sm:w-6 sm:h-6 lg:w-9 lg:h-9" />}
+                          {type === "Guest House" && <PlayCircle size={20} className="sm:w-6 sm:h-6 lg:w-9 lg:h-9" />}
+                          <span className="text-xs sm:text-sm font-semibold">{type}</span>
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-xs sm:text-sm font-semibold text-primary">Size</label>
                       <input
-                        type="text"
+                        type="number"
                         name="size"
-                        className="w-full p-2 border-b-2 border-primary bg-secondary text-xs sm:text-sm md:text-base focus:outline-none"
-                        placeholder="225 sq m"
+                        className="w-full p-1 sm:p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-secondary text-xs sm:text-sm md:text-base"
+                        placeholder="225"
                         required
                       />
                     </div>
@@ -157,7 +202,7 @@ const ManageHouse: React.FC = () => {
                       <input
                         type="number"
                         name="bathroom"
-                        className="w-full p-2 border-b-2 border-primary bg-secondary text-xs sm:text-sm md:text-base focus:outline-none"
+                        className="w-full p-1 sm:p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-secondary text-xs sm:text-sm md:text-base"
                         placeholder="3"
                         required
                       />
@@ -165,23 +210,23 @@ const ManageHouse: React.FC = () => {
                   </div>
 
                   <div>
-                    <p className="text-xs sm:text-sm font-semibold text-primary mb-3">Essentials</p>
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <p className="text-xs sm:text-sm font-semibold text-primary mb-2 sm:mb-3 lg:mb-4">Essentials</p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
                       {essentials.map((item) => (
                         <button
                           key={item}
                           type="button"
                           onClick={() => toggleSelection(item)}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold ${
+                          className={`flex items-center space-x-1 sm:space-x-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 lg:py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold ${
                             selected.includes(item)
                               ? "bg-primary text-white border border-primary"
                               : "bg-secondary text-black border border-black"
                           }`}
                         >
                           {selected.includes(item) ? (
-                            <CheckCircle size={12} className="sm:size-4" />
+                            <CheckCircle size={12} className="sm:w-4 sm:h-4" />
                           ) : (
-                            <Circle size={12} className="sm:size-4" />
+                            <Circle size={12} className="sm:w-4 sm:h-4" />
                           )}
                           <span>{item}</span>
                         </button>
@@ -191,19 +236,42 @@ const ManageHouse: React.FC = () => {
                 </div>
 
                 {/* Right Section */}
-                <div className="lg:col-span-4 space-y-4 sm:space-y-6 border-2 border-primary p-4 sm:p-6 rounded-3xl shadow-md overflow-y-auto max-h-[70vh]">
-                  <div className="h-24 sm:h-32 lg:h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg flex-shrink-0">
-                    <Upload size={24} className="text-primary sm:size-8 lg:size-10" />
-                    <p className="mt-2 text-xs sm:text-sm text-primary">Upload media for the campaign</p>
+                <div className="col-span-1 md:col-span-1 lg:col-span-4 space-y-3 sm:space-y-4 lg:space-y-6 border-2 border-primary p-2 sm:p-4 lg:p-6 rounded-3xl shadow-md overflow-y-auto max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-150px)]">
+                  <div className="h-24 sm:h-32 lg:h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg">
+                    <Upload size={24} className="text-primary sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
+                    <p className="mt-1 sm:mt-2 lg:mt-4 text-xs sm:text-sm text-primary">
+                      Upload media for the campaign
+                    </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-primary">Price</label>
+                    <input
+                      type="number"
+                      name="price"
+                      className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
+                      placeholder="1000"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-primary">Description</label>
+                    <textarea
+                      name="description"
+                      className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
+                      placeholder="House description"
+                      required
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div>
                       <label className="block text-xs sm:text-sm font-semibold text-primary">Condition</label>
                       <input
                         type="text"
                         name="condition"
-                        className="w-full p-2 border-b-2 border-primary text-xs sm:text-sm md:text-base focus:outline-none"
+                        className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
                         placeholder="Excellent"
                       />
                     </div>
@@ -212,22 +280,22 @@ const ManageHouse: React.FC = () => {
                       <input
                         type="text"
                         name="maintenance"
-                        className="w-full p-2 border-b-2 border-primary text-xs sm:text-sm md:text-base focus:outline-none"
+                        className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base"
                         placeholder="Frequent"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <p className="text-xs sm:text-sm font-semibold text-primary mb-3">Currency</p>
-                    <div className="flex flex-wrap gap-3">
+                    <p className="text-xs sm:text-sm font-semibold text-primary mb-2 sm:mb-3 lg:mb-4">Currency</p>
+                    <div className="flex flex-wrap gap-2 sm:gap-3 lg:gap-4">
                       {["ETB", "USD"].map((currencyOption) => (
                         <label
                           key={currencyOption}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-full border text-xs sm:text-sm font-semibold ${
+                          className={`flex items-center space-x-1 sm:space-x-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 lg:py-2 rounded-full border text-xs sm:text-sm font-semibold ${
                             currency === currencyOption
-                              ? "bg-primary text-white border-primary"
-                              : "bg-white text-black border-black"
+                              ? "bg-primary text-white border border-primary"
+                              : "bg-white text-black border border-black"
                           }`}
                         >
                           <input
@@ -239,9 +307,9 @@ const ManageHouse: React.FC = () => {
                             className="hidden"
                           />
                           {currency === currencyOption ? (
-                            <CheckCircle size={12} className="sm:size-4" />
+                            <CheckCircle size={12} className="sm:w-4 sm:h-4" />
                           ) : (
-                            <Circle size={12} className="sm:size-4" />
+                            <Circle size={12} className="sm:w-4 sm:h-4" />
                           )}
                           <span>{currencyOption}</span>
                         </label>
@@ -249,16 +317,16 @@ const ManageHouse: React.FC = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <p className="text-xs sm:text-sm font-semibold text-primary mb-3">Payment Terms</p>
-                    <div className="flex flex-wrap gap-3">
-                      {["Monthly", "Quarter", "Annual"].map((term) => (
+                  <div className="mt-2 sm:mt-3 lg:mt-4">
+                    <p className="text-xs sm:text-sm font-semibold text-primary mb-2 sm:mb-3">Payment Terms</p>
+                    <div className="flex flex-wrap gap-2 sm:gap-3 lg:gap-4">
+                      {["Monthly", "Quarterly", "Annual"].map((term) => (
                         <label
                           key={term}
-                          className={`flex items-center gap-2 px-3 py-2 rounded-full border text-xs sm:text-sm font-semibold ${
+                          className={`flex items-center space-x-1 sm:space-x-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 lg:py-2 rounded-full border text-xs sm:text-sm font-semibold ${
                             paymentTerm === term
-                              ? "bg-primary text-white border-primary"
-                              : "bg-white text-black border-black"
+                              ? "bg-primary text-white border border-primary"
+                              : "bg-white text-black border border-black"
                           }`}
                         >
                           <input
@@ -270,9 +338,9 @@ const ManageHouse: React.FC = () => {
                             className="hidden"
                           />
                           {paymentTerm === term ? (
-                            <CheckCircle size={12} className="sm:size-4" />
+                            <CheckCircle size={12} className="sm:w-4 sm:h-4" />
                           ) : (
-                            <Circle size={12} className="sm:size-4" />
+                            <Circle size={12} className="sm:w-4 sm:h-4" />
                           )}
                           <span>{term}</span>
                         </label>
@@ -282,9 +350,12 @@ const ManageHouse: React.FC = () => {
 
                   <button
                     type="submit"
-                    className="w-full bg-primary text-white px-4 py-2 rounded-lg shadow-md text-xs sm:text-sm md:text-base hover:bg-primary/90"
+                    disabled={isSubmitting}
+                    className={`w-full bg-primary text-white px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 rounded-lg shadow-md text-xs sm:text-sm md:text-base ${
+                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                   >
-                    Save House
+                    {buttonText}
                   </button>
                 </div>
               </div>
