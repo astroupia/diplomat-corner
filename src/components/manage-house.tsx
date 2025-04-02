@@ -1,5 +1,6 @@
 "use client";
 
+import { auth } from "@clerk/nextjs/server";
 import {
   Car,
   CheckCircle,
@@ -13,16 +14,17 @@ import {
   Upload,
 } from "lucide-react";
 import Link from "next/link";
-import { useState, useRef } from "react";
+import { useRef, useState } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
-import { createHouse } from "@/lib/actions/house.Actions";
+import { IHouse } from "@/lib/models/house.model"
 
 const ManageHouse: React.FC = () => {
+  
   const [selected, setSelected] = useState<string[]>([]);
   const [paymentTerm, setPaymentTerm] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
   const [houseType, setHouseType] = useState<"House" | "Apartment" | "Guest House">("House");
-  const [buttonText, setButtonText] = useState<string>("Send");
+  const [buttonText, setButtonText] = useState<string>("Create");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -47,13 +49,23 @@ const ManageHouse: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setButtonText("Sending");
-    console.log("Form submitted"); // Debug
-
-    const formData = new FormData(e.currentTarget);
-    formData.append("id", crypto.randomUUID());
+    setButtonText("Created");
+    console.log("Product submitted");
+    
+  
+    const formData = new IHouse (e.currentTarget);
     formData.append("name", formData.get("address") as string || "New House Listing");
-    formData.append("userId", "user-id-here"); // Replace with actual user ID
+    const user = await auth()
+    if (!user ) return null
+    try {
+      if (user.userId) {
+        formData.append("userId", user.userId);
+      } else {
+        throw new Error("User ID is null or undefined");
+      }
+    } catch (error) {
+      console.log("Error" , error)
+    }
     formData.append("description", formData.get("description") as string || "House listing");
     formData.append("advertisementType", "Rent");
     formData.append("price", formData.get("price") as string || "0");
@@ -63,15 +75,20 @@ const ManageHouse: React.FC = () => {
     formData.append("bathroom", formData.get("bathroom") as string || "0");
     formData.append("size", formData.get("size") as string || "0");
     formData.append("houseType", houseType);
-    console.log("FormData prepared:", Object.fromEntries(formData)); // Debug
-
+  
     try {
-      const result = await createHouse(formData);
-      console.log("createHouse result:", result); // Debug
-      if (result.success) {
-        setButtonText("Sent");
+      const response =await fetch ("/api/house",{
+        method: "POST",
+        headers:{
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      },)
+      console.log("createHouse result:", response);
+      if (response.ok) {
+        setButtonText("Created");
         setTimeout(() => {
-          setButtonText("Send");
+          setButtonText("Create");
           setSelected([]);
           setPaymentTerm("");
           setCurrency("");
@@ -81,20 +98,23 @@ const ManageHouse: React.FC = () => {
           }
         }, 2000);
       } else {
-        setButtonText("Not Sent");
-        console.error("Error from createHouse:", result.error);
-        setTimeout(() => setButtonText("Send"), 2000);
+        setButtonText("Not created");
+        const contentType = response.headers.get("Content-Type");
+        const errorText = contentType?.includes("application/json")
+          ? (await response.json()).error
+          : await response.text(); // Fallback for HTML errors
+        throw new Error(errorText || "Unknown error");
+        
       }
     } catch (error) {
       setButtonText("Not Sent");
       console.error("Submission error:", error);
-      setTimeout(() => setButtonText("Send"), 2000);
+      setTimeout(() => setButtonText("Create"), 2000);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // Rest of the component (JSX) remains unchanged for brevity
   return (
     <section className="flex flex-col min-h-screen">
       <MaxWidthWrapper>
