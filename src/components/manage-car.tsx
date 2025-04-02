@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Car,
   CheckCircle,
@@ -69,7 +70,7 @@ const ManageCar = () => {
   const handleSend = async () => {
     setIsSending(true);
     setSubmitResult(null);
-    console.log("Form data being sent:", formData); // Log form data for debugging
+    console.log("Form data being sent:", formData);
 
     if (!formData.brandName || !formData.model || !formData.price || !formData.mileage) {
       setSubmitResult({ success: false, message: "Please fill all required fields" });
@@ -80,7 +81,7 @@ const ManageCar = () => {
 
     try {
       const result = await createCar(formData);
-      console.log("Server action result:", result); // Log the result from createCar
+      console.log("Server action result:", result);
       if (result.success) {
         setSubmitResult({ success: true, message: "Car saved successfully!" });
         setFormData({
@@ -108,7 +109,7 @@ const ManageCar = () => {
         success: false,
         message: `Failed to save car: ${errorMessage}`,
       });
-      console.error("Error in handleSend:", error); // Log the error for debugging
+      console.error("Error in handleSend:", error);
     } finally {
       setIsSending(false);
     }
@@ -121,14 +122,14 @@ const ManageCar = () => {
           Manage Products and Ads
         </h1>
 
-        <div className="flex flex-col lg:flex-row bg-secondary h-auto lg:h-screen bg-primary-light p-4 lg:p-6">
-          <aside className="w-full lg:w-1/5 bg-secondary rounded-3xl shadow-md p-4 border-2 border-primary lg:mb-0 lg:pr-7 lg:mr-4 mb-6">
+        <div className="flex flex-col lg:flex-row bg-secondary h-auto lg:h-screen bg-primary-light p-4 lg:p-6 space-y-4 lg:space-y-0 lg:space-x-4">
+          <aside className="w-full lg:w-1/5 bg-secondary rounded-3xl shadow-md p-4 border-2 border-primary">
             <ul className="space-y-4 text-primary font-semibold text-sm md:text-base">
               <Link href="/adverisment">
-              <li className="flex flex-row items-center">
-                <ShoppingCart size={20} className="mr-2" />
-                Products
-              </li>
+                <li className="flex flex-row items-center">
+                  <ShoppingCart size={20} className="mr-2" />
+                  Products
+                </li>
               </Link>
               <li className="pl-4 flex flex-row items-center text-primary">
                 <Plus size={16} className="mr-2" />
@@ -155,7 +156,7 @@ const ManageCar = () => {
             </ul>
           </aside>
 
-          <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-4 lg:p-6 overflow-auto">
+          <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-4 lg:p-6 flex flex-col">
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
               <Link href="/CarProduct">
                 <button className="flex items-center justify-center space-x-2 bg-secondary text-primary border border-primary px-6 py-3 rounded-lg shadow-md w-full sm:w-auto">
@@ -171,7 +172,7 @@ const ManageCar = () => {
               </Link>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 rounded-3xl p-4 lg:p-6">
+            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 rounded-3xl p-4 lg:p-6">
               <div className="col-span-12 lg:col-span-8 space-y-6 bg-secondary p-4 lg:p-6 rounded-3xl shadow-md border-3 border-primary">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
@@ -318,7 +319,7 @@ const ManageCar = () => {
                 </div>
               </div>
 
-              <div className="col-span-12 lg:col-span-4 space-y-6 border-2 border-primary p-4 lg:p-6 rounded-3xl shadow-md">
+              <div className="col-span-12 lg:col-span-4 space-y-6 border-2 border-primary p-4 lg:p-6 rounded-3xl shadow-md overflow-y-auto max-h-[calc(100vh-200px)]">
                 <div className="h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg">
                   <Upload size={40} className="text-primary" />
                   <p className="mt-4 text-sm text-primary">
