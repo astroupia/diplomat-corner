@@ -237,7 +237,13 @@ const ManageHouse: React.FC = () => {
                     </div>
                   </div>
                   <div><label className="block text-xs sm:text-sm font-semibold text-primary">Description</label><textarea name="description" className="w-full border-b-2 border-primary focus:outline-none focus:border-primary p-1 sm:p-2 text-xs sm:text-sm md:text-base" placeholder="House description" required /></div>
-                  <button type="submit" disabled={isSubmitting} className={`w-full bg-primary text-white px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 rounded-lg shadow-md text-xs sm:text-sm md:text-base ${isSubmitting ? "opacity-50 cursor-not-allowed" : ""}`}>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className={`w-full bg-primary text-white px-3 py-2 sm:px-4 sm:py-2 lg:px-6 lg:py-3 rounded-lg shadow-md text-xs sm:text-sm md:text-base ${
+                      isSubmitting ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
+                  >
                     {buttonText}
                   </button>
                 </div>
@@ -250,3 +256,4 @@ const ManageHouse: React.FC = () => {
   );
 };
 
+export default ManageHouse;
