@@ -1,6 +1,5 @@
 "use client";
 
-import { auth } from "@clerk/nextjs/server";
 import {
   Car,
   CheckCircle,
@@ -16,16 +15,23 @@ import {
 import Link from "next/link";
 import { useRef, useState } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
-import { IHouse } from "@/lib/models/house.model"
 
 const ManageHouse: React.FC = () => {
-  
   const [selected, setSelected] = useState<string[]>([]);
   const [paymentTerm, setPaymentTerm] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
   const [houseType, setHouseType] = useState<"House" | "Apartment" | "Guest House">("House");
   const [buttonText, setButtonText] = useState<string>("Create");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [houseData, setHouseData] = useState({
+    bedroom: 0,
+    size: 0,
+    bathroom: 0,
+    condition: "",
+    maintenance: "",
+    price: 0,
+    description: "",
+  });
   const formRef = useRef<HTMLFormElement>(null);
 
   const essentials = [
@@ -46,44 +52,87 @@ const ManageHouse: React.FC = () => {
     );
   };
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setHouseData((prev) => ({
+      ...prev,
+      [name]: ["bedroom", "size", "bathroom", "price"].includes(name)
+        ? Number(value)
+        : value,
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setButtonText("Created");
-    console.log("Product submitted");
-    
-  
-    const formData = new IHouse (e.currentTarget);
-    formData.append("name", formData.get("address") as string || "New House Listing");
-    const user = await auth()
-    if (!user ) return null
+    setButtonText("Creating...");
+    console.log("House submitted");
+
+    // Validation
+    if (
+      !houseData.bedroom ||
+      !houseData.size ||
+      !houseData.bathroom ||
+      !houseData.price ||
+      !houseData.description
+    ) {
+      setButtonText("Create");
+      setIsSubmitting(false);
+      console.log("Validation failed: Missing required fields");
+      return;
+    }
+
+    const submitData: {
+      name: string;
+      bedroom: number;
+      size: number;
+      bathroom: number;
+      condition: string;
+      maintenance: string;
+      price: number;
+      description: string;
+      advertisementType: string;
+      paymentMethod: string;
+      houseType: "House" | "Apartment" | "Guest House";
+      essentials: string[];
+      currency: string;
+      userId?: string;
+    } = {
+      name: `New ${houseType} Listing`,
+      bedroom: houseData.bedroom,
+      size: houseData.size,
+      bathroom: houseData.bathroom,
+      condition: houseData.condition,
+      maintenance: houseData.maintenance,
+      price: houseData.price,
+      description: houseData.description,
+      advertisementType: "Rent",
+      paymentMethod: paymentTerm || "Monthly",
+      houseType,
+      essentials: selected,
+      currency: currency || "ETB",
+    };
+
+    const user = await auth();
+    if (!user) return null;
+
     try {
       if (user.userId) {
-        formData.append("userId", user.userId);
+        submitData["userId"] = user.userId;
       } else {
         throw new Error("User ID is null or undefined");
       }
-    } catch (error) {
-      console.log("Error" , error)
-    }
-    formData.append("description", formData.get("description") as string || "House listing");
-    formData.append("advertisementType", "Rent");
-    formData.append("price", formData.get("price") as string || "0");
-    formData.append("paymentMethod", paymentTerm || "Monthly");
-    formData.append("parkingSpace", "0");
-    formData.append("bedroom", formData.get("bedroom") as string || "0");
-    formData.append("bathroom", formData.get("bathroom") as string || "0");
-    formData.append("size", formData.get("size") as string || "0");
-    formData.append("houseType", houseType);
-  
-    try {
-      const response =await fetch ("/api/house",{
+
+      const response = await fetch("/api/house", {
         method: "POST",
-        headers:{
+        headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formData),
-      },)
+        body: JSON.stringify(submitData),
+      });
+
       console.log("createHouse result:", response);
       if (response.ok) {
         setButtonText("Created");
@@ -93,6 +142,15 @@ const ManageHouse: React.FC = () => {
           setPaymentTerm("");
           setCurrency("");
           setHouseType("House");
+          setHouseData({
+            bedroom: 0,
+            size: 0,
+            bathroom: 0,
+            condition: "",
+            maintenance: "",
+            price: 0,
+            description: "",
+          });
           if (formRef.current) {
             formRef.current.reset();
           }
@@ -102,9 +160,8 @@ const ManageHouse: React.FC = () => {
         const contentType = response.headers.get("Content-Type");
         const errorText = contentType?.includes("application/json")
           ? (await response.json()).error
-          : await response.text(); // Fallback for HTML errors
+          : await response.text();
         throw new Error(errorText || "Unknown error");
-        
       }
     } catch (error) {
       setButtonText("Not Sent");
