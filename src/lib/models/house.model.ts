@@ -2,10 +2,6 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface IHouse {
-  name: string;
-  userId: string;
-  description: string;
-  advertisementType: "Rent" | "Sale";
   price: number;
   paymentMethod: "Monthly" | "Quarterly" | "Annual";
   bedroom: number;
@@ -24,7 +20,6 @@ const houseSchema = new Schema({
   paymentMethod: {
     type: String,
     required: true,
-    enum: ["Monthly", "Quarterly", "Annual"],
   },
   bedroom: { type: Number, required: true },
   parkingSpace: { type: Number, required: true },
@@ -39,3 +34,4 @@ const houseSchema = new Schema({
 
 
 export default mongoose.models.House || mongoose.model<IHouse>("House", houseSchema);
+
