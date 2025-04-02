@@ -6,16 +6,22 @@ import { NextRequest, NextResponse } from "next/server";
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const query = searchParams.get("query");
-  console.log(query)
+  console.log(query);
   const category = searchParams.get("category") || "all";
 
   if (!query || typeof query !== "string") {
-    return NextResponse.json({ error: "Query parameter is required and must be a string" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Query parameter is required and must be a string" },
+      { status: 400 }
+    );
   }
 
   const validCategories = ["all", "cars", "houses"];
   if (!validCategories.includes(category)) {
-    return NextResponse.json({ error: 'Invalid category. Use "all", "cars", or "houses"' }, { status: 400 });
+    return NextResponse.json(
+      { error: 'Invalid category. Use "all", "cars", or "houses"' },
+      { status: 400 }
+    );
   }
 
   await connectToDatabase();
@@ -34,29 +40,32 @@ export async function GET(req: NextRequest) {
         .limit(10)
         .lean();
 
-        houses = await House.find(
-          { $text: { $search: query } },
-          { score: { $meta: "textScore" } }
-        )
-          .sort({ score: { $meta: "textScore" } })
-          .limit(10)
-          .lean();
+      houses = await House.find(
+        { $text: { $search: query } },
+        { score: { $meta: "textScore" } }
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .limit(10)
+        .lean();
     }
     if (category === "houses" || category === "all") {
-      
     }
-
-    
 
     const results = [
       ...cars.map((car) => ({ id: car._id, name: car.name, type: "car" })),
-      ...houses.map((house) => ({ id: house._id, name: house.name, type: "house" })),
+      ...houses.map((house) => ({
+        id: house._id,
+        name: house.name,
+        type: "house",
+      })),
     ];
-    
+
     return NextResponse.json(results);
-    
   } catch (error) {
     console.error("Search error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
