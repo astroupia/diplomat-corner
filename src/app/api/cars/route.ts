@@ -1,11 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { getAllCars } from "@/lib/actions/car.action";
 import { connectToDatabase } from "@/lib/db-connect";
 import Car from "@/lib/models/car.model";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(req: NextRequest) {
   try {
-    await connectToDatabase();
-    const cars = await Car.find({});
+    const cars = await getAllCars();
     console.log("Fetched cars:", cars);
     return NextResponse.json(cars, { status: 200 });
   } catch (error: unknown) {
