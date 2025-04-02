@@ -84,22 +84,7 @@ const ManageHouse: React.FC = () => {
       return;
     }
 
-    const submitData: {
-      name: string;
-      bedroom: number;
-      size: number;
-      bathroom: number;
-      condition: string;
-      maintenance: string;
-      price: number;
-      description: string;
-      advertisementType: string;
-      paymentMethod: string;
-      houseType: "House" | "Apartment" | "Guest House";
-      essentials: string[];
-      currency: string;
-      userId?: string;
-    } = {
+    const submitData = {
       name: `New ${houseType} Listing`,
       bedroom: houseData.bedroom,
       size: houseData.size,
@@ -115,16 +100,7 @@ const ManageHouse: React.FC = () => {
       currency: currency || "ETB",
     };
 
-    const user = await auth();
-    if (!user) return null;
-
     try {
-      if (user.userId) {
-        submitData["userId"] = user.userId;
-      } else {
-        throw new Error("User ID is null or undefined");
-      }
-
       const response = await fetch("/api/house", {
         method: "POST",
         headers: {
@@ -164,7 +140,7 @@ const ManageHouse: React.FC = () => {
         throw new Error(errorText || "Unknown error");
       }
     } catch (error) {
-      setButtonText("Not Sent");
+      setButtonText("Not Created");
       console.error("Submission error:", error);
       setTimeout(() => setButtonText("Create"), 2000);
     } finally {
@@ -274,4 +250,3 @@ const ManageHouse: React.FC = () => {
   );
 };
 
-export default ManageHouse;
