@@ -11,7 +11,7 @@ import {
   CheckCircle,
   Circle,
 } from "lucide-react";
-import { submitContactForm } from "@/lib/actions/Review.actions";
+import { submitContactForm } from "@/lib/actions/review.actions";
 
 const ContactForm: React.FC = () => {
   const [formData, setFormData] = useState({
