@@ -1,10 +1,9 @@
 "use client";
 
-import MaxWidthWrapper from "./MaxWidthWrapper";
-import React from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
+import { Megaphone, Search } from "lucide-react";
 import Link from "next/link";
-import { Search, Megaphone } from "lucide-react";
+import MaxWidthWrapper from "./max-width-wrapper";
 import { Button } from "./ui/button";
 
 const NavBar = () => {
@@ -33,17 +32,17 @@ const NavBar = () => {
             {/* Middle Section: Navigation Links */}
 
             <div className="flex-1 hidden lg:flex justify-center gap-6 text-lg text-black font-semibold px-6">
-              <Link href="/Car" className="hover:text-primary transition">
+              <Link href="/car" className="hover:text-primary transition">
                 Car For Sale
               </Link>
               <Link
-                href="/HouseForRent"
+                href="/house"
                 className="px-2 hover:text-primary transition"
               >
                 House For Rent
               </Link>
               <Link
-                href="/aboutus"
+                href="/about-us"
                 className="px-2 hover:text-primary transition"
               >
                 About Us

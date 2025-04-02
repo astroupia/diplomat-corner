@@ -11,7 +11,7 @@ interface CardProps {
   size: number;
 }
 
-const Card: React.FC<CardProps> = ({
+const CardHouse: React.FC<CardProps> = ({
   address,
   price,
   bedrooms,
@@ -46,4 +46,4 @@ const Card: React.FC<CardProps> = ({
   );
 };
 
-export default Card;
+export default CardHouse;
