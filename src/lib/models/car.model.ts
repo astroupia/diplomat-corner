@@ -1,7 +1,7 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface ICar extends Document {
-  _id: string; // Explicitly define _id as a string
+  _id: string; 
   Name: string;
   UserId: string;
   Description: string;
@@ -15,20 +15,20 @@ export interface ICar extends Document {
 }
 
 const CarSchema: Schema = new Schema({
-  Name: { type: String, required: true },
-  UserId: { type: String, required: true },
-  Description: { type: String, required: true },
-  AdvertisementType: {
+  name: { type: String, required: true },
+  userId: { type: String, required: true },
+  description: { type: String, required: true },
+  advertisementType: {
     type: String,
     required: true,
     enum: ["Rent", "Sale"],
   },
-  Price: { type: Number, required: true },
-  PaymentMethod: { type: Number, required: true },
-  Mileage: { type: Number, required: true },
-  Speed: { type: Number, required: true },
-  MilesPerGallon: { type: Number, required: true },
-  Timestamp: { type: String, required: true },
+  price: { type: Number, required: true },
+  paymentMethod: { type: Number, required: true },
+  mileage: { type: Number, required: true },
+  speed: { type: Number, required: true },
+  milesPerGallon: { type: Number, required: true },
+  timestamp: { type: String, required: true },
 });
 
 export default mongoose.models.Car || mongoose.model<ICar>("Car", CarSchema);

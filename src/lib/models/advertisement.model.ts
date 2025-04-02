@@ -1,6 +1,7 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IAdvertisement extends Document {
+  _id: string;
   title: string;
   description: string;
   targetAudience?: string;

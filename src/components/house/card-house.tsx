@@ -1,8 +1,8 @@
-import React from "react";
-import { Bed, Bath, Ruler } from "lucide-react";
+import { HouseDetails } from "@/lib/models/house.model";
+import { Bath, Bed, Ruler } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { HouseDetails } from "@/lib/actions/house.Actions";
+import React from "react";
 
 
 interface CardProps extends HouseDetails {
@@ -18,6 +18,7 @@ const CardHouse: React.FC<CardProps> = ({
   size,
   listedBy = "Admin",
 }) => {
+  console.log('CardHouse Props:', { id, name, price, bedroom, bathroom, size, listedBy });
   return (
     <Link href={`/houses/${id}`} className="block">
       <div
@@ -27,7 +28,7 @@ const CardHouse: React.FC<CardProps> = ({
         <Image
           width={300}
           height={200}
-          src="./c.jpg"// Replace with dynamic image if available
+          src="/c.jpg"
           alt={name}
           className="w-full h-48 object-cover"
         />

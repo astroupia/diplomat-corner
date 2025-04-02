@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
 import CardHouse from "@/components/house/card-house";
-import { HouseDetails } from "@/lib/actions/house.Actions";
+import { HouseDetails }from "@/lib/models/house.model"
+import React, { useEffect, useState } from "react";
 
 const CardContainer: React.FC = () => {
   const [houses, setHouses] = useState<HouseDetails[]>([]);

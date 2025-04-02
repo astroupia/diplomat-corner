@@ -64,3 +64,17 @@ export async function getCarDetails(carId: string) {
     throw new Error(`Failed to get car details: ${(error as Error).message}`);
   }
 }
+
+export async function getAllCars(): Promise<ICar[]> {
+  try {
+    await connectToDatabase();
+
+    const cars = await Car.find({});
+    console.log("Fetched cars:", cars);
+
+    return cars;
+  } catch (error) {
+    console.error("Error fetching cars:", error);
+    throw new Error(`Failed to fetch cars: ${(error as Error).message}`);
+  }
+}

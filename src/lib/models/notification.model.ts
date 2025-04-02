@@ -1,6 +1,7 @@
 import mongoose, { Schema, Document } from "mongoose";
 
 export interface INotification extends Document {
+  _id: string;
   userId: string;
   message: string;
   type: "Order" | "Promotion" | "Payment" | "Delivery" | "System";
