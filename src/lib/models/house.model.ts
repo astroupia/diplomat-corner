@@ -2,6 +2,10 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface IHouse {
+  _id: string;
+  name: string;
+  description: string; 
+  advertisementType: string;
   price: number;
   paymentMethod: "Monthly" | "Quarterly" | "Annual";
   bedroom: number;
@@ -9,6 +13,10 @@ export interface IHouse {
   bathroom: number;
   size: number;
   houseType: "House" | "Apartment" | "Guest House";
+  condition: { type: String }, 
+  maintenance: { type: String }, 
+  essentials: { type: [String] }, 
+  currency: { type: String },
 }
 
 const houseSchema = new Schema({

@@ -1,25 +1,22 @@
 "use client";
 
 import CardHouse from "@/components/house/card-house";
-import { HouseDetails }from "@/lib/models/house.model"
+import type { IHouse } from "@/lib/models/house.model";
 import React, { useEffect, useState } from "react";
+import { getAllHouse } from "@/lib/actions/house.actions"; 
 
 const CardContainer: React.FC = () => {
-  const [houses, setHouses] = useState<HouseDetails[]>([]);
+  const [houses, setHouses] = useState<IHouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchHouses = async () => {
       try {
-        console.log("Fetching houses from /api/houses");
-        const response = await fetch("/api/houses");
-        console.log("Response status:", response.status);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch houses: ${response.status} ${response.statusText}`);
-        }
-        const data = await response.json();
+        console.log("Fetching houses using getAllHouse server action");
+        const data = await getAllHouse(); 
         console.log("Fetched data:", data);
+        
         if (Array.isArray(data)) {
           setHouses(data);
         } else {
@@ -30,9 +27,8 @@ const CardContainer: React.FC = () => {
         setError((error as Error).message);
         setHouses([
           {
-            id: "1",
+            _id: "1",
             name: "92 Allium Place, Orlando FL 32827",
-            userId: "user1",
             description: "Beautiful house in Orlando",
             advertisementType: "Rent",
             price: 590693,
@@ -42,7 +38,6 @@ const CardContainer: React.FC = () => {
             bathroom: 4,
             size: 2096,
             houseType: "House",
-            timestamp: new Date().toISOString(),
           },
         ]);
       } finally {
@@ -81,7 +76,7 @@ const CardContainer: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {houses.length > 0 ? (
                 houses.map((house) => (
-                  <CardHouse key={house.id} {...house} />
+                  <CardHouse key={house._id} {...house} />
                 ))
               ) : (
                 <p className="text-center text-gray-600 col-span-full">No properties available.</p>

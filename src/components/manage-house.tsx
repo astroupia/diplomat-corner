@@ -15,8 +15,10 @@ import {
 import Link from "next/link";
 import { useRef, useState } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
+import { useUser } from "@clerk/nextjs";
 
 const ManageHouse: React.FC = () => {
+  const { user, isLoaded } = useUser();
   const [selected, setSelected] = useState<string[]>([]);
   const [paymentTerm, setPaymentTerm] = useState<string>("");
   const [currency, setCurrency] = useState<string>("");
@@ -31,6 +33,7 @@ const ManageHouse: React.FC = () => {
     maintenance: "",
     price: 0,
     description: "",
+    parkingSpace: 1,
   });
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -66,32 +69,48 @@ const ManageHouse: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log("Form submitted"); 
+    if (!isLoaded || !user) {
+      console.log("User not authenticated or still loading");
+      setButtonText("Please log in");
+      setTimeout(() => setButtonText("Create"), 2000);
+      return;
+    }
     setIsSubmitting(true);
     setButtonText("Creating...");
     console.log("House submitted");
-
+  
+    // Convert string inputs to numbers
+    const numericData = {
+      bedroom: Number(houseData.bedroom),
+      size: Number(houseData.size),
+      bathroom: Number(houseData.bathroom),
+      price: Number(houseData.price),
+    };
+  
     // Validation
     if (
-      !houseData.bedroom ||
-      !houseData.size ||
-      !houseData.bathroom ||
-      !houseData.price ||
-      !houseData.description
+      isNaN(numericData.bedroom) || numericData.bedroom <= 0 ||
+      isNaN(numericData.size) || numericData.size <= 0 ||
+      isNaN(numericData.bathroom) || numericData.bathroom <= 0 ||
+      isNaN(numericData.price) || numericData.price <= 0 ||
+      !houseData.description.trim()
     ) {
       setButtonText("Create");
       setIsSubmitting(false);
-      console.log("Validation failed: Missing required fields");
+      console.log("Validation failed: Missing or invalid required fields");
       return;
     }
-
+  
     const submitData = {
       name: `New ${houseType} Listing`,
-      bedroom: houseData.bedroom,
-      size: houseData.size,
-      bathroom: houseData.bathroom,
+      userId: user.id,
+      bedroom: numericData.bedroom,
+      size: numericData.size,
+      bathroom: numericData.bathroom,
       condition: houseData.condition,
       maintenance: houseData.maintenance,
-      price: houseData.price,
+      price: numericData.price,
       description: houseData.description,
       advertisementType: "Rent",
       paymentMethod: paymentTerm || "Monthly",
@@ -99,7 +118,7 @@ const ManageHouse: React.FC = () => {
       essentials: selected,
       currency: currency || "ETB",
     };
-
+  
     try {
       const response = await fetch("/api/house", {
         method: "POST",
@@ -108,7 +127,7 @@ const ManageHouse: React.FC = () => {
         },
         body: JSON.stringify(submitData),
       });
-
+  
       console.log("createHouse result:", response);
       if (response.ok) {
         setButtonText("Created");
@@ -126,6 +145,7 @@ const ManageHouse: React.FC = () => {
             maintenance: "",
             price: 0,
             description: "",
+            parkingSpace: 1,
           });
           if (formRef.current) {
             formRef.current.reset();
@@ -133,21 +153,24 @@ const ManageHouse: React.FC = () => {
         }, 2000);
       } else {
         setButtonText("Not created");
-        const contentType = response.headers.get("Content-Type");
-        const errorText = contentType?.includes("application/json")
-          ? (await response.json()).error
-          : await response.text();
+        const errorText = await response.text();
         throw new Error(errorText || "Unknown error");
       }
     } catch (error) {
-      setButtonText("Not Created");
+      setButtonText("Not Sent");
       console.error("Submission error:", error);
       setTimeout(() => setButtonText("Create"), 2000);
     } finally {
       setIsSubmitting(false);
     }
   };
+  if (!isLoaded) {
+    return <div>Loading...</div>; 
+  }
 
+  if (!user) {
+    return <div>Please log in </div>; 
+  }
   return (
     <section className="flex flex-col min-h-screen">
       <MaxWidthWrapper>
