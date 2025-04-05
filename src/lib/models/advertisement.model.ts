@@ -1,5 +1,7 @@
+// lib/models/advertisement.model.ts
 import mongoose, { Document, Schema } from "mongoose";
 
+// Interface for the Mongoose document
 export interface IAdvertisement extends Document {
   _id: string;
   title: string;
@@ -12,6 +14,22 @@ export interface IAdvertisement extends Document {
   priority: "High" | "Medium" | "Low";
   performanceMetrics?: string;
   hashtags?: string[];
+  timestamp: string;
+}
+
+// Interface for the JSON response (plain object)
+export interface AdvertisementResponse {
+  _id: string;
+  title: string;
+  description: string;
+  targetAudience?: string | null;
+  advertisementType: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  status: "Active" | "Inactive" | "Scheduled" | "Expired";
+  priority: "High" | "Medium" | "Low";
+  performanceMetrics?: string | null;
+  hashtags: string[];
   timestamp: string;
 }
 
