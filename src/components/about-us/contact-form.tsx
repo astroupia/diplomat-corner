@@ -145,7 +145,7 @@ const ContactForm: React.FC = () => {
               Select Subject
             </label>
             <div className="flex flex-wrap space-x-4">
-              {["General Inquiry", "Advert has errors", "Want admin"].map((option) => (
+              {(["General Inquiry", "Advert has errors", "Want admin"] as const).map((option) => (
                 <button
                   key={option}
                   type="button"
