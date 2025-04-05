@@ -1,7 +1,17 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/db-connect";
-import Advertisement, { IAdvertisement } from "@/lib/models/advertisement.model";
+import Advertisement, { IAdvertisement, AdvertisementResponse } from "@/lib/models/advertisement.model";
+
+export async function getAllAD(): Promise<AdvertisementResponse[]> {
+  await connectToDatabase();
+
+  const ads = await Advertisement.find({});
+  if (!ads || ads.length === 0) {
+    return []; 
+  }
+    return ads as AdvertisementResponse[]; 
+  }
 
 export async function createAdvertisement(adDetails: Partial<IAdvertisement>) {
   await connectToDatabase();
@@ -12,7 +22,7 @@ export async function createAdvertisement(adDetails: Partial<IAdvertisement>) {
   });
 
   await advertisement.save();
-  return { success: true, id: advertisement._id.toString() }; // Convert ObjectId to string
+  return { success: true, id: advertisement._id.toString() }; 
 }
 
 export async function updateAdvertisement(adId: string, updatedDetails: Partial<IAdvertisement>) {
@@ -46,7 +56,6 @@ export async function getAdvertisementDetails(adId: string) {
     throw new Error("Advertisement not found");
   }
 
-  // Convert the entire document to a plain object and ensure _id is a string
   return {
     ...advertisement.toObject(),
     _id: advertisement._id.toString(),
@@ -57,7 +66,6 @@ export async function listAllAdvertisements() {
   await connectToDatabase();
 
   const advertisements = await Advertisement.find();
-  // Convert all documents to plain objects and ensure _id is a string
   return advertisements.map((ad) => ({
     ...ad.toObject(),
     _id: ad._id.toString(),
@@ -80,7 +88,7 @@ export async function scheduleAdvertisement(
   });
 
   await advertisement.save();
-  return { success: true, id: advertisement._id.toString() }; // Convert ObjectId to string
+  return { success: true, id: advertisement._id.toString() }; 
 }
 
 export async function setAdvertisementPriority(adId: string, priority: "High" | "Medium" | "Low") {

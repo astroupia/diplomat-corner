@@ -1,9 +1,8 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/db-connect";
-import Notification, { INotification } from "@/lib/models/notification.model";
+import Notification from "@/lib/models/notification.model";
 
-// Create a notification with retry logic
 export async function createNotification(
   userId: string,
   message: string,

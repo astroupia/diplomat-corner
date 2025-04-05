@@ -1,5 +1,5 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useState, useEffect, useTransition } from "react";
 import {
   Plus,
   Pencil,
@@ -12,6 +12,21 @@ import {
 } from "lucide-react";
 import { createAdvertisement, scheduleAdvertisement } from "@/lib/actions/advertisements.actions";
 
+interface AdvertisementResponse {
+  id: string;
+  title: string;
+  description: string;
+  targetAudience?: string | null;
+  advertisementType: string;
+  startTime?: string | null;
+  endTime?: string | null;
+  status: "Active" | "Inactive" | "Scheduled" | "Expired";
+  priority: "High" | "Medium" | "Low";
+  performanceMetrics?: string | null;
+  hashtags: string[];
+  timestamp: string;
+}
+
 export default function ManageAds() {
   const [priority, setPriority] = useState("Important");
   const [visibility, setVisibility] = useState(true);
@@ -22,6 +37,7 @@ export default function ManageAds() {
     message: string;
     errors?: string[];
   } | null>(null);
+  const [ads, setAds] = useState<AdvertisementResponse[]>([]); // State for fetched ads
 
   const [formData, setFormData] = useState({
     companyName: "",
@@ -32,6 +48,21 @@ export default function ManageAds() {
     description: "",
     advertisementType: "Banner",
   });
+
+  // Fetch all ads on component mount
+  useEffect(() => {
+    const fetchAds = async () => {
+      try {
+        const response = await fetch("/api/advertisements");
+        if (!response.ok) throw new Error("Failed to fetch ads");
+        const data = await response.json();
+        setAds(data);
+      } catch (error) {
+        console.error("Error fetching ads:", error);
+      }
+    };
+    fetchAds();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +78,7 @@ export default function ManageAds() {
       description: formData.description,
       advertisementType: formData.advertisementType,
       priority: priorityMap[priority],
-      status: time === "Current" ? "Active" : "Expired",
+      status: time === "Current" ? "Active" : "Expired" as "Active" | "Expired",
       hashtags: formData.tags.split("#").filter((tag) => tag.trim()).map((tag) => `#${tag.trim()}`),
     };
 
@@ -73,7 +104,6 @@ export default function ManageAds() {
           message: `Advertisement created successfully with ID: ${result.id}`,
         });
 
-        // Reset form data on success
         setFormData({
           companyName: "",
           product: "",
@@ -83,6 +113,11 @@ export default function ManageAds() {
           description: "",
           advertisementType: "Banner",
         });
+
+        // Refresh ads after creation
+        const response = await fetch("/api/advertisements");
+        const updatedAds = await response.json();
+        setAds(updatedAds);
       } catch (error) {
         setSubmitResult({
           success: false,
@@ -318,6 +353,22 @@ export default function ManageAds() {
                     </ul>
                   )}
                 </div>
+              )}
+            </div>
+
+            {/* Display fetched ads */}
+            <div className="mt-4">
+              <h2 className="text-lg font-semibold">All Advertisements</h2>
+              {ads.length > 0 ? (
+                <ul className="space-y-2">
+                  {ads.map((ad) => (
+                    <li key={ad.id} className="text-sm">
+                      {ad.title} - {ad.advertisementType} ({ad.status})
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="text-sm">No advertisements found.</p>
               )}
             </div>
           </div>
