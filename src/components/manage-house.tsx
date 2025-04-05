@@ -55,17 +55,6 @@ const ManageHouse: React.FC = () => {
     );
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setHouseData((prev) => ({
-      ...prev,
-      [name]: ["bedroom", "size", "bathroom", "price"].includes(name)
-        ? Number(value)
-        : value,
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
