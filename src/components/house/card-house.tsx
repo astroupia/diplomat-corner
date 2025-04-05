@@ -1,16 +1,16 @@
-import { HouseDetails } from "@/lib/models/house.model";
+import { IHouse } from "@/lib/models/house.model";
 import { Bath, Bed, Ruler } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
 
-interface CardProps extends HouseDetails {
+interface CardProps extends IHouse {
   listedBy?: string; // Optional, defaults to "Admin"
 }
 
 const CardHouse: React.FC<CardProps> = ({
-  id,
+  _id,
   name,
   price,
   bedroom,
@@ -18,12 +18,12 @@ const CardHouse: React.FC<CardProps> = ({
   size,
   listedBy = "Admin",
 }) => {
-  console.log('CardHouse Props:', { id, name, price, bedroom, bathroom, size, listedBy });
+  console.log('CardHouse Props:', { _id, name, price, bedroom, bathroom, size, listedBy });
   return (
-    <Link href={`/houses/${id}`} className="block">
+    <Link href={`/houses/${_id}`} className="block">
       <div
         className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow"
-        onClick={() => console.log(`Navigating to /houses/${id}`)} // Debug navigation
+        onClick={() => console.log(`Navigating to /houses/${_id}`)} // Debug navigation
       >
         <Image
           width={300}
