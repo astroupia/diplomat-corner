@@ -13,6 +13,12 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
+
+// Mock implementation of createCar function
+const createCar = async (formData: any) => {
+  // Simulate a successful server response
+  return { success: true, message: "Car created successfully!" };
+};
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 
 interface CarFormData {
@@ -73,7 +79,7 @@ const ManageCar = () => {
 
     if (!formData.brandName || !formData.model || !formData.price || !formData.mileage) {
       setSubmitResult({ success: false, message: "Please fill all required fields" });
-      setIsSending(false);
+      const result = await createCar(formData); // Ensure createCar is defined or imported
       console.log("Validation failed: Missing required fields");
       return;
     }
