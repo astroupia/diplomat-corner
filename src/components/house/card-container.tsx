@@ -38,6 +38,10 @@ const CardContainer: React.FC = () => {
             bathroom: 4,
             size: 2096,
             houseType: "House",
+            condition: "New",
+            maintenance: "Included",
+            essentials: ["WiFi", "Electricity", "Water"],
+            currency: "USD",
           },
         ]);
       } finally {
