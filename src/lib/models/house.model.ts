@@ -13,10 +13,10 @@ export interface IHouse {
   bathroom: number;
   size: number;
   houseType: "House" | "Apartment" | "Guest House";
-  condition: { type: String }, 
-  maintenance: { type: String }, 
-  essentials: { type: [String] }, 
-  currency: { type: String },
+  condition: string; 
+  maintenance: string; 
+  essentials: string[]; 
+  currency: string;
 }
 
 const houseSchema = new Schema({
@@ -38,6 +38,10 @@ const houseSchema = new Schema({
     required: true,
     enum: ["House", "Apartment", "Guest House"],
   },
+  condition: { type: String }, 
+  maintenance: { type: String }, 
+  essentials: { type: [String] }, 
+  currency: { type: String },
 }, { timestamps: true });
 
 
