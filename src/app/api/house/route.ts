@@ -2,7 +2,7 @@
 import { NextResponse } from "next/server";
 import { getAllHouse } from "@/lib/actions/house.actions";
 import House from "@/lib/models/house.model";
-import { useUser } from "@clerk/nextjs";
+
 
 export async function GET() {
   try {
