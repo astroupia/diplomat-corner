@@ -22,7 +22,8 @@ const NavBar: React.FC = () => {
       const currentScrollY = window.scrollY;
 
       // Hide when scrolling down, show when scrolling up
-      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+      // Changed threshold from 50 to 200
+      if (currentScrollY > lastScrollY && currentScrollY > 200) {
         setIsVisible(false);
       } else if (currentScrollY < lastScrollY) {
         setIsVisible(true);
