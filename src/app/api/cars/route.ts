@@ -13,6 +13,20 @@ export async function GET() {
   }
 }
 
+export async function fetchCars() {
+  try {
+    const response = await fetch("/api/cars");
+    if (!response.ok) {
+      throw new Error(`Failed to fetch cars: ${response.statusText}`);
+    }
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching cars:", error);
+    throw error; 
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();

@@ -2,13 +2,26 @@
 
 import React, { useEffect, useState } from "react";
 import Card from "@/components/car/car-card";
+import { fetchCars } from "@/app/api/cars/route"; // Import the fetch function
 
 const CarContainer: React.FC = () => {
   const [cars, setCars] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  
+  useEffect(() => {
+    const getCars = async () => {
+      try {
+        const carData = await fetchCars(); // Use the imported function
+        setCars(carData);
+      } catch (error) {
+        setError((error as Error).message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getCars();
+  }, []);
 
   return (
     <div>
