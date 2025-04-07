@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Card from "@/components/car/car-card";
-import { fetchCars } from "@/app/api/cars/route"; // Import the fetch function
+import { fetchCars } from "@/app/api/cars/route"; 
 
 const CarContainer: React.FC = () => {
   const [cars, setCars] = useState<any[]>([]);
