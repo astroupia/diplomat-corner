@@ -3,7 +3,7 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import { Megaphone, Search, Menu } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { Button } from "./ui/button";
 
@@ -13,10 +13,34 @@ const NavBar: React.FC = () => {
     user?.primaryEmailAddress?.emailAddress ===
     process.env.NEXT_PUBLIC_ADMIN_EMAIL;
 
+  const [isVisible, setIsVisible] = useState<boolean>(true);
+  const [lastScrollY, setLastScrollY] = useState<number>(0);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Hide when scrolling down, show when scrolling up
+      if (currentScrollY > lastScrollY && currentScrollY > 50) {
+        setIsVisible(false);
+      } else if (currentScrollY < lastScrollY) {
+        setIsVisible(true);
+      }
+
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
+
   return (
-    <nav className="bg-white border border-b-primary px-6 py-2 fixed top-0 left-0 right-0 z-10 shadow-md m-0">
+    <nav
+      className={`bg-white border border-b-primary px-6 py-2 fixed top-0 left-0 right-0 z-10 shadow-md m-0 transition-transform duration-300 ${
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      }`}
+    >
       <section className="w-full">
         <MaxWidthWrapper>
           <div className="flex items-center justify-between flex-wrap min-w-0">
@@ -125,7 +149,7 @@ const NavBar: React.FC = () => {
                 >
                   About Us
                 </Link>
-                
+
                 {/* Mobile Search Bar */}
                 <div className="relative">
                   <input
