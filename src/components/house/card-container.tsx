@@ -1,11 +1,11 @@
 "use client";
 
 import CardHouse from "@/components/house/card-house";
-import { HouseDetails }from "@/lib/models/house.model"
+import { IHouse } from "@/lib/models/house.model";
 import React, { useEffect, useState } from "react";
 
 const CardContainer: React.FC = () => {
-  const [houses, setHouses] = useState<HouseDetails[]>([]);
+  const [houses, setHouses] = useState<IHouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +16,9 @@ const CardContainer: React.FC = () => {
         const response = await fetch("/api/houses");
         console.log("Response status:", response.status);
         if (!response.ok) {
-          throw new Error(`Failed to fetch houses: ${response.status} ${response.statusText}`);
+          throw new Error(
+            `Failed to fetch houses: ${response.status} ${response.statusText}`
+          );
         }
         const data = await response.json();
         console.log("Fetched data:", data);
@@ -30,7 +32,7 @@ const CardContainer: React.FC = () => {
         setError((error as Error).message);
         setHouses([
           {
-            id: "1",
+            _id: "1",
             name: "92 Allium Place, Orlando FL 32827",
             userId: "user1",
             description: "Beautiful house in Orlando",
@@ -42,7 +44,6 @@ const CardContainer: React.FC = () => {
             bathroom: 4,
             size: 2096,
             houseType: "House",
-            timestamp: new Date().toISOString(),
           },
         ]);
       } finally {
@@ -59,7 +60,9 @@ const CardContainer: React.FC = () => {
         style={{ backgroundImage: 'url("/c.jpg")' }}
       >
         <div className="text-center text-white">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Properties</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+            Properties
+          </h1>
           <p className="text-base sm:text-lg mt-2">Service / House for Rent</p>
         </div>
       </div>
@@ -80,15 +83,17 @@ const CardContainer: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {houses.length > 0 ? (
-                houses.map((house) => (
-                  <CardHouse key={house.id} {...house} />
-                ))
+                houses.map((house) => <CardHouse key={house._id} {...house} />)
               ) : (
-                <p className="text-center text-gray-600 col-span-full">No properties available.</p>
+                <p className="text-center text-gray-600 col-span-full">
+                  No properties available.
+                </p>
               )}
             </div>
           )}
-          <p className="text-right text-sm text-gray-500 mt-4 sm:mt-6">All Properties for Rent</p>
+          <p className="text-right text-sm text-gray-500 mt-4 sm:mt-6">
+            All Properties for Rent
+          </p>
         </div>
       </div>
     </div>
