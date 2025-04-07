@@ -8,24 +8,7 @@ const CarContainer: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchCars = async () => {
-      try {
-        const response = await fetch("/api/cars");
-        if (!response.ok) {
-          throw new Error(`Failed to fetch cars: ${response.statusText}`);
-        }
-        const data = await response.json();
-        setCars(data);
-      } catch (error) {
-        console.error("Error fetching cars:", error);
-        setError((error as Error).message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCars();
-  }, []);
+  
 
   return (
     <div>
