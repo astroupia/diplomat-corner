@@ -9,6 +9,7 @@ interface CardProps extends IHouse {
   listedBy?: string; // Optional, defaults to "Admin"
 }
 
+
 const CardHouse: React.FC<CardProps> = ({
   _id,
   name,

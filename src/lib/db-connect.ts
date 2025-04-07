@@ -1,16 +1,15 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
-const cached = (global as any).mongoose || { conn: null, promise: null };
+
+let cached = (global as any).mongoose || { conn: null, promise: null };
+
 export const connectToDatabase = async () => {
-  if (cached.conn) {
-    console.log("Using cached connection:", mongoose.connection.readyState);
-    return cached.conn;
-  }
+  if (cached.conn) return cached.conn;
 
   if (!MONGODB_URI) {
-    console.error("MONGODB_URI is missing");
-    throw new Error("MONGODB_URI is missing");
+    console.error("MONGODB_URI is missing from environment variables");
+    return;
   }
 
   try {
@@ -20,12 +19,12 @@ export const connectToDatabase = async () => {
         dbName: "diplomat-corner",
         bufferCommands: false,
       });
+
     cached.conn = await cached.promise;
-    console.log("Connection established:", mongoose.connection.readyState);
-    console.log("Connected to database:", mongoose.connection.db?.databaseName);
+    console.log("Connected to MongoDB successfully");
     return cached.conn;
   } catch (error) {
-    console.error("Connection failed:", error);
+    console.error("Failed to connect to MongoDB:", error);
     throw error;
   }
 };

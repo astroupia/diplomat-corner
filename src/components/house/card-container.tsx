@@ -3,7 +3,6 @@
 import CardHouse from "@/components/house/card-house";
 import type { IHouse } from "@/lib/models/house.model";
 import React, { useEffect, useState } from "react";
-import { getAllHouse } from "@/lib/actions/house.actions"; 
 
 const CardContainer: React.FC = () => {
   const [houses, setHouses] = useState<IHouse[]>([]);
@@ -13,10 +12,21 @@ const CardContainer: React.FC = () => {
   useEffect(() => {
     const fetchHouses = async () => {
       try {
-        console.log("Fetching houses using getAllHouse server action");
-        const data = await getAllHouse(); 
+        console.log("Fetching houses from API route");
+        const response = await fetch("/api/house", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
         console.log("Fetched data:", data);
-        
+
         if (Array.isArray(data)) {
           setHouses(data);
         } else {
@@ -25,10 +35,11 @@ const CardContainer: React.FC = () => {
       } catch (error) {
         console.error("Error fetching houses:", error);
         setError((error as Error).message);
+        // Fallback data in case of error
         setHouses([
           {
             _id: "1",
-            name: "92 Allium Place, Orlando FL 32827",
+            name: "This is a fallback response",
             description: "Beautiful house in Orlando",
             advertisementType: "Rent",
             price: 590693,
