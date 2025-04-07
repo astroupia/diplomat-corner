@@ -1,30 +1,33 @@
-
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface ICar extends Document {
-    _id: string;
-    name: string;
-    userId: string;
-    description: string;
-    advertisementType: "Rent" | "Sale";
-    price: number;
-    paymentMethod: number;
-    mileage: number;
-    speed: number;
-    milesPerGallon: number;
-    timestamp: string;
-    year: number;
-    transmission: string;
-    fuel: string;
-    bodyType: string;
-    condition: string;
-    engine: string;
-    maintenance: string;
-    currency: string;
-    tags: string;
+  _id: string;
+  name: string;
+  userId: string;
+  description: string;
+  advertisementType: "Rent" | "Sale";
+  price: number;
+  paymentMethod: number;
+  mileage: number;
+  speed: number;
+  milesPerGallon: number;
+  timestamp: string;
+  year: number;
+  transmission: string;
+  fuel: string;
+  bodyType: string;
+  condition: string;
+  engine: string;
+  maintenance: string;
+  currency: string;
+  tags: string;
+  paymentId: string;
+  visiblity: "Private" | "Public";
+  status: "Pending" | "Active";
 }
 
-const CarSchema: Schema = new Schema({
+const CarSchema: Schema = new Schema(
+  {
     name: { type: String, required: true },
     userId: { type: String, required: true },
     description: { type: String, required: true },
@@ -44,6 +47,22 @@ const CarSchema: Schema = new Schema({
     maintenance: { type: String, default: "" },
     currency: { type: String, default: "ETB" },
     tags: { type: String, default: "" },
-});
+    paymentId: {
+      type: String,
+      required: true,
+    },
+    visiblity: {
+      type: String,
+      required: true,
+      enum: ["Private", "Public"],
+    },
+    status: {
+      type: String,
+      required: true,
+      enum: ["Pending", "Active"],
+    },
+  },
+  { timestamps: true }
+);
 
 export default mongoose.models.Car || mongoose.model<ICar>("Car", CarSchema);
