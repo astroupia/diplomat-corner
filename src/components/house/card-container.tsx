@@ -3,7 +3,7 @@
 import CardHouse from "@/components/house/card-house";
 import type { IHouse } from "@/lib/models/house.model";
 import React, { useEffect, useState } from "react";
-import { getAllHouse } from "@/lib/actions/house.actions"; 
+import { getAllHouse } from "@/lib/actions/house.actions";
 
 const CardContainer: React.FC = () => {
   const [houses, setHouses] = useState<IHouse[]>([]);
@@ -14,9 +14,9 @@ const CardContainer: React.FC = () => {
     const fetchHouses = async () => {
       try {
         console.log("Fetching houses using getAllHouse server action");
-        const data = await getAllHouse(); 
+        const data = await getAllHouse();
         console.log("Fetched data:", data);
-        
+
         if (Array.isArray(data)) {
           setHouses(data);
         } else {
@@ -29,6 +29,7 @@ const CardContainer: React.FC = () => {
           {
             _id: "1",
             name: "92 Allium Place, Orlando FL 32827",
+            userId: "1",
             description: "Beautiful house in Orlando",
             advertisementType: "Rent",
             price: 590693,
@@ -58,7 +59,9 @@ const CardContainer: React.FC = () => {
         style={{ backgroundImage: 'url("/c.jpg")' }}
       >
         <div className="text-center text-white">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Properties</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
+            Properties
+          </h1>
           <p className="text-base sm:text-lg mt-2">Service / House for Rent</p>
         </div>
       </div>
@@ -79,15 +82,17 @@ const CardContainer: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
               {houses.length > 0 ? (
-                houses.map((house) => (
-                  <CardHouse key={house._id} {...house} />
-                ))
+                houses.map((house) => <CardHouse key={house._id} {...house} />)
               ) : (
-                <p className="text-center text-gray-600 col-span-full">No properties available.</p>
+                <p className="text-center text-gray-600 col-span-full">
+                  No properties available.
+                </p>
               )}
             </div>
           )}
-          <p className="text-right text-sm text-gray-500 mt-4 sm:mt-6">All Properties for Rent</p>
+          <p className="text-right text-sm text-gray-500 mt-4 sm:mt-6">
+            All Properties for Rent
+          </p>
         </div>
       </div>
     </div>
