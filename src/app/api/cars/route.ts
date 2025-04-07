@@ -1,17 +1,15 @@
-import { getAllCars } from "@/lib/actions/car.action";
 import { connectToDatabase } from "@/lib/db-connect";
 import Car from "@/lib/models/car.model";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
-    const cars = await getAllCars();
-    console.log("Fetched cars:", cars);
+    await connectToDatabase();
+    const cars = await Car.find({});
     return NextResponse.json(cars, { status: 200 });
-  } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Error fetching cars:", err.message, err.stack);
-    return NextResponse.json([], { status: 200 }); // Return empty array on error
+  } catch (error) {
+    console.error("Error fetching cars:", error);
+    return NextResponse.json([], { status: 200 });
   }
 }
 
@@ -19,44 +17,10 @@ export async function POST(req: NextRequest) {
   try {
     await connectToDatabase();
     const body = await req.json();
-    const {
-      name,
-      userId,
-      description,
-      advertisementType,
-      price,
-      paymentMethod,
-      mileage,
-      speed,
-      mpg,
-      timestamp,
-    } = body;
-
-    if (!name || !userId || !description || !advertisementType || !price || !paymentMethod || !mileage || !speed || !mpg || !timestamp) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      );
-    }
-
-    if (!["Rent", "Sale"].includes(advertisementType)) {
-      return NextResponse.json(
-        { error: "Invalid advertisementType. Must be 'Rent' or 'Sale'" },
-        { status: 400 }
-      );
-    }
 
     const newCar = new Car({
-      name,
-      userId,
-      description,
-      advertisementType,
-      price,
-      paymentMethod,
-      mileage,
-      speed,
-      mpg,
-      timestamp,
+      ...body,
+      timestamp: body.timestamp || new Date().toISOString(),
     });
 
     await newCar.save();
@@ -64,11 +28,10 @@ export async function POST(req: NextRequest) {
       { message: "Car created successfully", car: newCar },
       { status: 201 }
     );
-  } catch (error: unknown) {
-    const err = error as Error;
-    console.error("Detailed error in POST /api/cars:", err.message, err.stack);
+  } catch (error) {
+    console.error("Error in POST /api/cars:", error);
     return NextResponse.json(
-      { error: "Internal server error", details: err.message },
+      { error: "Internal server error", details: (error as Error).message },
       { status: 500 }
     );
   }

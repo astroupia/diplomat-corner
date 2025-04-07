@@ -1,7 +1,7 @@
 'use server';
 
 import { connectToDatabase } from '@/lib/db-connect';
-import Review from '@/lib/models/Review.model';
+import Review from '@/lib/models/review.model';
 import mongoose from 'mongoose';
 import { z } from 'zod';
 

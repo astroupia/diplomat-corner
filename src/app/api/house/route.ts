@@ -2,6 +2,8 @@
 import { NextResponse } from "next/server";
 import { getAllHouse } from "@/lib/actions/house.actions";
 import House from "@/lib/models/house.model";
+import { connectToDatabase } from "@/lib/db-connect";
+
 
 export async function GET() {
   try {
@@ -19,9 +21,14 @@ export async function GET() {
 
 export async function POST(req: Request) {
   try {
+    await connectToDatabase();
     const body = await req.json();
     console.log("POST /api/houses called with body:", body);
-    const { name, userId, description, advertisementType, price, paymentMethod, bedroom, parkingSpace, bathroom, size, houseType } = body;
+    const {
+      name, userId, description, advertisementType, price, paymentMethod,
+      bedroom, parkingSpace, bathroom, size, houseType, condition,
+      maintenance, essentials, currency,
+    } = body;
 
     if (!name || !userId || !description || !advertisementType || !price || !paymentMethod || !bedroom || !parkingSpace || !bathroom || !size || !houseType) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -38,7 +45,11 @@ export async function POST(req: Request) {
       parkingSpace,
       bathroom,
       size,
-      houseType
+      houseType,
+      condition,
+      maintenance,
+      essentials,
+      currency,
     });
 
     await newHouse.save();
@@ -46,7 +57,7 @@ export async function POST(req: Request) {
   } catch (error) {
     console.error("Error in POST /api/houses:", error);
     return NextResponse.json(
-      { error: `Failed to create house: ${(error as Error).message}` },
+      { error: `Failed to create house: ${(error as Error).message || "Unknown server error"}` },
       { status: 500 }
     );
   }

@@ -7,9 +7,8 @@ import { useEffect, useState } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { Button } from "./ui/button";
 
-interface NavBarProps {}
-
-const NavBar: React.FC<NavBarProps> = () => {
+// No props interface needed
+const NavBar: React.FC = () => {
   const { user } = useUser();
   const isAdmin =
     user?.primaryEmailAddress?.emailAddress ===

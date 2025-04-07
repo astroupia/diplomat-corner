@@ -1,5 +1,5 @@
 import { connectToDatabase } from '@/lib/db-connect';
-import Review from '@/lib/models/Review.model';
+import Review from '@/lib/models/review.model';
 import mongoose from 'mongoose';
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';

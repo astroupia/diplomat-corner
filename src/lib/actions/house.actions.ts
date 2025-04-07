@@ -4,28 +4,30 @@ import House, { IHouse } from "@/lib/models/house.model";
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db-connect";
 
+interface HouseData {
+  name: string;
+  bedroom: number;
+  size: number;
+  bathroom: number;
+  condition: string;
+  maintenance: string;
+  price: number;
+  description: string;
+  advertisementType: "Rent" | "Sale";
+  paymentMethod: "Monthly" | "Quarterly" | "Annual";
+  houseType: "House" | "Apartment" | "Guest House";
+  essentials: string[];
+  currency: string;
+}
 
-export async function createHouse(formData: IHouse) {
+export async function createHouse(formData: HouseData) {
   try {
-    console.log("createHouse called with:", Object.fromEntries(formData)); 
+    console.log("createHouse called with:", formData);
     await connectToDatabase();
-      const houseDetails: IHouse = {
-      name: formData.name as string,
-      userId: formData.userId as string,
-      description: formData.description as string,
-      advertisementType: formData.advertisementType as "Rent" | "Sale",
-      price: Number(formData.price),
-      paymentMethod: formData.paymentMethod as "Monthly" | "Quarterly" | "Annual",
-      bedroom: Number(formData.bedroom),
-      parkingSpace: Number(formData.parkingSpace),
-      bathroom: Number(formData.bathroom),
-      size: Number(formData.size),
-      houseType: formData.houseType as "House" | "Apartment" | "Guest House",
-    };
-    console.log("House details prepared:", houseDetails); 
 
-    const house = await new House(houseDetails).save();
-    console.log("House saved to DB:", house); 
+    const house = await new House(formData).save();
+    console.log("House saved to DB:", house);
+    revalidatePath("/houses");
     return { success: true, house: toPlainObject(house) };
   } catch (error) {
     console.error("Error creating house:", error);
@@ -34,58 +36,56 @@ export async function createHouse(formData: IHouse) {
 }
 
 export async function deleteHouse(houseId: string) {
-  const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL}/api/houses?houseId=${houseId}`,
-    {
-      method: "DELETE",
+  try {
+    await connectToDatabase();
+    const house = await House.findByIdAndDelete(houseId);
+    
+    if (!house) {
+      return { success: false, error: "House not found" };
     }
-  );
-
-  revalidatePath("/houses");
-  return await response.json();
+    
+    revalidatePath("/houses");
+    return { success: true, message: "House deleted successfully" };
+  } catch (error) {
+    console.error("Error deleting house:", error);
+    return { success: false, error: (error as Error).message };
+  }
 }
 
-export async function updateHouseDetails(houseId: string, formData: FormData) {
-  const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/houses`, {
-    method: "PUT",
-    body: JSON.stringify({
-      id: houseId,
-      name: formData.get("name") as string,
-      description: formData.get("description") as string,
-      advertisementType: formData.get("advertisementType") as "Rent" | "Sale",
-      price: Number(formData.get("price")),
-      paymentMethod: formData.get("paymentMethod") as "Monthly" | "Quarterly" | "Annual",
-      bedroom: Number(formData.get("bedroom")),
-      parkingSpace: Number(formData.get("parkingSpace")),
-      bathroom: Number(formData.get("bathroom")),
-      size: Number(formData.get("size")),
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+export async function updateHouseDetails(houseId: string, formData: HouseData) {
+  try {
+    await connectToDatabase();
+    
+    const house = await House.findByIdAndUpdate(
+      houseId,
+      formData,
+      { new: true, runValidators: true }
+    );
 
-  revalidatePath("/houses");
-  return await response.json();
+    if (!house) {
+      return { success: false, error: "House not found" };
+    }
+
+    revalidatePath("/houses");
+    return { success: true, house: toPlainObject(house) };
+  } catch (error) {
+    console.error("Error updating house:", error);
+    return { success: false, error: (error as Error).message };
+  }
 }
-
-
-
 
 const toPlainObject = (doc: any) => {
   return doc ? JSON.parse(JSON.stringify(doc)) : null;
 };
 
-// Server action to get all houses
 export async function getAllHouse(): Promise<IHouse[]> {
   try {
     await connectToDatabase();
     const houses = await House.find({});
     console.log("Fetched houses:", houses);
-    return houses;
+    return houses.map(house => toPlainObject(house));
   } catch (error) {
     console.error("Error fetching houses:", error);
     throw new Error(`Failed to fetch houses: ${(error as Error).message}`);
   }
 }
-

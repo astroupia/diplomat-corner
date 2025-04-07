@@ -1,7 +1,17 @@
 "use server";
 
 import { connectToDatabase } from "@/lib/db-connect";
-import Advertisement, { IAdvertisement } from "@/lib/models/advertisement.model";
+import Advertisement, { IAdvertisement, AdvertisementResponse } from "@/lib/models/advertisement.model";
+
+export async function getAllAD(): Promise<AdvertisementResponse[]> {
+  await connectToDatabase();
+
+  const ads = await Advertisement.find({});
+  if (!ads || ads.length === 0) {
+    return []; 
+  }
+    return ads as AdvertisementResponse[]; 
+  }
 
 export async function createAdvertisement(adDetails: Partial<IAdvertisement>) {
   await connectToDatabase();

@@ -5,15 +5,19 @@ export interface IHouse {
   _id: string;
   name: string;
   userId: string;
-  price: number;
   description: string;
-  advertisementType: "Rent" | "Sale";
+  advertisementType: string;
+  price: number;
   paymentMethod: "Monthly" | "Quarterly" | "Annual";
   bedroom: number;
   parkingSpace: number;
   bathroom: number;
   size: number;
   houseType: "House" | "Apartment" | "Guest House";
+  condition: string;
+  maintenance: string;
+  essentials: string[];
+  currency: string;
 }
 
 const houseSchema = new Schema(
