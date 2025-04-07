@@ -1,34 +1,49 @@
+
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface ICar extends Document {
-  _id: string; 
-  Name: string;
-  UserId: string;
-  Description: string;
-  AdvertisementType: "Rent" | "Sale";
-  Price: number;
-  PaymentMethod: number;
-  Mileage: number;
-  Speed: number;
-  MilesPerGallon: number;
-  Timestamp: string;
+    _id: string;
+    name: string;
+    userId: string;
+    description: string;
+    advertisementType: "Rent" | "Sale";
+    price: number;
+    paymentMethod: number;
+    mileage: number;
+    speed: number;
+    milesPerGallon: number;
+    timestamp: string;
+    year: number;
+    transmission: string;
+    fuel: string;
+    bodyType: string;
+    condition: string;
+    engine: string;
+    maintenance: string;
+    currency: string;
+    tags: string;
 }
 
 const CarSchema: Schema = new Schema({
-  name: { type: String, required: true },
-  userId: { type: String, required: true },
-  description: { type: String, required: true },
-  advertisementType: {
-    type: String,
-    required: true,
-    enum: ["Rent", "Sale"],
-  },
-  price: { type: Number, required: true },
-  paymentMethod: { type: Number, required: true },
-  mileage: { type: Number, required: true },
-  speed: { type: Number, required: true },
-  milesPerGallon: { type: Number, required: true },
-  timestamp: { type: String, required: true },
+    name: { type: String, required: true },
+    userId: { type: String, required: true },
+    description: { type: String, required: true },
+    advertisementType: { type: String, required: true, enum: ["Rent", "Sale"] },
+    price: { type: Number, required: true },
+    paymentMethod: { type: Number, required: true },
+    mileage: { type: Number, required: true },
+    speed: { type: Number, default: 0 },
+    milesPerGallon: { type: Number, default: 0 },
+    timestamp: { type: String, required: true },
+    year: { type: Number, default: 0 },
+    transmission: { type: String, default: "Automatic" },
+    fuel: { type: String, default: "Gasoline" },
+    bodyType: { type: String, default: "Truck" },
+    condition: { type: String, default: "" },
+    engine: { type: String, default: "" },
+    maintenance: { type: String, default: "" },
+    currency: { type: String, default: "ETB" },
+    tags: { type: String, default: "" },
 });
 
 export default mongoose.models.Car || mongoose.model<ICar>("Car", CarSchema);
