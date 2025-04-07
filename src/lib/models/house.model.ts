@@ -1,4 +1,3 @@
-// lib/models/house.model.ts
 import mongoose, { Schema } from "mongoose";
 
 export interface IHouse {
