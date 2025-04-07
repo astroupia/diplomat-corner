@@ -43,6 +43,9 @@ const CardContainer: React.FC = () => {
             maintenance: "Included",
             essentials: ["WiFi", "Electricity", "Water"],
             currency: "USD",
+            paymentId: "1",
+            visiblity: "Private",
+            status: "Active",
           },
         ]);
       } finally {
