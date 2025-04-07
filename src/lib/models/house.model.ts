@@ -17,6 +17,9 @@ export interface IHouse {
   maintenance: string;
   essentials: string[];
   currency: string;
+  paymentId: string;
+  visiblity: "Private" | "Public";
+  status: "Pending" | "Active";
 }
 
 const houseSchema = new Schema(
@@ -38,6 +41,20 @@ const houseSchema = new Schema(
       type: String,
       required: true,
       enum: ["House", "Apartment", "Guest House"],
+    },
+    paymentId: {
+      type: String,
+      required: true,
+    },
+    visiblity: {
+      type: String,
+      required: true,
+      enum: ["Private", "Public"],
+    },
+    status: {
+      type: String,
+      required: true,
+      enum: ["Pending", "Active"],
     },
   },
   { timestamps: true }
