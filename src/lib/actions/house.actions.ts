@@ -4,9 +4,10 @@ import House, { IHouse } from "@/lib/models/house.model";
 import { revalidatePath } from "next/cache";
 import { connectToDatabase } from "../db-connect";
 
-interface HouseData {
+export interface HouseData {
   name: string;
   bedroom: number;
+  userId: string;
   size: number;
   bathroom: number;
   condition: string;
