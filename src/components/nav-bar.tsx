@@ -176,7 +176,7 @@ const NavBar: React.FC = () => {
                       <Megaphone className="w-6 h-6" />
                     </Link>
                     <Link
-                      href="/manage-product/house"
+                      href="/manage-product"
                       className="hover:text-primary transition"
                     >
                       Manage Products
