@@ -1,3 +1,4 @@
+import { createCar } from "@/lib/actions/car.action";
 import { connectToDatabase } from "@/lib/db-connect";
 import Car from "@/lib/models/car.model";
 import { NextRequest, NextResponse } from "next/server";
@@ -13,19 +14,7 @@ export async function GET() {
   }
 }
 
-export async function fetchCars() {
-  try {
-    const response = await fetch("/api/cars");
-    if (!response.ok) {
-      throw new Error(`Failed to fetch cars: ${response.statusText}`);
-    }
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching cars:", error);
-    throw error; 
-  }
-}
+
 
 export async function POST(req: NextRequest) {
   try {
@@ -37,7 +26,7 @@ export async function POST(req: NextRequest) {
       timestamp: body.timestamp || new Date().toISOString(),
     });
 
-    await newCar.save();
+    await createCar(newCar)
     return NextResponse.json(
       { message: "Car created successfully", car: newCar },
       { status: 201 }
