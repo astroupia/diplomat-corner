@@ -1,9 +1,9 @@
-import ManageHouse from "@/components/manage-house";
+import ManageProduct from "@/components/manage-product";
 
 export default function Home() {
   return (
     <div>
-      <ManageHouse />
+      <ManageProduct />
     </div>
   );
 }
