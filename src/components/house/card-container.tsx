@@ -8,11 +8,11 @@ const CardContainer: React.FC = () => {
   const [houses, setHouses] = useState<IHouse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<string>("Default");
 
   useEffect(() => {
     const fetchHouses = async () => {
       try {
-        console.log("Fetching houses from API route");
         const response = await fetch("/api/house", {
           method: "GET",
           headers: {
@@ -25,8 +25,6 @@ const CardContainer: React.FC = () => {
         }
 
         const data = await response.json();
-        console.log("Fetched data:", data);
-
         if (Array.isArray(data)) {
           setHouses(data);
         } else {
@@ -35,11 +33,10 @@ const CardContainer: React.FC = () => {
       } catch (error) {
         console.error("Error fetching houses:", error);
         setError((error as Error).message);
-        // Fallback data in case of error
         setHouses([
           {
             _id: "1",
-            name: "This is a fallback response",
+            name: "Fallback House",
             description: "Beautiful house in Orlando",
             advertisementType: "Rent",
             price: 590693,
@@ -53,6 +50,7 @@ const CardContainer: React.FC = () => {
             maintenance: "Included",
             essentials: ["WiFi", "Electricity", "Water"],
             currency: "USD",
+            userId: "fallback",
           },
         ]);
       } finally {
@@ -62,33 +60,49 @@ const CardContainer: React.FC = () => {
     fetchHouses();
   }, []);
 
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const order = e.target.value;
+    setSortOrder(order);
+    let sortedHouses = [...houses];
+    if (order === "Price Low to High") {
+      sortedHouses.sort((a, b) => a.price - b.price);
+    } else if (order === "Price High to Low") {
+      sortedHouses.sort((a, b) => b.price - a.price);
+    }
+    setHouses(sortedHouses);
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
         style={{ backgroundImage: 'url("/c.jpg")' }}
       >
-        <div className="text-center text-white">
+        <div className="text-center text-white bg-black bg-opacity-50 p-4 rounded-lg">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Properties</h1>
-          <p className="text-base sm:text-lg mt-2">Service / House for Rent</p>
+          <p className="text-base sm:text-lg mt-2">Find Your Perfect Home</p>
         </div>
       </div>
-      <div className="bg-gray-50 py-6 sm:py-8 flex-1">
+      <div className="bg-gray-100 py-6 sm:py-8 flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col sm:flex-row justify-between items-center mb-4 sm:mb-6 gap-4">
-            <h2 className="text-xl sm:text-2xl font-bold">All Properties</h2>
-            <select className="border border-gray-300 rounded px-3 py-1 text-gray-600 text-sm sm:text-base w-full sm:w-auto">
-              <option>Default Order</option>
-              <option>Price Low to High</option>
-              <option>Price High to Low</option>
+          <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">All Properties</h2>
+            <select
+              value={sortOrder}
+              onChange={handleSortChange}
+              className="border border-gray-300 rounded-lg px-4 py-2 text-gray-600 text-sm sm:text-base bg-white focus:outline-none focus:ring-2 focus:ring-primary w-full sm:w-auto"
+            >
+              <option value="Default">Default Order</option>
+              <option value="Price Low to High">Price Low to High</option>
+              <option value="Price High to Low">Price High to Low</option>
             </select>
           </div>
           {loading ? (
-            <p className="text-center text-gray-600">Loading properties...</p>
+            <div className="text-center text-gray-600 animate-pulse">Loading properties...</div>
           ) : error ? (
             <p className="text-center text-red-600">{error}</p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {houses.length > 0 ? (
                 houses.map((house) => (
                   <CardHouse key={house._id} {...house} />
@@ -98,7 +112,7 @@ const CardContainer: React.FC = () => {
               )}
             </div>
           )}
-          <p className="text-right text-sm text-gray-500 mt-4 sm:mt-6">All Properties for Rent</p>
+          <p className="text-right text-sm text-gray-500 mt-6">Explore All Properties for Rent</p>
         </div>
       </div>
     </div>

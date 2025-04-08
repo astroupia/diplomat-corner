@@ -89,3 +89,9 @@ export async function getAllHouse(): Promise<IHouse[]> {
     throw new Error(`Failed to fetch houses: ${(error as Error).message}`);
   }
 }
+
+export async function getHouseById(id: string) {
+  await connectToDatabase();
+  const house = await House.findById(id).lean();
+  return house;
+}

@@ -1,4 +1,3 @@
-// lib/models/house.model.ts
 import mongoose, { Schema } from "mongoose";
 
 export interface IHouse {
@@ -17,17 +16,22 @@ export interface IHouse {
   maintenance: string; 
   essentials: string[]; 
   currency: string;
+  imageUrl?: string; // Added imageUrl field
+  userId: string;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 const houseSchema = new Schema({
   name: { type: String, required: true },
-  userId: { type: String, required: true},
+  userId: { type: String, required: true },
   description: { type: String, required: true },
   advertisementType: { type: String, required: true, enum: ["Rent", "Sale"] },
   price: { type: Number, required: true },
   paymentMethod: {
     type: String,
     required: true,
+    enum: ["Monthly", "Quarterly", "Annual"],
   },
   bedroom: { type: Number, required: true },
   parkingSpace: { type: Number, required: true },
@@ -42,8 +46,7 @@ const houseSchema = new Schema({
   maintenance: { type: String }, 
   essentials: { type: [String] }, 
   currency: { type: String },
+  imageUrl: { type: String }, // Added to store the public URL
 }, { timestamps: true });
 
-
 export default mongoose.models.House || mongoose.model<IHouse>("House", houseSchema);
-

@@ -13,16 +13,16 @@ import {
   Upload,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { useUser } from "@clerk/nextjs";
-import { createHouse } from "@/lib/actions/house.actions"; // Import from house.actions.ts
 
 interface HouseFormData {
   name: string;
   bedroom: number;
   size: number;
   bathroom: number;
+  parkingSpace: number;
   condition: string;
   maintenance: string;
   price: number;
@@ -41,6 +41,7 @@ const ManageHouse: React.FC = () => {
     bedroom: 0,
     size: 0,
     bathroom: 0,
+    parkingSpace: 0,
     condition: "",
     maintenance: "",
     price: 0,
@@ -53,6 +54,8 @@ const ManageHouse: React.FC = () => {
   });
   const [isSending, setIsSending] = useState(false);
   const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const essentials = [
     "WiFi",
@@ -72,8 +75,15 @@ const ManageHouse: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "bedroom" || name === "size" || name === "bathroom" || name === "price" ? Number(value) : value,
+      [name]: name === "bedroom" || name === "size" || name === "bathroom" ||
+              name === "parkingSpace" || name === "price" ? Number(value) : value,
     }));
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
   };
 
   const handleOptionChange = (field: keyof HouseFormData, value: string) => {
@@ -92,25 +102,38 @@ const ManageHouse: React.FC = () => {
   const handleSend = async () => {
     setIsSending(true);
     setSubmitResult(null);
-    console.log("Form data being sent:", formData);
 
     if (
       !formData.name ||
       !formData.bedroom ||
       !formData.size ||
       !formData.bathroom ||
+      !formData.parkingSpace ||
       !formData.price ||
       !formData.description
     ) {
       setSubmitResult({ success: false, message: "Please fill all required fields" });
-      console.log("Validation failed: Missing required fields");
       setIsSending(false);
       return;
     }
 
     try {
-      const result = await createHouse(formData);
-      console.log("Server action result:", result);
+      const apiFormData = new FormData();
+      Object.entries(formData).forEach(([key, value]) => {
+        apiFormData.append(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
+      });
+      
+      if (selectedFile) {
+        apiFormData.append('file', selectedFile);
+      }
+
+      const response = await fetch('/api/house/create', {
+        method: 'POST',
+        body: apiFormData,
+      });
+
+      const result = await response.json();
+
       if (result.success) {
         setSubmitResult({ success: true, message: "House saved successfully!" });
         setFormData({
@@ -118,6 +141,7 @@ const ManageHouse: React.FC = () => {
           bedroom: 0,
           size: 0,
           bathroom: 0,
+          parkingSpace: 0,
           condition: "",
           maintenance: "",
           price: 0,
@@ -128,20 +152,31 @@ const ManageHouse: React.FC = () => {
           essentials: [],
           currency: "ETB",
         });
+        setSelectedFile(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
       } else {
         setSubmitResult({ success: false, message: result.error || "Failed to save house" });
       }
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
       setSubmitResult({
         success: false,
-        message: `Failed to save house: ${errorMessage}`,
+        message: `Failed to save house: ${error instanceof Error ? error.message : 'Unknown error'}`,
       });
-      console.error("Error in handleSend:", error);
     } finally {
       setIsSending(false);
     }
   };
+
+  useEffect(() => {
+    if (submitResult?.success) {
+      const timer = setTimeout(() => {
+        setSubmitResult(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [submitResult]);
 
   if (!isLoaded) return <div>Loading...</div>;
   if (!user) return <div>Please log in</div>;
@@ -227,7 +262,7 @@ const ManageHouse: React.FC = () => {
                     ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 sm:gap-4">
                   <div>
                     <label className="block text-xs sm:text-sm font-semibold text-primary">Bedroom *</label>
                     <input
@@ -264,6 +299,18 @@ const ManageHouse: React.FC = () => {
                       required
                     />
                   </div>
+                  <div>
+                    <label className="block text-xs sm:text-sm font-semibold text-primary">Parking Space *</label>
+                    <input
+                      type="number"
+                      name="parkingSpace"
+                      value={formData.parkingSpace || ""}
+                      onChange={handleInputChange}
+                      className="w-full p-1 sm:p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-secondary text-xs sm:text-sm md:text-base"
+                      placeholder="2"
+                      required
+                    />
+                  </div>
                 </div>
                 <div>
                   <p className="text-xs sm:text-sm font-semibold text-primary mb-2 sm:mb-3 lg:mb-4">Essentials</p>
@@ -274,9 +321,7 @@ const ManageHouse: React.FC = () => {
                         type="button"
                         onClick={() => toggleSelection(item)}
                         className={`flex items-center space-x-1 sm:space-x-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 lg:py-2 rounded-full shadow-md text-xs sm:text-sm font-semibold ${
-                          formData.essentials.includes(item)
-                            ? "bg-primary text-white border border-primary"
-                            : "bg-secondary text-black border border-black"
+                          formData.essentials.includes(item) ? "bg-primary text-white border border-primary" : "bg-secondary text-black border border-black"
                         }`}
                       >
                         {formData.essentials.includes(item) ? (
@@ -291,9 +336,19 @@ const ManageHouse: React.FC = () => {
                 </div>
               </div>
               <div className="col-span-1 md:col-span-1 lg:col-span-4 space-y-3 sm:space-y-4 lg:space-y-6 border-2 border-primary p-2 sm:p-4 lg:p-6 rounded-3xl shadow-md overflow-y-auto max-h-[calc(100vh-200px)] md:max-h-[calc(100vh-150px)]">
-                <div className="h-24 sm:h-32 lg:h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg">
-                  <Upload size={24} className="text-primary sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
-                  <p className="mt-1 sm:mt-2 lg:mt-4 text-xs sm:text-sm text-primary">Upload media for the campaign</p>
+                <div className="space-y-2">
+                  <div className="h-24 sm:h-32 lg:h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg">
+                    <Upload size={24} className="text-primary sm:w-8 sm:h-8 lg:w-10 lg:h-10" />
+                    <p className="mt-1 sm:mt-2 lg:mt-4 text-xs sm:text-sm text-primary">Upload media for the campaign</p>
+                  </div>
+                  <input
+                    type="file"
+                    name="houseImage"
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    ref={fileInputRef}
+                    className="w-full text-xs sm:text-sm"
+                  />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
@@ -339,9 +394,7 @@ const ManageHouse: React.FC = () => {
                         key={option}
                         type="button"
                         className={`flex items-center space-x-1 sm:space-x-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 lg:py-2 rounded-full border text-xs sm:text-sm font-semibold ${
-                          formData.currency === option
-                            ? "bg-primary text-white border border-primary"
-                            : "bg-white text-black border border-black"
+                          formData.currency === option ? "bg-primary text-white border border-primary" : "bg-white text-black border border-black"
                         }`}
                         onClick={() => handleOptionChange("currency", option)}
                       >
@@ -363,9 +416,7 @@ const ManageHouse: React.FC = () => {
                         key={option}
                         type="button"
                         className={`flex items-center space-x-1 sm:space-x-2 px-2 py-1 sm:px-3 sm:py-1 lg:px-4 lg:py-2 rounded-full border text-xs sm:text-sm font-semibold ${
-                          formData.paymentMethod === option
-                            ? "bg-primary text-white border border-primary"
-                            : "bg-white text-black border border-black"
+                          formData.paymentMethod === option ? "bg-primary text-white border border-primary" : "bg-white text-black border border-black"
                         }`}
                         onClick={() => handleOptionChange("paymentMethod", option)}
                       >
@@ -398,7 +449,7 @@ const ManageHouse: React.FC = () => {
                     isSending ? "bg-gray-400 cursor-not-allowed" : "bg-primary hover:bg-primary-dark"
                   }`}
                 >
-                  {isSending ? "Creating..." : "Created"}
+                  {isSending ? "Creating..." : "Create"}
                 </button>
                 {submitResult && (
                   <p

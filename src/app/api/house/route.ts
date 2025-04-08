@@ -7,13 +7,13 @@ import { connectToDatabase } from "@/lib/db-connect";
 
 export async function GET() {
   try {
-    console.log("GET /api/houses called");
-    const houses = await getAllHouse();
-    return NextResponse.json(houses, { status: 200 });
+    await connectToDatabase();
+    const houses = await House.find({}).lean(); // Use .lean() for plain JS objects
+    return NextResponse.json(houses);
   } catch (error) {
-    console.error("Error in GET /api/houses:", error);
+    console.error('Error fetching houses:', error);
     return NextResponse.json(
-      { error: `Failed to fetch houses: ${(error as Error).message}` },
+      { error: 'Failed to fetch houses' },
       { status: 500 }
     );
   }
