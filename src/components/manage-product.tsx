@@ -396,7 +396,7 @@ const ManageProduct: React.FC = () => {
                             ) : (
                               <Circle size={12} className="sm:w-4 sm:h-4" />
                             )}
-                            <span>{item}</span>
+                            
                           </button>
                         ))}
                       </div>
