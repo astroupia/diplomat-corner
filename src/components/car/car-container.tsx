@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Card from "@/components/car/car-card";
-import { fetchCars } from "@/app/api/cars/route"; 
 
 const CarContainer: React.FC = () => {
   const [cars, setCars] = useState<any[]>([]);
@@ -12,7 +11,11 @@ const CarContainer: React.FC = () => {
   useEffect(() => {
     const getCars = async () => {
       try {
-        const carData = await fetchCars(); // Use the imported function
+        const response = await fetch("api/cars");
+        if (!response.ok) {
+          throw new Error("Failed to fetch cars");
+        }
+        const carData = await response.json();
         setCars(carData);
       } catch (error) {
         setError((error as Error).message);
