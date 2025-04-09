@@ -3,26 +3,7 @@ import { ChevronDown, Plus, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { images } from "@public/assets/images";
-
-interface Product {
-  tag: string;
-  rating: number;
-  reviews: number;
-}
-
-// Constants with proper length validation
-const PRODUCTS: Product[] = [
-  { tag: "House For Rent", rating: 4.95, reviews: 22 },
-  { tag: "Car For Sale", rating: 4.25, reviews: 22 },
-  { tag: "House For Rent", rating: 3.95, reviews: 22 },
-  { tag: "Car For Sale", rating: 4.6, reviews: 22 },
-  { tag: "Car For Sale", rating: 4.3, reviews: 22 },
-];
-
-// Safe product getter function
-const getProduct = (index: number): Product => {
-  return PRODUCTS[index] || { tag: "Unknown", rating: 0, reviews: 0 };
-};
+import { products, getProduct } from "@public/assets/data/products";
 
 // Components
 const HeroSection = () => (
@@ -135,7 +116,7 @@ const HeroSection = () => (
 );
 
 const FeaturedProducts = () => {
-  // Create an array of image keys for the featured products section
+  // Create arrays of keys for the featured products section
   const featuredImageKeys = [
     "air",
     "air2",
@@ -145,6 +126,7 @@ const FeaturedProducts = () => {
     "half",
     "women",
   ];
+  const productKeys = ["house1", "car1", "house2", "car2", "car3"];
 
   return (
     <section className="bg-slate-50 py-10">
@@ -155,10 +137,11 @@ const FeaturedProducts = () => {
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {featuredImageKeys
-              .slice(0, Math.min(featuredImageKeys.length, PRODUCTS.length))
-              .map((key, index) => {
-                const image = images[key as keyof typeof images];
-                const product = getProduct(index);
+              .slice(0, Math.min(featuredImageKeys.length, productKeys.length))
+              .map((imageKey, index) => {
+                const productKey = productKeys[index] as keyof typeof products;
+                const image = images[imageKey as keyof typeof images];
+                const product = getProduct(productKey);
                 return (
                   <div key={index} className="flex flex-col items-center">
                     <div className="relative group overflow-hidden rounded-lg shadow-md w-full h-64">
