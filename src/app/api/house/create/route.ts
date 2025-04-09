@@ -27,6 +27,9 @@ interface HouseFormData {
   imageUrl?: string;
   userId?: string;
   createdAt?: Date;
+  paymentId: string;
+  visiblity: "Private" | "Public";
+  status: "Pending" | "Active";
 }
 
 interface ApiResponse {
@@ -104,6 +107,9 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       currency: formData.get('currency') as string,
       userId,
       createdAt: new Date(),
+      paymentId: "1",
+      visiblity: "Private",
+      status: "Pending",
     };
 
     // Validate required fields

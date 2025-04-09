@@ -17,7 +17,7 @@ export const connectToDatabase = async () => {
       cached.promise ||
       mongoose.connect(MONGODB_URI, {
         dbName: "diplomat-corner",
-        bufferCommands: false,
+        bufferCommands: true,
       });
 
     cached.conn = await cached.promise;

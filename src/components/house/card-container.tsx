@@ -33,26 +33,6 @@ const CardContainer: React.FC = () => {
       } catch (error) {
         console.error("Error fetching houses:", error);
         setError((error as Error).message);
-        setHouses([
-          {
-            _id: "1",
-            name: "Fallback House",
-            description: "Beautiful house in Orlando",
-            advertisementType: "Rent",
-            price: 590693,
-            paymentMethod: "Monthly",
-            bedroom: 4,
-            parkingSpace: 2,
-            bathroom: 4,
-            size: 2096,
-            houseType: "House",
-            condition: "New",
-            maintenance: "Included",
-            essentials: ["WiFi", "Electricity", "Water"],
-            currency: "USD",
-            userId: "fallback",
-          },
-        ]);
       } finally {
         setLoading(false);
       }
@@ -76,7 +56,7 @@ const CardContainer: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: 'url("/c.jpg")' }}
+        style={{ backgroundImage: 'url("/house_preview.jpg")' }}
       >
         <div className="text-center text-white bg-black bg-opacity-50 p-4 rounded-lg">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Properties</h1>
@@ -104,11 +84,11 @@ const CardContainer: React.FC = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {houses.length > 0 ? (
-                houses.map((house) => (
-                  <CardHouse key={house._id} {...house} />
-                ))
+                houses.map((house) => <CardHouse key={house._id} {...house} />)
               ) : (
-                <p className="text-center text-gray-600 col-span-full">No properties available.</p>
+                <p className="text-center text-gray-600 col-span-full">
+                  No properties available.
+                </p>
               )}
             </div>
           )}
