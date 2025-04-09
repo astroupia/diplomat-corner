@@ -59,6 +59,3 @@ const houseSchema = new Schema(
   },
   { timestamps: true }
 );
-
-export default mongoose.models.House ||
-  mongoose.model<IHouse>("House", houseSchema);
