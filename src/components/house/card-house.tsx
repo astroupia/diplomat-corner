@@ -1,6 +1,7 @@
 import React from "react";
 import { Bed, Bath, Ruler } from "lucide-react";
 import Image from "next/image";
+import { images } from "@public/assets/images";
 
 interface CardProps {
   address: string;
@@ -20,8 +21,8 @@ const CardHouse: React.FC<CardProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <Image
-        src="/assets/images/house.jpg"
-        alt="Property"
+        src={images.house_preview.src}
+        alt={images.house_preview.alt}
         className="w-full h-48 object-cover"
       />
       <div className="p-4">

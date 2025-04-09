@@ -2,6 +2,7 @@ import MaxWidthWrapper from "@/components/max-width-wrapper";
 import { ChevronDown, Plus, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { images } from "@public/assets/images";
 
 interface Product {
   tag: string;
@@ -9,22 +10,7 @@ interface Product {
   reviews: number;
 }
 
-interface FeaturedImage {
-  src: string;
-  alt: string;
-}
-
 // Constants with proper length validation
-const FEATURED_IMAGES: FeaturedImage[] = [
-  { src: "/assets/images/air.jpg", alt: "Air view" },
-  { src: "/assets/images/air2.jpg", alt: "Air view 2" },
-  { src: "/assets/images/building.jpg", alt: "Building" },
-  { src: "/assets/images/cash.jpg", alt: "Cash" },
-  { src: "/assets/images/car.jpg", alt: "Car" },
-  { src: "/assets/images/half.jpg", alt: "Half view" },
-  { src: "/assets/images/women.jpg", alt: "Women" },
-];
-
 const PRODUCTS: Product[] = [
   { tag: "House For Rent", rating: 4.95, reviews: 22 },
   { tag: "Car For Sale", rating: 4.25, reviews: 22 },
@@ -32,16 +18,6 @@ const PRODUCTS: Product[] = [
   { tag: "Car For Sale", rating: 4.6, reviews: 22 },
   { tag: "Car For Sale", rating: 4.3, reviews: 22 },
 ];
-
-// Safe image getter function
-const getImage = (index: number): FeaturedImage => {
-  return (
-    FEATURED_IMAGES[index] || {
-      src: "/assets/images/placeholder.jpg",
-      alt: "Placeholder",
-    }
-  );
-};
 
 // Safe product getter function
 const getProduct = (index: number): Product => {
@@ -59,8 +35,8 @@ const HeroSection = () => (
               <Image
                 width={100}
                 height={100}
-                src={getImage(0).src}
-                alt={getImage(0).alt}
+                src={images.air.src}
+                alt={images.air.alt}
                 className="w-full h-[420px] object-cover rounded"
                 priority
               />
@@ -82,8 +58,8 @@ const HeroSection = () => (
               <Image
                 width={100}
                 height={100}
-                src={getImage(1).src}
-                alt={getImage(1).alt}
+                src={images.air2.src}
+                alt={images.air2.alt}
                 className="w-full h-full object-cover rounded"
               />
               <Link
@@ -98,8 +74,8 @@ const HeroSection = () => (
               <Image
                 width={100}
                 height={100}
-                src={getImage(3).src}
-                alt={getImage(3).alt}
+                src={images.cash.src}
+                alt={images.cash.alt}
                 className="w-full h-full object-cover rounded"
               />
               <Link
@@ -117,8 +93,8 @@ const HeroSection = () => (
             <Image
               width={100}
               height={100}
-              src={getImage(4).src}
-              alt={getImage(4).alt}
+              src={images.car.src}
+              alt={images.car.alt}
               className="w-full h-full object-cover rounded"
             />
 
@@ -158,55 +134,68 @@ const HeroSection = () => (
   </section>
 );
 
-const FeaturedProducts = () => (
-  <section className="bg-slate-50 py-10">
-    <MaxWidthWrapper>
-      <div className="px-4 sm:px-8">
-        <h2 className="text-2xl font-semibold mb-6 text-center sm:text-left">
-          Featured Products
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {FEATURED_IMAGES.slice(
-            0,
-            Math.min(FEATURED_IMAGES.length, PRODUCTS.length)
-          ).map((image, index) => {
-            const product = getProduct(index);
-            return (
-              <div key={index} className="flex flex-col items-center">
-                <div className="relative group overflow-hidden rounded-lg shadow-md w-full h-64">
-                  <Link href="#">
-                    <Image
-                      width={100}
-                      height={100}
-                      src={image.src}
-                      alt={image.alt}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                    />
-                  </Link>
-                  <div className="absolute bottom-4 left-4">
-                    <span className="text-primary text-sm bg-white px-2 py-1 rounded-md">
-                      #{product.tag}
-                    </span>
-                  </div>
-                </div>
+const FeaturedProducts = () => {
+  // Create an array of image keys for the featured products section
+  const featuredImageKeys = [
+    "air",
+    "air2",
+    "building",
+    "cash",
+    "car",
+    "half",
+    "women",
+  ];
 
-                <div className="mt-2 flex items-center space-x-1">
-                  <Star className="w-4 h-4 text-primary" />
-                  <span className="text-gray-800 text-sm font-semibold">
-                    {product.rating}
-                  </span>
-                  <span className="text-gray-500 text-sm">
-                    ({product.reviews} reviews)
-                  </span>
-                </div>
-              </div>
-            );
-          })}
+  return (
+    <section className="bg-slate-50 py-10">
+      <MaxWidthWrapper>
+        <div className="px-4 sm:px-8">
+          <h2 className="text-2xl font-semibold mb-6 text-center sm:text-left">
+            Featured Products
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            {featuredImageKeys
+              .slice(0, Math.min(featuredImageKeys.length, PRODUCTS.length))
+              .map((key, index) => {
+                const image = images[key as keyof typeof images];
+                const product = getProduct(index);
+                return (
+                  <div key={index} className="flex flex-col items-center">
+                    <div className="relative group overflow-hidden rounded-lg shadow-md w-full h-64">
+                      <Link href="#">
+                        <Image
+                          width={100}
+                          height={100}
+                          src={image.src}
+                          alt={image.alt}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                      </Link>
+                      <div className="absolute bottom-4 left-4">
+                        <span className="text-primary text-sm bg-white px-2 py-1 rounded-md">
+                          #{product.tag}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mt-2 flex items-center space-x-1">
+                      <Star className="w-4 h-4 text-primary" />
+                      <span className="text-gray-800 text-sm font-semibold">
+                        {product.rating}
+                      </span>
+                      <span className="text-gray-500 text-sm">
+                        ({product.reviews} reviews)
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
         </div>
-      </div>
-    </MaxWidthWrapper>
-  </section>
-);
+      </MaxWidthWrapper>
+    </section>
+  );
+};
 
 const SingleAdSection = () => (
   <section>
@@ -216,8 +205,8 @@ const SingleAdSection = () => (
           <Image
             width={100}
             height={100}
-            src={getImage(5).src}
-            alt={getImage(5).alt}
+            src={images.half.src}
+            alt={images.half.alt}
             className="h-[330px] w-full rounded-3xl object-cover"
           />
         </Link>
@@ -235,7 +224,7 @@ const ServicesSection = () => (
             <Image
               width={100}
               height={100}
-              src={getImage(4).src}
+              src={images.car.src}
               alt="City View"
               className="rounded-lg w-full h-[500px] object-cover"
             />
