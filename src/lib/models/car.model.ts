@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 export interface ICar extends Document {
+  make: string;
   _id: string;
   name: string;
   userId: string;
