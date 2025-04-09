@@ -3,225 +3,271 @@ import { ChevronDown, Plus, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-export default function Home() {
-  const images = [
-    "/assets/images/air.jpg",
-    "/assets/images/air2.jpg",
-    "/assets/images/building.jpg",
-    "/assets/images/cash.jpg",
-    "/assets/images/car.jpg",
-    "/assets/images/half.jpg",
-    "/assets/images/women.jpg",
-  ];
-  const products = [
-    { tag: "House For Rent", rating: 4.95, reviews: 22 },
-    { tag: "Car For Sale", rating: 4.25, reviews: 22 },
-    { tag: "House For Rent", rating: 3.95, reviews: 22 },
-    { tag: "Car For Sale", rating: 4.6, reviews: 22 },
-    { tag: "Car For Sale", rating: 4.3, reviews: 22 },
-  ];
+interface Product {
+  tag: string;
+  rating: number;
+  reviews: number;
+}
 
+interface FeaturedImage {
+  src: string;
+  alt: string;
+}
+
+// Constants with proper length validation
+const FEATURED_IMAGES: FeaturedImage[] = [
+  { src: "/assets/images/air.jpg", alt: "Air view" },
+  { src: "/assets/images/air2.jpg", alt: "Air view 2" },
+  { src: "/assets/images/building.jpg", alt: "Building" },
+  { src: "/assets/images/cash.jpg", alt: "Cash" },
+  { src: "/assets/images/car.jpg", alt: "Car" },
+  { src: "/assets/images/half.jpg", alt: "Half view" },
+  { src: "/assets/images/women.jpg", alt: "Women" },
+];
+
+const PRODUCTS: Product[] = [
+  { tag: "House For Rent", rating: 4.95, reviews: 22 },
+  { tag: "Car For Sale", rating: 4.25, reviews: 22 },
+  { tag: "House For Rent", rating: 3.95, reviews: 22 },
+  { tag: "Car For Sale", rating: 4.6, reviews: 22 },
+  { tag: "Car For Sale", rating: 4.3, reviews: 22 },
+];
+
+// Safe image getter function
+const getImage = (index: number): FeaturedImage => {
   return (
-    <div className="bg-white">
-      <section>
-        <MaxWidthWrapper className="p-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-2 sm:px-4">
-            <div className="col-span-1 sm:col-span-2 grid grid-rows-2 gap-4 ">
-              <div className="row-span-1">
-                <div className="relative h-full">
-                  <Image
-                    width={100}
-                    height={100}
-                    src="/assets/images/air.jpg"
-                    alt="Awash Bank"
-                    className="w-full h-[420] object-cover rounded"
-                  />
-                  <Link
-                    href="#"
-                    className="absolute flex flex-row items-center bottom-4 left-4 bg-white text-primary px-4 py-2 rounded-3xl shadow hover:translate-y-1 hover:text-primary hover:bg-slate-200"
-                  >
-                    Learn More{" "}
-                    <ChevronDown
-                      size={24}
-                      className="text-white w-5 h-5 ml-1 rounded-full bg-primary"
-                    />
-                  </Link>
-                </div>
-              </div>
+    FEATURED_IMAGES[index] || {
+      src: "/assets/images/placeholder.jpg",
+      alt: "Placeholder",
+    }
+  );
+};
 
-              <div className="row-span-1 grid grid-cols-2 gap-4">
-                <div className="relative h-full">
-                  <Image
-                    width={100}
-                    height={100}
-                    src="/assets/images/air2.jpg"
-                    alt="Awash Bank"
-                    className="w-full h-full object-cover rounded"
-                  />
-                  <Link
-                    href="#"
-                    className="absolute bottom-4 right-4 bg-white text-primary px-4 py-2 rounded-3xl shadow"
-                  >
-                    #Awash_Bank
-                  </Link>
-                </div>
+// Safe product getter function
+const getProduct = (index: number): Product => {
+  return PRODUCTS[index] || { tag: "Unknown", rating: 0, reviews: 0 };
+};
 
-                <div className="relative">
-                  <Image
-                    width={100}
-                    height={100}
-                    src="/assets/images/cash.jpg"
-                    alt="Bike Promotion"
-                    className="w-full h-full object-cover rounded"
-                  />
-                  <Link
-                    href="#"
-                    className="absolute bottom-4 right-4 bg-white text-primary px-4 py-2 rounded-3xl shadow"
-                  >
-                    #Dashin_Dube
-                  </Link>
-                </div>
-              </div>
-            </div>
-
-            <div className="col-span-1 sm:col-span-2">
-              <div className="relative h-full">
-                <Image
-                  width={100}
-                  height={100}
-                  src="/assets/images/car.jpg"
-                  alt="Car"
-                  className="w-full h-full object-cover rounded"
-                />
-
-                <Link
-                  href="#"
-                  className="absolute text-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/55 text-white w-16 h-16 flex items-center justify-center rounded-full shadow border-2 border-white hover:scale-125"
-                >
-                  Shop Now
-                </Link>
-
-                <div className="absolute bottom-4 right-6 flex gap-1">
-                  <Link
-                    href="#"
-                    className="bg-white text-primary px-4 py-2 rounded-3xl shadow flex flex-row items-center"
-                  >
-                    Learn More{" "}
-                    <ChevronDown
-                      size={24}
-                      className="text-white w-5 h-5 ml-1 rounded-full bg-primary"
-                    />
-                  </Link>
-                  <Link
-                    href="#"
-                    className="bg-glass-500/65 text-white px-6 py-2 rounded-3xl shadow border-white border-2 flex flex-row items-center"
-                  >
-                    Add Product{" "}
-                    <Plus
-                      size={24}
-                      className="text-gray-400 w-5 h-5 ml-1 rounded-full bg-white"
-                    />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </MaxWidthWrapper>
-      </section>
-
-      {/* Featured Products Section */}
-      <section className="bg-slate-50 py-10">
-        <MaxWidthWrapper>
-          <div className="px-4 sm:px-8">
-            <h2 className="text-2xl font-semibold mb-6 text-center sm:text-left">
-              Featured Products
-            </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {images.map((image, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <div className="relative group overflow-hidden rounded-lg shadow-md w-full h-64">
-                    <Link href="#">
-                      <Image
-                        width={100}
-                        height={100}
-                        src={image}
-                        alt={products[index]?.tag || "Product"}
-                        className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-                      />
-                    </Link>
-                    <div className="absolute bottom-4 left-4">
-                      <span className="text-primary text-sm bg-white px-2 py-1 rounded-md">
-                        #{products[index]?.tag || "Unknown"}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mt-2 flex items-center space-x-1">
-                    <Star className="w-4 h-4 text-primary" />
-                    <span className="text-gray-800 text-sm font-semibold">
-                      {products[index]?.rating || 0}
-                    </span>
-                    <span className="text-gray-500 text-sm">
-                      ({products[index]?.reviews || 0} reviews)
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </MaxWidthWrapper>
-      </section>
-
-      {/* One Image Ad Section */}
-      <section>
-        <MaxWidthWrapper className="p-4">
-          <div>
-            <Link href="#">
+// Components
+const HeroSection = () => (
+  <section>
+    <MaxWidthWrapper className="p-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 px-2 sm:px-4">
+        <div className="col-span-1 sm:col-span-2 grid grid-rows-2 gap-4">
+          <div className="row-span-1">
+            <div className="relative h-full">
               <Image
                 width={100}
                 height={100}
-                src="/assets/images/half.jpg"
-                alt="plane"
-                className="h-[330px] w-full rounded-3xl object-cover"
+                src={getImage(0).src}
+                alt={getImage(0).alt}
+                className="w-full h-[420px] object-cover rounded"
+                priority
               />
-            </Link>
-          </div>
-        </MaxWidthWrapper>
-      </section>
-
-      {/* Image and Text Section */}
-      <section className="bg-slate-50 py-10">
-        <MaxWidthWrapper className="flex flex-col md:flex-row items-center gap-6 p-6 rounded-lg shadow-md mx-auto">
-          <div className="flex-shrink-0 w-full sm:w-[500px]">
-            <div className="relative">
-              <Link href="/AboutUs">
-                <Image
-                  width={100}
-                  height={100}
-                  src={images[4]}
-                  alt="City View"
-                  className="rounded-lg w-full h-[500px] object-cover"
+              <Link
+                href="#"
+                className="absolute flex flex-row items-center bottom-4 left-4 bg-white text-primary px-4 py-2 rounded-3xl shadow hover:translate-y-1 hover:text-primary hover:bg-slate-200 transition-all"
+              >
+                Learn More{" "}
+                <ChevronDown
+                  size={24}
+                  className="text-white w-5 h-5 ml-1 rounded-full bg-primary"
                 />
               </Link>
-              <span className="absolute top-2 left-2 bg-white text-primary text-sm font-medium px-3 py-1 rounded-full shadow">
-                Looking for something in Addis?
-              </span>
             </div>
           </div>
 
-          <div className="flex-1 mt-4 md:mt-0">
-            <h2 className="text-xl font-semibold text-primary mb-4">
-              Our Range of Services
-            </h2>
-            <p className="text-gray-700 leading-relaxed">
-              Looking for something in Addis? Whether you&apos;re buying or
-              selling duty-free cars, searching for houses to rent, or looking
-              to rent out your car, we&apos;ve got you covered. Connect with us
-              to explore these services and much more.
-            </p>
+          <div className="row-span-1 grid grid-cols-2 gap-4">
+            <div className="relative h-full">
+              <Image
+                width={100}
+                height={100}
+                src={getImage(1).src}
+                alt={getImage(1).alt}
+                className="w-full h-full object-cover rounded"
+              />
+              <Link
+                href="#"
+                className="absolute bottom-4 right-4 bg-white text-primary px-4 py-2 rounded-3xl shadow hover:bg-slate-200 transition-all"
+              >
+                #Awash_Bank
+              </Link>
+            </div>
+
+            <div className="relative">
+              <Image
+                width={100}
+                height={100}
+                src={getImage(3).src}
+                alt={getImage(3).alt}
+                className="w-full h-full object-cover rounded"
+              />
+              <Link
+                href="#"
+                className="absolute bottom-4 right-4 bg-white text-primary px-4 py-2 rounded-3xl shadow hover:bg-slate-200 transition-all"
+              >
+                #Dashin_Dube
+              </Link>
+            </div>
           </div>
-        </MaxWidthWrapper>
-      </section>
+        </div>
+
+        <div className="col-span-1 sm:col-span-2">
+          <div className="relative h-full">
+            <Image
+              width={100}
+              height={100}
+              src={getImage(4).src}
+              alt={getImage(4).alt}
+              className="w-full h-full object-cover rounded"
+            />
+
+            <Link
+              href="#"
+              className="absolute text-center top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white/55 text-white w-16 h-16 flex items-center justify-center rounded-full shadow border-2 border-white hover:scale-125 transition-transform"
+            >
+              Shop Now
+            </Link>
+
+            <div className="absolute bottom-4 right-6 flex gap-1">
+              <Link
+                href="#"
+                className="bg-white text-primary px-4 py-2 rounded-3xl shadow flex flex-row items-center hover:bg-slate-200 transition-all"
+              >
+                Learn More{" "}
+                <ChevronDown
+                  size={24}
+                  className="text-white w-5 h-5 ml-1 rounded-full bg-primary"
+                />
+              </Link>
+              <Link
+                href="#"
+                className="bg-glass-500/65 text-white px-6 py-2 rounded-3xl shadow border-white border-2 flex flex-row items-center hover:bg-glass-500/75 transition-all"
+              >
+                Add Product{" "}
+                <Plus
+                  size={24}
+                  className="text-gray-400 w-5 h-5 ml-1 rounded-full bg-white"
+                />
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </MaxWidthWrapper>
+  </section>
+);
+
+const FeaturedProducts = () => (
+  <section className="bg-slate-50 py-10">
+    <MaxWidthWrapper>
+      <div className="px-4 sm:px-8">
+        <h2 className="text-2xl font-semibold mb-6 text-center sm:text-left">
+          Featured Products
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {FEATURED_IMAGES.slice(
+            0,
+            Math.min(FEATURED_IMAGES.length, PRODUCTS.length)
+          ).map((image, index) => {
+            const product = getProduct(index);
+            return (
+              <div key={index} className="flex flex-col items-center">
+                <div className="relative group overflow-hidden rounded-lg shadow-md w-full h-64">
+                  <Link href="#">
+                    <Image
+                      width={100}
+                      height={100}
+                      src={image.src}
+                      alt={image.alt}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  </Link>
+                  <div className="absolute bottom-4 left-4">
+                    <span className="text-primary text-sm bg-white px-2 py-1 rounded-md">
+                      #{product.tag}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="mt-2 flex items-center space-x-1">
+                  <Star className="w-4 h-4 text-primary" />
+                  <span className="text-gray-800 text-sm font-semibold">
+                    {product.rating}
+                  </span>
+                  <span className="text-gray-500 text-sm">
+                    ({product.reviews} reviews)
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </MaxWidthWrapper>
+  </section>
+);
+
+const SingleAdSection = () => (
+  <section>
+    <MaxWidthWrapper className="p-4">
+      <div>
+        <Link href="#">
+          <Image
+            width={100}
+            height={100}
+            src={getImage(5).src}
+            alt={getImage(5).alt}
+            className="h-[330px] w-full rounded-3xl object-cover"
+          />
+        </Link>
+      </div>
+    </MaxWidthWrapper>
+  </section>
+);
+
+const ServicesSection = () => (
+  <section className="bg-slate-50 py-10">
+    <MaxWidthWrapper className="flex flex-col md:flex-row items-center gap-6 p-6 rounded-lg shadow-md mx-auto">
+      <div className="flex-shrink-0 w-full sm:w-[500px]">
+        <div className="relative">
+          <Link href="/AboutUs">
+            <Image
+              width={100}
+              height={100}
+              src={getImage(4).src}
+              alt="City View"
+              className="rounded-lg w-full h-[500px] object-cover"
+            />
+          </Link>
+          <span className="absolute top-2 left-2 bg-white text-primary text-sm font-medium px-3 py-1 rounded-full shadow">
+            Looking for something in Addis?
+          </span>
+        </div>
+      </div>
+
+      <div className="flex-1 mt-4 md:mt-0">
+        <h2 className="text-xl font-semibold text-primary mb-4">
+          Our Range of Services
+        </h2>
+        <p className="text-gray-700 leading-relaxed">
+          Looking for something in Addis? Whether you&apos;re buying or selling
+          duty-free cars, searching for houses to rent, or looking to rent out
+          your car, we&apos;ve got you covered. Connect with us to explore these
+          services and much more.
+        </p>
+      </div>
+    </MaxWidthWrapper>
+  </section>
+);
+
+export default function Home() {
+  return (
+    <div className="bg-white">
+      <HeroSection />
+      <FeaturedProducts />
+      <SingleAdSection />
+      <ServicesSection />
     </div>
   );
 }
