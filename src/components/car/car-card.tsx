@@ -1,7 +1,6 @@
 import React from "react";
 import { Car, MapPin, Fuel } from "lucide-react";
 import Image from "next/image";
-import { Product_Car } from "../../../public";
 
 interface CardProps {
   model: string;
@@ -23,7 +22,7 @@ const Card: React.FC<CardProps> = ({
       <Image
         width={100}
         height={100}
-        src={Product_Car}
+        src="/car.jpg"
         alt="Car"
         className="w-full h-48 object-cover"
       />
