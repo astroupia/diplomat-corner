@@ -5,12 +5,20 @@ import { Megaphone, Search } from "lucide-react";
 import Link from "next/link";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { Button } from "./ui/button";
+import { useEffect, useState } from "react";
 
 const NavBar = () => {
-  const { user } = useUser();
-  const isAdmin =
-    user?.primaryEmailAddress?.emailAddress ===
-    process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const { user, isLoaded } = useUser();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      setIsAdmin(
+        user.primaryEmailAddress?.emailAddress ===
+          process.env.NEXT_PUBLIC_ADMIN_EMAIL
+      );
+    }
+  }, [isLoaded, user]);
 
   return (
     <nav className="bg-white border border-primary rounded-3xl px-6 py-2 top-0 z-10 shadow-md m-4">
@@ -67,7 +75,9 @@ const NavBar = () => {
 
               {/* Authentication Buttons */}
               <div className="flex items-center gap-4">
-                {!user ? (
+                {!isLoaded ? (
+                  <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
+                ) : !user ? (
                   <>
                     <Link href="/sign-up">
                       <Button>Get Started</Button>
