@@ -2,18 +2,17 @@ import MaxWidthWrapper from "@/components/max-width-wrapper";
 import { ChevronDown, Plus, Star } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import {
-    Air,
-    Air_Two,
-    B,
-    B2,
-    Half,
-    Product_Car,
-    Woman,
-} from "../../public/assets/images";
 
 export default function Home() {
-  const images = [Air, Air_Two, B, B2, Product_Car, Woman, Half];
+  const images = [
+    "/air.jpg",
+    "/air2.jpg",
+    "/building.jpg",
+    "/cash.jpg",
+    "/car.jpg",
+    "/half.jpg",
+    "/women.jpg",
+  ];
   const products = [
     { tag: "House For Rent", rating: 4.95, reviews: 22 },
     { tag: "Car For Sale", rating: 4.25, reviews: 22 },
@@ -33,7 +32,7 @@ export default function Home() {
                   <Image
                     width={100}
                     height={100}
-                    src={images[0]}
+                    src="air.jpg"
                     alt="Awash Bank"
                     className="w-full h-[420] object-cover rounded"
                   />
@@ -55,7 +54,7 @@ export default function Home() {
                   <Image
                     width={100}
                     height={100}
-                    src={images[1]}
+                    src="/air2.jpg"
                     alt="Awash Bank"
                     className="w-full h-full object-cover rounded"
                   />
@@ -71,7 +70,7 @@ export default function Home() {
                   <Image
                     width={100}
                     height={100}
-                    src={images[2]}
+                    src="/cash.jpg"
                     alt="Bike Promotion"
                     className="w-full h-full object-cover rounded"
                   />
@@ -90,7 +89,7 @@ export default function Home() {
                 <Image
                   width={100}
                   height={100}
-                  src={images[4]}
+                  src="/car.jpg"
                   alt="Car"
                   className="w-full h-full object-cover rounded"
                 />
@@ -181,7 +180,7 @@ export default function Home() {
               <Image
                 width={100}
                 height={100}
-                src={images[6]}
+                src="/half.jpg"
                 alt="plane"
                 className="h-[330px] w-full rounded-3xl object-cover"
               />

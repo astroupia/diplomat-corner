@@ -1,7 +1,7 @@
 import React from "react";
 import { Bed, Bath, Ruler } from "lucide-react";
 import Image from "next/image";
-import { House } from "../../../public/assets/images";
+import { House } from "../../../public";
 
 interface CardProps {
   address: string;

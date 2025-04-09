@@ -1,7 +1,7 @@
 import React from "react";
 import { Car, MapPin, Fuel } from "lucide-react";
 import Image from "next/image";
-import { Product_Car } from "../../../public/assets/images";
+import { Product_Car } from "../../../public";
 
 interface CardProps {
   model: string;
