@@ -1,7 +1,7 @@
 import React from "react";
 import { Bed, Bath, Ruler } from "lucide-react";
 import Image from "next/image";
-import { House } from "../../../public/assets/images";
+import { images } from "@public/assets/images";
 
 interface CardProps {
   address: string;
@@ -20,7 +20,11 @@ const CardHouse: React.FC<CardProps> = ({
 }) => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Image src={House} alt="Property" className="w-full h-48 object-cover" />
+      <Image
+        src={images.house_preview.src}
+        alt={images.house_preview.alt}
+        className="w-full h-48 object-cover"
+      />
       <div className="p-4">
         <h2 className="text-lg font-semibold">{address}</h2>
         <p className="text-green-600 text-xl font-bold">

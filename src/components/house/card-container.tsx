@@ -53,7 +53,7 @@ const CardContainer: React.FC = () => {
       {/* Cover Section */}
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: 'url("/c.jpg")' }}
+        style={{ backgroundImage: 'url("/assets/images/house_preview.jpg")' }}
       >
         <div className="text-center text-white">
           <h1 className="text-4xl font-bold">Properties</h1>

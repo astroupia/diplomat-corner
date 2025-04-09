@@ -1,10 +1,54 @@
-import Air from "./air.jpg";
-import Air_Two from "./air2.jpg";
-import B from "./b.jpg";
-import B2 from "./b1.jpg";
-import Product_Car from "./car.jpg";
-import Woman from "./wom.jpg";
-import Half from "./half.jpg";
-import House from "./house.jpg";
+// Define the image type
+export interface ImageAsset {
+  src: string;
+  alt: string;
+}
 
-export { Air, Air_Two, B, B2, Product_Car, Woman, Half, House };
+// Export images as objects with proper typing
+export const images = {
+  air: {
+    src: "./air.jpg",
+    alt: "Air view",
+  },
+  air2: {
+    src: "./air2.jpg",
+    alt: "Air view 2",
+  },
+  building: {
+    src: "./building.jpg",
+    alt: "Building",
+  },
+  cash: {
+    src: "./cash.jpg",
+    alt: "Cash",
+  },
+  car: {
+    src: "./car.jpg",
+    alt: "Car",
+  },
+  half: {
+    src: "./half.jpg",
+    alt: "Half view",
+  },
+  women: {
+    src: "./women.jpg",
+    alt: "Women",
+  },
+  placeholder: {
+    src: "./placeholder.jpg",
+    alt: "Placeholder",
+  },
+  house_preview: {
+    src: "./house_preview.jpg",
+    alt: "preview house",
+  },
+  car_preview: {
+    src: "./car_preview.jpg",
+    alt: "preview house",
+  },
+};
+
+// Export a function to safely get an image
+export const getImage = (key: keyof typeof images): ImageAsset => {
+  return images[key] || images.placeholder;
+};
