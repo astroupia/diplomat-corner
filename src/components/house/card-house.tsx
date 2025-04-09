@@ -20,7 +20,7 @@ const CardHouse: React.FC<CardProps> = ({
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       <Image
-        src="/house.jpg"
+        src="/assets/images/house.jpg"
         alt="Property"
         className="w-full h-48 object-cover"
       />

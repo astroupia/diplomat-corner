@@ -22,7 +22,7 @@ const Card: React.FC<CardProps> = ({
       <Image
         width={100}
         height={100}
-        src="/car.jpg"
+        src="/assets/images/car.jpg"
         alt="Car"
         className="w-full h-48 object-cover"
       />
