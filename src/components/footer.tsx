@@ -1,5 +1,5 @@
 import React from "react";
-
+import Link from "next/link";
 import { SignUpButton, SignInButton } from "@clerk/nextjs";
 
 const Footer: React.FC = () => {
@@ -13,14 +13,14 @@ const Footer: React.FC = () => {
           <h2 className="text-lg font-semibold text-primary mb-2">Connect</h2>
           <ul>
             <li>
-              <a href="#" className="text-black hover:text-gray-800">
+              <Link href="/advertisment" className="text-black hover:text-gray-800">
                 Contact
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="text-black hover:text-gray-800">
+              <Link href="#" className="text-black hover:text-gray-800">
                 About Us
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -28,32 +28,32 @@ const Footer: React.FC = () => {
           <h2 className="text-lg font-semibold text-primary mb-2">Services</h2>
           <ul>
             <li>
-              <a href="" className="text-black hover:text-gray-800">
+              <Link href="#" className="text-black hover:text-gray-800">
                 Car For Sale
-              </a>
+              </Link>
             </li>
             <li>
-              <a
-                href="/HouseForRent"
+              <Link
+                href="/manage-product/house/page"
                 className="text-black hover:text-gray-800"
               >
                 House For Rent
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="text-black hover:text-gray-800">
+              <Link href="#" className="text-black hover:text-gray-800">
                 Grocery
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="text-black hover:text-gray-800">
+              <Link href="#" className="text-black hover:text-gray-800">
                 Items For Sale
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/aboutus" className="text-black hover:text-gray-800">
+              <Link href="/aboutus" className="text-black hover:text-gray-800">
                 About Us
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
@@ -61,24 +61,24 @@ const Footer: React.FC = () => {
           <h2 className="text-lg font-semibold text-primary mb-2">Resources</h2>
           <ul>
             <li>
-              <a href="#" className="text-black hover:text-gray-800">
+              <Link href="#" className="text-black hover:text-gray-800">
                 Terms and Services
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/CarProduct" className="text-black hover:text-gray-800">
+              <Link href="/purchase/carpurchase" className="text-black hover:text-gray-800">
                 Policy
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="/Ad" className="text-black hover:text-gray-800">
+              <Link href="/Ad" className="text-black hover:text-gray-800">
                 Shop
-              </a>
+              </Link>
             </li>
             <li>
-              <a href="#" className="text-black hover:text-gray-800">
+              <Link href="#" className="text-black hover:text-gray-800">
                 Log In
-              </a>
+              </Link>
             </li>
           </ul>
         </div>
