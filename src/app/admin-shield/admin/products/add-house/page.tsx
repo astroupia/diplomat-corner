@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ArrowLeft, Home, Upload, X } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function AddHousePage() {
   return (
@@ -193,7 +194,7 @@ export default function AddHousePage() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div className="relative aspect-square rounded-md border overflow-hidden">
-                  <img
+                  <Image
                     src="/placeholder.svg"
                     alt="Property preview"
                     className="object-cover w-full h-full"
@@ -207,7 +208,7 @@ export default function AddHousePage() {
                   </Button>
                 </div>
                 <div className="relative aspect-square rounded-md border overflow-hidden">
-                  <img
+                  <Image
                     src="/placeholder.svg"
                     alt="Property preview"
                     className="object-cover w-full h-full"
@@ -221,7 +222,7 @@ export default function AddHousePage() {
                   </Button>
                 </div>
                 <div className="relative aspect-square rounded-md border overflow-hidden">
-                  <img
+                  <Image
                     src="/placeholder.svg"
                     alt="Property preview"
                     className="object-cover w-full h-full"
@@ -296,7 +297,7 @@ export default function AddHousePage() {
 
           <div className="flex justify-end gap-4">
             <Button variant="outline">Cancel</Button>
-            <Button variant="green">Save House Listing</Button>
+            <Button variant="default">Save House Listing</Button>
           </div>
         </div>
       </div>
