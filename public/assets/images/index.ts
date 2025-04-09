@@ -7,43 +7,43 @@ export interface ImageAsset {
 // Export images as objects with proper typing
 export const images = {
   air: {
-    src: "/assets/images/air.jpg",
+    src: "./air.jpg",
     alt: "Air view",
   },
   air2: {
-    src: "/assets/images/air2.jpg",
+    src: "./air2.jpg",
     alt: "Air view 2",
   },
   building: {
-    src: "/assets/images/building.jpg",
+    src: "./building.jpg",
     alt: "Building",
   },
   cash: {
-    src: "/assets/images/cash.jpg",
+    src: "./cash.jpg",
     alt: "Cash",
   },
   car: {
-    src: "/assets/images/car.jpg",
+    src: "./car.jpg",
     alt: "Car",
   },
   half: {
-    src: "/assets/images/half.jpg",
+    src: "./half.jpg",
     alt: "Half view",
   },
   women: {
-    src: "/assets/images/women.jpg",
+    src: "./women.jpg",
     alt: "Women",
   },
   placeholder: {
-    src: "/assets/images/placeholder.jpg",
+    src: "./placeholder.jpg",
     alt: "Placeholder",
   },
   house_preview: {
-    src: "/assets/images/house_preview.jpg",
+    src: "./house_preview.jpg",
     alt: "preview house",
   },
   car_preview: {
-    src: "/assets/images/car_preview.jpg",
+    src: "./car_preview.jpg",
     alt: "preview house",
   },
 };
