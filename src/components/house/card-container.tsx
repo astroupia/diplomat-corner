@@ -43,7 +43,7 @@ const CardContainer: React.FC = () => {
   const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const order = e.target.value;
     setSortOrder(order);
-    let sortedHouses = [...houses];
+    const sortedHouses = [...houses];
     if (order === "Price Low to High") {
       sortedHouses.sort((a, b) => a.price - b.price);
     } else if (order === "Price High to Low") {

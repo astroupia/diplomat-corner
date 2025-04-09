@@ -1,6 +1,6 @@
 // app/api/houses/route.ts
 import { NextResponse } from "next/server";
-import { getAllHouse } from "@/lib/actions/house.actions";
+
 import House from "@/lib/models/house.model";
 import { connectToDatabase } from "@/lib/db-connect";
 

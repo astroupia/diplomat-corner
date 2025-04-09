@@ -4,7 +4,6 @@ import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { Loader2, Megaphone, Menu, Search } from "lucide-react";
 
@@ -19,7 +18,7 @@ interface SearchResult {
 
 const NavBar: React.FC = () => {
   const { user } = useUser();
-  const router = useRouter();
+  
   const isAdmin =
     user?.primaryEmailAddress?.emailAddress ===
     process.env.NEXT_PUBLIC_ADMIN_EMAIL;

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectToDatabase } from '@/lib/db-connect';
-import House, { IHouse } from '@/lib/models/house.model';
+import House from '@/lib/models/house.model';
 import { auth } from '@clerk/nextjs/server';
 import { v4 as uuidv4 } from 'uuid'; // For generating random filenames
 
