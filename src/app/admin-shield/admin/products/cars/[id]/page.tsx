@@ -11,10 +11,18 @@ import { ArrowLeft, Check, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function CarDetailPage({ params }: { params: { id: string } }) {
+export default async function CarDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  // Resolve params if it's a Promise, or use default if undefined
+  const resolvedParams = params ? await params : { id: "default" };
+  const id = resolvedParams.id;
+
   // In a real application, you would fetch the car data based on the ID
   const car = {
-    id: params.id,
+    id: id,
     name: "2022 Ford F-150 Raptor",
     type: "car",
     make: "Ford",

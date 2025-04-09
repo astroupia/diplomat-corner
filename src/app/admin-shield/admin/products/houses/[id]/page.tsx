@@ -11,14 +11,18 @@ import { ArrowLeft, Check, X } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function HouseDetailPage({
+export default async function HouseDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  // Resolve params if it's a Promise
+  const resolvedParams = params instanceof Promise ? await params : params;
+  const id = resolvedParams.id;
+
   // In a real application, you would fetch the house data based on the ID
   const house = {
-    id: params.id,
+    id: id,
     name: "Luxury Villa in Palm Jumeirah",
     type: "house",
     bedrooms: 5,

@@ -5,33 +5,69 @@ import { ArrowLeft, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 
-export default function AdvertisementDetailPage({
+// Define the Advertisement type
+interface Advertisement {
+  id: string;
+  name: string;
+  company: string;
+  product: string;
+  status: "active" | "inactive";
+  priority: "high" | "medium" | "low";
+  startDate: string;
+  endDate: string;
+  type: string;
+  description: string;
+  tags: string[];
+  image: string;
+  impressions: number;
+  clicks: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+// Helper function to fetch advertisement data
+async function getAdvertisement(id: string): Promise<Advertisement> {
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/advertisements/${id}`,
+    { cache: "no-store" }
+  );
+  if (!res.ok) {
+    throw new Error("Failed to fetch advertisement");
+  }
+  return res.json();
+}
+
+export default async function AdvertisementDetailPage({
   params,
 }: {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
-  // In a real application, you would fetch the advertisement data based on the ID
-  const ad = {
-    id: params.id,
-    name: "Summer Sale - 20% Off All Cars",
-    company: "Diplomat Corner",
-    product: "Cars",
-    status: "active",
-    priority: "high",
-    startDate: "2024-01-15",
-    endDate: "2024-02-15",
-    type: "wide",
-    description: "Promotional campaign for summer car sales",
-    tags: ["#cars", "#sale", "#summer"],
-    image: "/placeholder.svg",
-    impressions: 12000,
-    clicks: 450,
-    createdAt: "2024-01-15T09:24:00",
-    updatedAt: "2024-01-16T14:45:00",
-  };
+  // Resolve params if it's a Promise
+  const resolvedParams = params instanceof Promise ? await params : params;
+
+  let ad: Advertisement;
+  try {
+    ad = await getAdvertisement(resolvedParams.id);
+  } catch (error) {
+    return (
+      <div className="main-content p-4 md:p-8">
+        <h1 className="text-2xl text-red-500">
+          Error loading advertisement:{" "}
+          {error instanceof Error ? error.message : "Unknown error"}
+        </h1>
+        <Link href="/admin/advertisements">
+          <Button variant="outline" className="mt-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Advertisements
+          </Button>
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="main-content space-y-4 p-4 md:p-8">
+      {/* Header Section */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Link href="/admin/advertisements">
@@ -59,40 +95,26 @@ export default function AdvertisementDetailPage({
         </div>
       </div>
 
+      {/* Details Section */}
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>Advertisement Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span className="font-semibold">ID:</span>
-              <span>{ad.id}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Company:</span>
-              <span>{ad.company}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Product:</span>
-              <span>{ad.product}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Type:</span>
-              <span className="capitalize">{ad.type}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Priority:</span>
-              <span className="capitalize">{ad.priority}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Start Date:</span>
-              <span>{new Date(ad.startDate).toLocaleDateString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">End Date:</span>
-              <span>{new Date(ad.endDate).toLocaleDateString()}</span>
-            </div>
+            <DetailRow label="ID" value={ad.id} />
+            <DetailRow label="Company" value={ad.company} />
+            <DetailRow label="Product" value={ad.product} />
+            <DetailRow label="Type" value={ad.type} />
+            <DetailRow label="Priority" value={ad.priority} />
+            <DetailRow
+              label="Start Date"
+              value={new Date(ad.startDate).toLocaleDateString()}
+            />
+            <DetailRow
+              label="End Date"
+              value={new Date(ad.endDate).toLocaleDateString()}
+            />
           </CardContent>
         </Card>
 
@@ -101,21 +123,19 @@ export default function AdvertisementDetailPage({
             <CardTitle>Performance</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <div className="flex justify-between">
-              <span className="font-semibold">Impressions:</span>
-              <span>{ad.impressions.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Clicks:</span>
-              <span>{ad.clicks.toLocaleString()}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="font-semibold">Click Rate:</span>
-              <span>{((ad.clicks / ad.impressions) * 100).toFixed(2)}%</span>
-            </div>
+            <DetailRow
+              label="Impressions"
+              value={ad.impressions.toLocaleString()}
+            />
+            <DetailRow label="Clicks" value={ad.clicks.toLocaleString()} />
+            <DetailRow
+              label="Click Rate"
+              value={`${((ad.clicks / ad.impressions) * 100).toFixed(2)}%`}
+            />
           </CardContent>
         </Card>
 
+        {/* Preview Section */}
         <Card className="md:col-span-2">
           <CardHeader>
             <CardTitle>Preview</CardTitle>
@@ -132,6 +152,7 @@ export default function AdvertisementDetailPage({
           </CardContent>
         </Card>
 
+        {/* Description Section */}
         <Card>
           <CardHeader>
             <CardTitle>Description</CardTitle>
@@ -141,6 +162,7 @@ export default function AdvertisementDetailPage({
           </CardContent>
         </Card>
 
+        {/* Tags Section */}
         <Card>
           <CardHeader>
             <CardTitle>Tags</CardTitle>
@@ -157,10 +179,21 @@ export default function AdvertisementDetailPage({
         </Card>
       </div>
 
+      {/* Action Buttons */}
       <div className="flex justify-end gap-4">
         <Button variant="outline">Delete</Button>
         <Button variant="default">Edit Advertisement</Button>
       </div>
+    </div>
+  );
+}
+
+// Reusable component for each detail row
+function DetailRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex justify-between">
+      <span className="font-semibold">{label}:</span>
+      <span className="capitalize">{value}</span>
     </div>
   );
 }
