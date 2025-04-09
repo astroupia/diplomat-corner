@@ -48,5 +48,7 @@ const houseSchema = new Schema({
   currency: { type: String },
   imageUrl: { type: String }, // Added to store the public URL
 }, { timestamps: true });
+// Add text index for search functionality
+houseSchema.index({ name: "text", description: "text" });
 
 export default mongoose.models.House || mongoose.model<IHouse>("House", houseSchema);

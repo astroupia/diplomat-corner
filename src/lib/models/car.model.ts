@@ -30,5 +30,5 @@ const CarSchema: Schema = new Schema({
   milesPerGallon: { type: Number, required: true },
   timestamp: { type: String, required: true },
 });
-
+CarSchema.index({ name: "text", description: "text" });
 export default mongoose.models.Car || mongoose.model<ICar>("Car", CarSchema);
