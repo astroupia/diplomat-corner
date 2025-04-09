@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import Card from "@/components/car/car-card";
-import { fetchCars } from "@/app/api/cars/route"; 
 
 const CarContainer: React.FC = () => {
   const [cars, setCars] = useState<any[]>([]);
@@ -12,7 +11,8 @@ const CarContainer: React.FC = () => {
   useEffect(() => {
     const getCars = async () => {
       try {
-        const carData = await fetchCars(); // Use the imported function
+        const response = await fetch("/api/cars");
+        const carData = await response.json();
         setCars(carData);
       } catch (error) {
         setError((error as Error).message);
@@ -25,7 +25,10 @@ const CarContainer: React.FC = () => {
 
   return (
     <div>
-      <div className="relative h-64 bg-cover bg-center flex items-center justify-center" style={{ backgroundImage: 'url("/ci.jpg")' }}>
+      <div
+        className="relative h-64 bg-cover bg-center flex items-center justify-center"
+        style={{ backgroundImage: 'url("car_preview.jpg")' }}
+      >
         <div className="text-center text-white">
           <h1 className="text-4xl font-bold">Cars</h1>
           <p className="text-lg mt-2">Service / Cars for Sale</p>
@@ -64,7 +67,9 @@ const CarContainer: React.FC = () => {
               )}
             </div>
           )}
-          <p className="text-right text-sm text-gray-500 mt-4">All Properties for Sale</p>
+          <p className="text-right text-sm text-gray-500 mt-4">
+            All Properties for Sale
+          </p>
         </div>
       </div>
     </div>

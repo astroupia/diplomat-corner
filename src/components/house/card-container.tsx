@@ -59,7 +59,7 @@ const CardContainer: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: 'url("/c.jpg")' }}
+        style={{ backgroundImage: 'url("/house_preview.jpg")' }}
       >
         <div className="text-center text-white">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">

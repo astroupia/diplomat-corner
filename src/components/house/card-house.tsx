@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-
 interface CardProps extends IHouse {
   listedBy?: string; // Optional, defaults to "Admin"
 }
@@ -18,7 +17,15 @@ const CardHouse: React.FC<CardProps> = ({
   size,
   listedBy = "Admin",
 }) => {
-  console.log('CardHouse Props:', { _id, name, price, bedroom, bathroom, size, listedBy });
+  console.log("CardHouse Props:", {
+    _id,
+    name,
+    price,
+    bedroom,
+    bathroom,
+    size,
+    listedBy,
+  });
   return (
     <Link href={`/houses/${_id}`} className="block">
       <div
@@ -28,7 +35,7 @@ const CardHouse: React.FC<CardProps> = ({
         <Image
           width={300}
           height={200}
-          src="/c.jpg"
+          src="/house_preview.jpg"
           alt={name}
           className="w-full h-48 object-cover"
         />
