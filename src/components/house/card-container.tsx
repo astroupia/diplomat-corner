@@ -56,7 +56,11 @@ const CardContainer: React.FC = () => {
     <div className="flex flex-col min-h-screen">
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
+<<<<<<< HEAD
         style={{ backgroundImage: 'url("/house_preview.jpg")' }}
+=======
+        style={{ backgroundImage: 'url("/assets/images/house_preview.jpg")' }}
+>>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
       >
         <div className="text-center text-white bg-black bg-opacity-50 p-4 rounded-lg">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Properties</h1>

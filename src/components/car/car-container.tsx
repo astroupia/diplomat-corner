@@ -27,7 +27,11 @@ const CarContainer: React.FC = () => {
     <div>
       <div
         className="relative h-64 bg-cover bg-center flex items-center justify-center"
+<<<<<<< HEAD
         style={{ backgroundImage: 'url("car_preview.jpg")' }}
+=======
+        style={{ backgroundImage: 'url("/assets/images/car_preview.jpg")' }}
+>>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
       >
         <div className="text-center text-white">
           <h1 className="text-4xl font-bold">Cars</h1>
