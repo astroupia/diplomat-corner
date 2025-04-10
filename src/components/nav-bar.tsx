@@ -3,7 +3,7 @@
 import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "./ui/button";
-<<<<<<< HEAD
+
 import { useState, useEffect, useRef, useCallback } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { Loader2, Megaphone, Menu, Search } from "lucide-react";
@@ -18,11 +18,8 @@ interface SearchResult {
 }
 
 const NavBar: React.FC = () => {
-  const { user } = useUser();
-  
-  const isAdmin =
-    user?.primaryEmailAddress?.emailAddress ===
-    process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const { user, isLoaded } = useUser();
+ 
   const [lastScrollY, setLastScrollY] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]); // State for results
@@ -32,7 +29,16 @@ const NavBar: React.FC = () => {
   const[isVisible, setIsVisible] = useState<boolean>(true)
   const searchRef = useRef<HTMLDivElement>(null); // Ref for the search container
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+  const [isAdmin, setIsAdmin] = useState(false);
   // Debounced search function
+  useEffect(() => {
+    if (isLoaded && user) {
+      setIsAdmin(
+        user.primaryEmailAddress?.emailAddress ===
+          process.env.NEXT_PUBLIC_ADMIN_EMAIL
+      );
+    }
+  }, [isLoaded, user]);
   const fetchSearchResults = useCallback(async (query: string) => {
     if (!query) {
       setSearchResults([]);
@@ -131,22 +137,6 @@ const NavBar: React.FC = () => {
     setSearchQuery(""); // Optional: clear search query after selection
   };
 
-=======
-import { useEffect, useState } from "react";
-
-const NavBar = () => {
-  const { user, isLoaded } = useUser();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    if (isLoaded && user) {
-      setIsAdmin(
-        user.primaryEmailAddress?.emailAddress ===
-          process.env.NEXT_PUBLIC_ADMIN_EMAIL
-      );
-    }
-  }, [isLoaded, user]);
->>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
 
   return (
     <nav
@@ -249,12 +239,6 @@ const NavBar = () => {
 
               {/* Authentication Buttons */}
               <div className="flex items-center gap-4">
-<<<<<<< HEAD
-                {!user ? (
-                  <Link href="/sign-up">
-                    <Button>Get Started</Button>
-                  </Link>
-=======
                 {!isLoaded ? (
                   <div className="h-8 w-8 rounded-full bg-gray-200 animate-pulse"></div>
                 ) : !user ? (
@@ -263,7 +247,6 @@ const NavBar = () => {
                       <Button>Get Started</Button>
                     </Link>
                   </>
->>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
                 ) : (
                   <>
                     <UserButton afterSignOutUrl="/"/> {/* Added afterSignOutUrl */}

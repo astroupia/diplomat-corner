@@ -1,12 +1,8 @@
 import { IHouse } from "@/lib/models/house.model";
 import { Bath, Bed, Car, Ruler } from "lucide-react";
 import Image from "next/image";
-<<<<<<< HEAD
 import Link from "next/link";
 import React from "react";
-=======
-import { images } from "@public/assets/images";
->>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
 
 interface CardProps extends IHouse {
   listedBy?: string; // Optional, defaults to "Admin"
@@ -26,7 +22,6 @@ const CardHouse: React.FC<CardProps> = ({
   listedBy = "Admin",
 }) => {
   return (
-<<<<<<< HEAD
     <Link href={`/house/${_id}`} className="block">
       <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
         <div className="relative">
@@ -65,32 +60,6 @@ const CardHouse: React.FC<CardProps> = ({
             </div>
           </div>
           <p className="text-gray-500 text-sm mt-2 truncate">Listed by {listedBy}</p>
-=======
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Image
-        src={images.house_preview.src}
-        alt={images.house_preview.alt}
-        className="w-full h-48 object-cover"
-      />
-      <div className="p-4">
-        <h2 className="text-lg font-semibold">{address}</h2>
-        <p className="text-green-600 text-xl font-bold">
-          ${price.toLocaleString()}
-        </p>
-        <div className="flex justify-between text-gray-700 mt-2">
-          <div className="flex items-center gap-1">
-            <Bed size={18} />
-            <span>{bedrooms}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Bath size={18} />
-            <span>{bathrooms}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Ruler size={18} />
-            <span>{size.toLocaleString()} ft²</span>
-          </div>
->>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
         </div>
       </div>
     </Link>

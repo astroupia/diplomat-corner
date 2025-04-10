@@ -17,12 +17,9 @@ export interface IHouse {
   maintenance: string;
   essentials: string[];
   currency: string;
-<<<<<<< HEAD
   imageUrl?: string; // Added imageUrl field
   createdAt?: Date;
   updatedAt?: Date;
-=======
->>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
   paymentId: string;
   visiblity: "Private" | "Public";
   status: "Pending" | "Active";
@@ -65,10 +62,7 @@ const houseSchema = new Schema(
   },
   { timestamps: true }
 );
-<<<<<<< HEAD
 houseSchema.index({ name: "text", description: "text" });
 
 export default mongoose.models.House ||
   mongoose.model<IHouse>("House", houseSchema);
-=======
->>>>>>> d5eb80e51b9bfa8f4266a0ba8e9a677d918f59f5
