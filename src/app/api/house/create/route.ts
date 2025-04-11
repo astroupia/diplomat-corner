@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db-connect";
 import House from "@/lib/models/house.model";
+import Payment from "@/lib/models/payment.model";
 import { auth } from "@clerk/nextjs/server";
 import { v4 as uuidv4 } from "uuid"; // For generating random filenames
 
@@ -116,9 +117,7 @@ export async function POST(
     const receiptFile = formData.get("receipt") as File;
 
     // Generate payment ID
-    const paymentId = `PAY-${Date.now()}-${Math.random()
-      .toString(36)
-      .substr(2, 9)}`;
+    const paymentId = `${Date.now()}-${uuidv4()}`;
 
     const houseData: HouseFormData = {
       name: formData.get("name") as string,
@@ -211,6 +210,17 @@ export async function POST(
     });
     const result = await houseToSave.save();
     console.log("House saved successfully. ID:", result._id);
+
+    // Create payment record
+    await Payment.create({
+      paymentId,
+      servicePrice: Number(formData.get("servicePrice")),
+      receiptUrl: receiptUrl || "",
+      productId: result._id.toString(),
+      productType: "house",
+      userId,
+      uploadedAt: new Date(),
+    });
 
     return NextResponse.json({
       success: true,

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getHouseById } from "@/lib/actions/house.actions";
 import { connectToDatabase } from '@/lib/db-connect';
-import House from '@/lib/models/house.model';
+import Car from '@/lib/models/car.model';
+import Payment from '@/lib/models/payment.model';
 import { auth } from '@clerk/nextjs/server';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -14,7 +14,7 @@ interface ApiResponse {
   success: boolean;
   error?: string;
   message?: string;
-  houseId?: string;
+  carId?: string;
   paymentId?: string;
 }
 
@@ -56,81 +56,61 @@ async function uploadImage(file: File, folder: 'public_images' | 'receipts'): Pr
   }
 }
 
-export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse<ApiResponse>> {
-  try {
-    const { id } = await params;
-    await connectToDatabase();
-    const house = await House.findById(id);
-
-    if (!house) {
-      return NextResponse.json({ success: false, error: 'House not found', paymentId: '' }, { status: 404 });
-    }
-
-    return NextResponse.json({ success: true, ...house.toObject() });
-  } catch (error) {
-    console.error('Error fetching house:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch house', paymentId: '' },
-      { status: 500 }
-    );
-  }
-}
-
 export async function PUT(
   req: NextRequest,
   { params }: { params: { id: string } }
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    const { id } = await params;
     const userId = (await auth()).userId;
     if (!userId) {
       return NextResponse.json({ success: false, error: 'Unauthorized', paymentId: '' }, { status: 401 });
-    }
-
-    await connectToDatabase();
-    const existingHouse = await House.findById(id);
-    
-    if (!existingHouse) {
-      return NextResponse.json({ success: false, error: 'House not found', paymentId: '' }, { status: 404 });
-    }
-
-    if (existingHouse.userId !== userId) {
-      return NextResponse.json({ success: false, error: 'Unauthorized', paymentId: '' }, { status: 403 });
     }
 
     const formData = await req.formData();
     const file = formData.get('file') as File;
     const receiptFile = formData.get('receipt') as File;
 
-    const houseData = {
+    const carData = {
       name: formData.get('name') as string,
-      bedroom: Number(formData.get('bedroom')),
-      size: Number(formData.get('size')),
-      bathroom: Number(formData.get('bathroom')),
-      parkingSpace: Number(formData.get('parkingSpace')),
+      year: Number(formData.get('year')),
+      mileage: Number(formData.get('mileage')),
+      speed: Number(formData.get('speed')),
+      milesPerGallon: Number(formData.get('milesPerGallon')),
+      transmission: formData.get('transmission') as string,
+      fuel: formData.get('fuel') as string,
+      bodyType: formData.get('bodyType') as string,
       condition: formData.get('condition') as string,
+      engine: formData.get('engine') as string,
       maintenance: formData.get('maintenance') as string,
       price: Number(formData.get('price')),
       description: formData.get('description') as string,
       advertisementType: formData.get('advertisementType') as 'Rent' | 'Sale',
-      paymentMethod: formData.get('paymentMethod') as 'Monthly' | 'Quarterly' | 'Annual',
-      houseType: formData.get('houseType') as 'House' | 'Apartment' | 'Guest House',
-      essentials: JSON.parse(formData.get('essentials') as string),
+      paymentMethod: Number(formData.get('paymentMethod')),
       currency: formData.get('currency') as string,
+      tags: formData.get('tags') as string,
+      updatedAt: new Date(),
     };
 
     // Validate required fields
-    if (!houseData.name || !houseData.bedroom || !houseData.size || 
-        !houseData.bathroom || !houseData.parkingSpace || !houseData.price || 
-        !houseData.description) {
+    if (!carData.name || !carData.price || !carData.mileage) {
       return NextResponse.json({ success: false, error: 'Missing required fields', paymentId: '' }, { status: 400 });
     }
 
-    // Upload new house image if provided
-    let imageUrl = existingHouse.imageUrl;
+    await connectToDatabase();
+
+    // Find existing car
+    const existingCar = await Car.findById(params.id);
+    if (!existingCar) {
+      return NextResponse.json({ success: false, error: 'Car not found', paymentId: '' }, { status: 404 });
+    }
+
+    // Check ownership
+    if (existingCar.userId !== userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized', paymentId: '' }, { status: 401 });
+    }
+
+    // Upload car image if provided
+    let imageUrl = existingCar.imageUrl;
     if (file) {
       const uploadResult = await uploadImage(file, 'public_images');
       if (!uploadResult.success) {
@@ -139,8 +119,8 @@ export async function PUT(
       imageUrl = uploadResult.publicUrl;
     }
 
-    // Upload new receipt if provided
-    let receiptUrl = existingHouse.paymentReceipt?.url;
+    // Upload receipt if provided
+    let receiptUrl = '';
     if (receiptFile) {
       const uploadResult = await uploadImage(receiptFile, 'receipts');
       if (!uploadResult.success) {
@@ -149,33 +129,80 @@ export async function PUT(
       receiptUrl = uploadResult.publicUrl;
     }
 
-    // Update house
-    const updatedHouse = await House.findByIdAndUpdate(
-      id,
-      { 
-        ...houseData,
+    // Update car
+    const updatedCar = await Car.findByIdAndUpdate(
+      params.id,
+      {
+        ...carData,
         imageUrl,
-        paymentReceipt: receiptUrl ? {
-          url: receiptUrl,
-          paymentId: existingHouse.paymentId,
-          uploadedAt: new Date()
-        } : existingHouse.paymentReceipt
       },
       { new: true }
     );
 
+    // Update payment record if receipt was uploaded
+    if (receiptUrl) {
+      await Payment.findOneAndUpdate(
+        { carId: params.id },
+        {
+          receiptUrl,
+          servicePrice: Number(formData.get('servicePrice')),
+          updatedAt: new Date(),
+        }
+      );
+    }
+
     return NextResponse.json({
       success: true,
-      message: 'House updated successfully',
-      houseId: updatedHouse._id.toString(),
-      paymentId: existingHouse.paymentId
+      message: 'Car updated successfully',
+      carId: updatedCar._id.toString(),
+      paymentId: existingCar.paymentId
     });
 
   } catch (error) {
-    console.error('House update error:', error);
+    console.error('Car update error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to update house', paymentId: '' },
+      { success: false, error: 'Failed to update car', paymentId: '' },
       { status: 500 }
     );
   }
 }
+
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: { id: string } }
+): Promise<NextResponse<ApiResponse>> {
+  try {
+    const userId = (await auth()).userId;
+    if (!userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized', paymentId: '' }, { status: 401 });
+    }
+
+    await connectToDatabase();
+
+    const car = await Car.findById(params.id);
+    if (!car) {
+      return NextResponse.json({ success: false, error: 'Car not found', paymentId: '' }, { status: 404 });
+    }
+
+    if (car.userId !== userId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized', paymentId: '' }, { status: 401 });
+    }
+
+    await Car.findByIdAndDelete(params.id);
+    await Payment.findOneAndDelete({ carId: params.id });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Car deleted successfully',
+      carId: params.id,
+      paymentId: car.paymentId
+    });
+
+  } catch (error) {
+    console.error('Car deletion error:', error);
+    return NextResponse.json(
+      { success: false, error: 'Failed to delete car', paymentId: '' },
+      { status: 500 }
+    );
+  }
+} 

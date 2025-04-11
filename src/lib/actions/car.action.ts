@@ -78,3 +78,14 @@ export async function getAllCars(): Promise<ICar[]> {
     throw new Error(`Failed to fetch cars: ${(error as Error).message}`);
   }
 }
+
+export async function getCarById(id: string) {
+  try {
+    await connectToDatabase();
+    const car = await Car.findById(id);
+    return car;
+  } catch (error) {
+    console.error("Error fetching car:", error);
+    throw error;
+  }
+}

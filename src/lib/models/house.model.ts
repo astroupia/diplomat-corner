@@ -51,11 +51,6 @@ const houseSchema = new Schema(
     essentials: [{ type: String }],
     currency: { type: String },
     imageUrl: { type: String },
-    paymentReceipt: {
-      url: { type: String },
-      paymentId: { type: String },
-      uploadedAt: { type: Date },
-    },
     paymentId: {
       type: String,
       required: true,
