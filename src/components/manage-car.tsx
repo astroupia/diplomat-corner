@@ -1,19 +1,30 @@
 "use client";
 
-import { Car, CheckCircle, Circle, Home, Pen, Plus, ShoppingCart, Tv, Upload } from "lucide-react";
+import {
+  Car,
+  CheckCircle,
+  Circle,
+  Home,
+  Pen,
+  Plus,
+  ShoppingCart,
+  Tv,
+  Upload,
+} from "lucide-react";
 import Link from "next/link";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import { useState, useEffect } from "react";
 import { createCar } from "@/lib/actions/car.action";
-import { useUser } from "@clerk/nextjs"; 
+import { useUser } from "@clerk/nextjs";
 import { ICar } from "@/lib/models/car.model";
+
 const ManageCar = () => {
-  const { user, isLoaded } = useUser(); 
-  const userId = user?.id || "guest"; 
+  const { user, isLoaded } = useUser();
+  const userId = user?.id || "guest";
 
   const [carData, setCarData] = useState<Partial<ICar>>({
     name: "",
-    userId: userId, 
+    userId: userId,
     description: "",
     advertisementType: "Sale" as const,
     price: 0,
@@ -33,7 +44,10 @@ const ManageCar = () => {
     tags: "",
   });
   const [isSending, setIsSending] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [submitResult, setSubmitResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   useEffect(() => {
     if (isLoaded) {
@@ -41,11 +55,16 @@ const ManageCar = () => {
     }
   }, [userId, isLoaded]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
     setCarData((prev) => ({
       ...prev,
-      [name]: name === "year" || name === "mileage" || name === "price" ? Number(value) : value,
+      [name]:
+        name === "year" || name === "mileage" || name === "price"
+          ? Number(value)
+          : value,
     }));
   };
 
@@ -62,7 +81,10 @@ const ManageCar = () => {
     setSubmitResult(null);
 
     if (!carData.name || !carData.price || !carData.mileage) {
-      setSubmitResult({ success: false, message: "Please fill all required fields (Name, Price, Mileage)" });
+      setSubmitResult({
+        success: false,
+        message: "Please fill all required fields (Name, Price, Mileage)",
+      });
       setIsSending(false);
       return;
     }
@@ -98,7 +120,9 @@ const ManageCar = () => {
     } catch (error) {
       setSubmitResult({
         success: false,
-        message: `Failed to save car: ${error instanceof Error ? error.message : "Unknown error"}`,
+        message: `Failed to save car: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
     } finally {
       setIsSending(false);
@@ -113,31 +137,39 @@ const ManageCar = () => {
   return (
     <section className="flex flex-col min-h-screen text-Lato">
       <MaxWidthWrapper>
-        <h1 className="text-xl md:text-2xl font-semibold text-primary m-6">Manage Products and Ads</h1>
+        <h1 className="text-xl md:text-2xl font-semibold text-primary m-6">
+          Manage Products and Ads
+        </h1>
         <div className="flex flex-col lg:flex-row bg-secondary h-auto lg:h-screen bg-primary-light p-4 lg:p-6 space-y-4 lg:space-y-0 lg:space-x-4">
           <aside className="w-full lg:w-1/5 bg-secondary rounded-3xl shadow-md p-4 border-2 border-primary">
             <ul className="space-y-4 text-primary font-semibold text-sm md:text-base">
               <Link href="/advertisement">
                 <li className="flex items-center">
-                  <ShoppingCart size={20} className="mr-2" />Products
+                  <ShoppingCart size={20} className="mr-2" />
+                  Products
                 </li>
               </Link>
               <li className="pl-4 flex items-center">
-                <Plus size={16} className="mr-2" />Add Products
+                <Plus size={16} className="mr-2" />
+                Add Products
               </li>
               <li className="pl-4 flex items-center">
-                <Pen size={16} className="mr-2" />Edit Products
+                <Pen size={16} className="mr-2" />
+                Edit Products
               </li>
               <li className="flex items-center">
-                <Tv size={20} className="mr-2" />Adverts
+                <Tv size={20} className="mr-2" />
+                Adverts
               </li>
               <Link href="/advertisement">
                 <li className="pl-4 flex items-center">
-                  <Plus size={16} className="mr-2" />Add Adverts
+                  <Plus size={16} className="mr-2" />
+                  Add Adverts
                 </li>
               </Link>
               <li className="pl-4 flex items-center">
-                <Pen size={16} className="mr-2" />Edit Adverts
+                <Pen size={16} className="mr-2" />
+                Edit Adverts
               </li>
             </ul>
           </aside>
@@ -160,7 +192,9 @@ const ManageCar = () => {
               <div className="col-span-12 lg:col-span-8 space-y-6 bg-secondary p-4 lg:p-6 rounded-3xl shadow-md border-3 border-primary">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Name *</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Name *
+                    </label>
                     <input
                       type="text"
                       name="name"
@@ -172,7 +206,9 @@ const ManageCar = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Year</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Year
+                    </label>
                     <input
                       type="number"
                       name="year"
@@ -185,7 +221,9 @@ const ManageCar = () => {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Mileage *</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Mileage *
+                    </label>
                     <input
                       type="number"
                       name="mileage"
@@ -197,7 +235,9 @@ const ManageCar = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Transmission</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Transmission
+                    </label>
                     <div className="flex flex-wrap space-x-2">
                       {["Automatic", "Manual"].map((option) => (
                         <button
@@ -208,9 +248,15 @@ const ManageCar = () => {
                               ? "bg-primary text-white border border-primary"
                               : "bg-secondary text-black border border-black"
                           }`}
-                          onClick={() => handleOptionChange("transmission", option)}
+                          onClick={() =>
+                            handleOptionChange("transmission", option)
+                          }
                         >
-                          {carData.transmission === option ? <CheckCircle size={16} /> : <Circle size={16} />}
+                          {carData.transmission === option ? (
+                            <CheckCircle size={16} />
+                          ) : (
+                            <Circle size={16} />
+                          )}
                           <span>{option}</span>
                         </button>
                       ))}
@@ -218,7 +264,9 @@ const ManageCar = () => {
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary">Fuel</label>
+                  <label className="block text-sm font-semibold text-primary">
+                    Fuel
+                  </label>
                   <div className="flex flex-wrap space-x-2">
                     {["Gasoline", "Diesel", "Electric"].map((option) => (
                       <button
@@ -231,41 +279,57 @@ const ManageCar = () => {
                         }`}
                         onClick={() => handleOptionChange("fuel", option)}
                       >
-                        {carData.fuel === option ? <CheckCircle size={16} /> : <Circle size={16} />}
+                        {carData.fuel === option ? (
+                          <CheckCircle size={16} />
+                        ) : (
+                          <Circle size={16} />
+                        )}
                         <span>{option}</span>
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary">Body Type</label>
+                  <label className="block text-sm font-semibold text-primary">
+                    Body Type
+                  </label>
                   <div className="flex flex-wrap space-x-2">
-                    {["Truck", "SUV", "Sedan", "Hatchback", "Minivan"].map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                          carData.bodyType === option
-                            ? "bg-primary text-white border border-primary"
-                            : "bg-secondary text-black border border-black"
-                        }`}
-                        onClick={() => handleOptionChange("bodyType", option)}
-                      >
-                        {carData.bodyType === option ? <CheckCircle size={16} /> : <Circle size={16} />}
-                        <span>{option}</span>
-                      </button>
-                    ))}
+                    {["Truck", "SUV", "Sedan", "Hatchback", "Minivan"].map(
+                      (option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
+                            carData.bodyType === option
+                              ? "bg-primary text-white border border-primary"
+                              : "bg-secondary text-black border border-black"
+                          }`}
+                          onClick={() => handleOptionChange("bodyType", option)}
+                        >
+                          {carData.bodyType === option ? (
+                            <CheckCircle size={16} />
+                          ) : (
+                            <Circle size={16} />
+                          )}
+                          <span>{option}</span>
+                        </button>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
               <div className="col-span-12 lg:col-span-4 space-y-6 border-2 border-primary p-4 lg:p-6 rounded-3xl shadow-md overflow-y-auto max-h-[calc(100vh-200px)]">
                 <div className="h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg">
                   <Upload size={40} className="text-primary" />
-                  <p className="mt-4 text-sm text-primary">Upload media for the campaign</p>
+                  <p className="mt-4 text-sm text-primary">
+                    Upload media for the campaign
+                  </p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Condition</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Condition
+                    </label>
                     <input
                       type="text"
                       name="condition"
@@ -276,7 +340,9 @@ const ManageCar = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Engine</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Engine
+                    </label>
                     <input
                       type="text"
                       name="engine"
@@ -287,7 +353,9 @@ const ManageCar = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Maintenance</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Maintenance
+                    </label>
                     <input
                       type="text"
                       name="maintenance"
@@ -300,7 +368,9 @@ const ManageCar = () => {
                 </div>
                 <div className="space-y-2">
                   <div>
-                    <label className="block text-sm font-semibold text-primary">Price *</label>
+                    <label className="block text-sm font-semibold text-primary">
+                      Price *
+                    </label>
                     <input
                       type="number"
                       name="price"
@@ -323,14 +393,20 @@ const ManageCar = () => {
                         }`}
                         onClick={() => handleOptionChange("currency", option)}
                       >
-                        {carData.currency === option ? <CheckCircle size={16} /> : <Circle size={16} />}
+                        {carData.currency === option ? (
+                          <CheckCircle size={16} />
+                        ) : (
+                          <Circle size={16} />
+                        )}
                         <span>{option}</span>
                       </button>
                     ))}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary">Tags</label>
+                  <label className="block text-sm font-semibold text-primary">
+                    Tags
+                  </label>
                   <input
                     type="text"
                     name="tags"
@@ -341,7 +417,9 @@ const ManageCar = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-primary">Brief Description</label>
+                  <label className="block text-sm font-semibold text-primary">
+                    Brief Description
+                  </label>
                   <textarea
                     name="description"
                     value={carData.description || ""}
@@ -355,13 +433,19 @@ const ManageCar = () => {
                   onClick={handleSend}
                   disabled={isSending}
                   className={`w-full py-3 rounded-lg font-semibold text-white ${
-                    isSending ? "bg-gray-400 cursor-not-allowed" : "bg-primary hover:bg-primary-dark"
+                    isSending
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary-dark"
                   }`}
                 >
                   {isSending ? "Sending..." : "Send"}
                 </button>
                 {submitResult && (
-                  <p className={`text-sm mt-2 ${submitResult.success ? "text-green-600" : "text-red-600"}`}>
+                  <p
+                    className={`text-sm mt-2 ${
+                      submitResult.success ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
                     {submitResult.message}
                   </p>
                 )}

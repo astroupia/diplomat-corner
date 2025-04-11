@@ -17,7 +17,7 @@ export interface IHouse {
   maintenance: string;
   essentials: string[];
   currency: string;
-  imageUrl?: string; // Added imageUrl field
+  imageUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
   paymentId: string;
@@ -35,7 +35,7 @@ const houseSchema = new Schema(
     paymentMethod: {
       type: String,
       required: true,
-      enum: ["Monthly", "Quarterly", "Annual"]
+      enum: ["Monthly", "Quarterly", "Annual"],
     },
     bedroom: { type: Number, required: true },
     parkingSpace: { type: Number, required: true },
@@ -51,10 +51,10 @@ const houseSchema = new Schema(
     essentials: [{ type: String }],
     currency: { type: String },
     imageUrl: { type: String },
-    paymentReceipt: { 
+    paymentReceipt: {
       url: { type: String },
       paymentId: { type: String },
-      uploadedAt: { type: Date }
+      uploadedAt: { type: Date },
     },
     paymentId: {
       type: String,

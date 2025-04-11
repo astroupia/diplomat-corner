@@ -17,7 +17,7 @@ import { useState, useRef, useEffect } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { useUser } from "@clerk/nextjs";
 
-interface HouseFormData {
+interface IHouse {
   name: string;
   bedroom: number;
   size: number;
@@ -36,7 +36,7 @@ interface HouseFormData {
 
 const ManageHouse: React.FC = () => {
   const { user, isLoaded } = useUser();
-  const [formData, setFormData] = useState<HouseFormData>({
+  const [formData, setFormData] = useState<IHouse>({
     name: "",
     bedroom: 0,
     size: 0,
@@ -53,7 +53,10 @@ const ManageHouse: React.FC = () => {
     currency: "ETB",
   });
   const [isSending, setIsSending] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [submitResult, setSubmitResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -66,7 +69,7 @@ const ManageHouse: React.FC = () => {
     "Furnished",
     "Play Ground",
     "Living Area",
-    "GYM",
+    "Gym",
     "Outdoor",
     "Dining Area",
     "Jacuzzi",
@@ -79,8 +82,14 @@ const ManageHouse: React.FC = () => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "bedroom" || name === "size" || name === "bathroom" ||
-              name === "parkingSpace" || name === "price" ? Number(value) : value,
+      [name]:
+        name === "bedroom" ||
+        name === "size" ||
+        name === "bathroom" ||
+        name === "parkingSpace" ||
+        name === "price"
+          ? Number(value)
+          : value,
     }));
   };
 
@@ -110,7 +119,7 @@ const ManageHouse: React.FC = () => {
     }
   };
 
-  const handleOptionChange = (field: keyof HouseFormData, value: string) => {
+  const handleOptionChange = (field: keyof IHouse, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -136,7 +145,10 @@ const ManageHouse: React.FC = () => {
       !formData.price ||
       !formData.description
     ) {
-      setSubmitResult({ success: false, message: "Please fill all required fields" });
+      setSubmitResult({
+        success: false,
+        message: "Please fill all required fields",
+      });
       setIsSending(false);
       return;
     }
@@ -144,26 +156,32 @@ const ManageHouse: React.FC = () => {
     try {
       const apiFormData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        apiFormData.append(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
+        apiFormData.append(
+          key,
+          typeof value === "object" ? JSON.stringify(value) : value.toString()
+        );
       });
-      
+
       if (selectedFile) {
-        apiFormData.append('file', selectedFile);
+        apiFormData.append("file", selectedFile);
       }
 
       if (selectedReceipt) {
-        apiFormData.append('receipt', selectedReceipt);
+        apiFormData.append("receipt", selectedReceipt);
       }
 
-      const response = await fetch('/api/house/create', {
-        method: 'POST',
+      const response = await fetch("/api/house/create", {
+        method: "POST",
         body: apiFormData,
       });
 
       const result = await response.json();
 
       if (result.success) {
-        setSubmitResult({ success: true, message: "House saved successfully!" });
+        setSubmitResult({
+          success: true,
+          message: "House saved successfully!",
+        });
         setFormData({
           name: "",
           bedroom: 0,
@@ -183,18 +201,23 @@ const ManageHouse: React.FC = () => {
         setSelectedFile(null);
         setSelectedReceipt(null);
         if (fileInputRef.current) {
-          fileInputRef.current.value = '';
+          fileInputRef.current.value = "";
         }
         if (receiptInputRef.current) {
-          receiptInputRef.current.value = '';
+          receiptInputRef.current.value = "";
         }
       } else {
-        setSubmitResult({ success: false, message: result.error || "Failed to save house" });
+        setSubmitResult({
+          success: false,
+          message: result.error || "Failed to save house",
+        });
       }
     } catch (error) {
       setSubmitResult({
         success: false,
-        message: `Failed to save house: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to save house: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
     } finally {
       setIsSending(false);
@@ -217,8 +240,10 @@ const ManageHouse: React.FC = () => {
     <section className="flex flex-col min-h-screen bg-gray-50">
       <MaxWidthWrapper>
         <div className="py-6 px-4 sm:px-6 lg:px-8">
-          <h1 className="text-2xl font-bold text-gray-900 mb-6">Manage Products and Ads</h1>
-          
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">
+            Manage Products and Ads
+          </h1>
+
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Sidebar */}
             <aside className="w-full lg:w-1/5 bg-white rounded-xl shadow-sm p-4 border border-gray-200">
@@ -277,7 +302,9 @@ const ManageHouse: React.FC = () => {
                   {/* Basic Information */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name *
+                      </label>
                       <input
                         type="text"
                         name="name"
@@ -302,7 +329,9 @@ const ManageHouse: React.FC = () => {
                         >
                           {type === "House" && <Home className="w-5 h-5" />}
                           {type === "Apartment" && <Home className="w-5 h-5" />}
-                          {type === "Guest House" && <PlayCircle className="w-5 h-5" />}
+                          {type === "Guest House" && (
+                            <PlayCircle className="w-5 h-5" />
+                          )}
                           <span className="text-sm font-medium">{type}</span>
                         </button>
                       ))}
@@ -312,7 +341,9 @@ const ManageHouse: React.FC = () => {
                   {/* Property Details */}
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Bedroom *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Bedroom *
+                      </label>
                       <input
                         type="number"
                         name="bedroom"
@@ -324,7 +355,9 @@ const ManageHouse: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Size *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Size *
+                      </label>
                       <input
                         type="number"
                         name="size"
@@ -336,7 +369,9 @@ const ManageHouse: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Bathroom *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Bathroom *
+                      </label>
                       <input
                         type="number"
                         name="bathroom"
@@ -348,7 +383,9 @@ const ManageHouse: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Parking Space *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Parking Space *
+                      </label>
                       <input
                         type="number"
                         name="parkingSpace"
@@ -363,7 +400,9 @@ const ManageHouse: React.FC = () => {
 
                   {/* Essentials */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Essentials</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Essentials
+                    </label>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {essentials.map((item) => (
                         <button
@@ -404,13 +443,17 @@ const ManageHouse: React.FC = () => {
                             />
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                               <Upload className="w-8 h-8 text-white" />
-                              <p className="mt-2 text-sm text-white">Click to change image</p>
+                              <p className="mt-2 text-sm text-white">
+                                Click to change image
+                              </p>
                             </div>
                           </>
                         ) : (
                           <>
                             <Upload className="w-8 h-8 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">Upload house image</p>
+                            <p className="mt-2 text-sm text-gray-500">
+                              Upload house image
+                            </p>
                           </>
                         )}
                       </div>
@@ -436,13 +479,17 @@ const ManageHouse: React.FC = () => {
                             />
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                               <Upload className="w-8 h-8 text-white" />
-                              <p className="mt-2 text-sm text-white">Click to change receipt</p>
+                              <p className="mt-2 text-sm text-white">
+                                Click to change receipt
+                              </p>
                             </div>
                           </>
                         ) : (
                           <>
                             <Upload className="w-8 h-8 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">Upload payment receipt</p>
+                            <p className="mt-2 text-sm text-gray-500">
+                              Upload payment receipt
+                            </p>
                           </>
                         )}
                       </div>
@@ -460,7 +507,9 @@ const ManageHouse: React.FC = () => {
                   {/* Additional Details */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Condition
+                      </label>
                       <input
                         type="text"
                         name="condition"
@@ -471,7 +520,9 @@ const ManageHouse: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Maintenance</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Maintenance
+                      </label>
                       <input
                         type="text"
                         name="maintenance"
@@ -485,7 +536,9 @@ const ManageHouse: React.FC = () => {
 
                   {/* Price */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price *
+                    </label>
                     <input
                       type="number"
                       name="price"
@@ -499,7 +552,9 @@ const ManageHouse: React.FC = () => {
 
                   {/* Currency */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Currency
+                    </label>
                     <div className="flex gap-2">
                       {["ETB", "USD"].map((option) => (
                         <button
@@ -525,13 +580,17 @@ const ManageHouse: React.FC = () => {
 
                   {/* Payment Terms */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Terms
+                    </label>
                     <div className="flex flex-wrap gap-2">
                       {["Monthly", "Quarterly", "Annual"].map((option) => (
                         <button
                           key={option}
                           type="button"
-                          onClick={() => handleOptionChange("paymentMethod", option)}
+                          onClick={() =>
+                            handleOptionChange("paymentMethod", option)
+                          }
                           className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                             formData.paymentMethod === option
                               ? "bg-primary text-white border-primary"
@@ -551,7 +610,9 @@ const ManageHouse: React.FC = () => {
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description *
+                    </label>
                     <textarea
                       name="description"
                       value={formData.description}

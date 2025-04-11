@@ -41,7 +41,7 @@ const CarSchema: Schema = new Schema(
     year: { type: Number, default: 0 },
     transmission: { type: String, default: "Automatic" },
     fuel: { type: String, default: "Gasoline" },
-    bodyType: { type: String, default: "Truck" },
+    bodyType: { type: String },
     condition: { type: String, default: "" },
     engine: { type: String, default: "" },
     maintenance: { type: String, default: "" },
