@@ -137,7 +137,7 @@ export default function HouseDetails() {
               <p><strong className="font-medium">House Type:</strong> {house.houseType}</p>
               <p><strong className="font-medium">Condition:</strong> {house.condition}</p>
               <p><strong className="font-medium">Maintenance:</strong> {house.maintenance}</p>
-              <p><strong className="font-medium">Essentials:</strong> {house.essentials.join(", ")}</p>
+              <p><strong className="font-medium">Essentials:</strong> {house.essentials?.join(", ") || "None"}</p>
             </div>
           </div>
 

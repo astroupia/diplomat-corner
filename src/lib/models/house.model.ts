@@ -35,6 +35,7 @@ const houseSchema = new Schema(
     paymentMethod: {
       type: String,
       required: true,
+      enum: ["Monthly", "Quarterly", "Annual"]
     },
     bedroom: { type: Number, required: true },
     parkingSpace: { type: Number, required: true },
@@ -44,6 +45,16 @@ const houseSchema = new Schema(
       type: String,
       required: true,
       enum: ["House", "Apartment", "Guest House"],
+    },
+    condition: { type: String },
+    maintenance: { type: String },
+    essentials: [{ type: String }],
+    currency: { type: String },
+    imageUrl: { type: String },
+    paymentReceipt: { 
+      url: { type: String },
+      paymentId: { type: String },
+      uploadedAt: { type: Date }
     },
     paymentId: {
       type: String,

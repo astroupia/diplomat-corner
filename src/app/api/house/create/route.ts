@@ -30,22 +30,30 @@ interface HouseFormData {
   paymentId: string;
   visiblity: "Private" | "Public";
   status: "Pending" | "Active";
+  paymentReceipt?: {
+    url: string;
+    paymentId: string;
+    uploadedAt: Date;
+  };
 }
 
 interface ApiResponse {
   success: boolean;
-  message?: string;
   error?: string;
+  message?: string;
   houseId?: string;
+  paymentId?: string;
 }
 
-async function uploadImage(file: File): Promise<{ success: boolean; publicUrl?: string; error?: string }> {
-  // Generate a random filename with original extension
+async function uploadImage(file: File, folder: 'public_images' | 'receipts'): Promise<{ success: boolean; publicUrl?: string; error?: string }> {
   const extension = file.name.split('.').pop();
   const randomFileName = `${uuidv4()}.${extension}`;
   
+  // Use nested folder structure for receipts
+  const uploadFolder = folder === 'receipts' ? 'public_images/receipts' : folder;
+  
   const apiFormData = new FormData();
-  apiFormData.append('dir', '/public_html/public_images/');
+  apiFormData.append('dir', `/public_html/${uploadFolder}/`);
   apiFormData.append('file-1', file, randomFileName);
 
   const authHeader = `cpanel ${CPANEL_USERNAME}:${CPANEL_API_TOKEN.trim()}`;
@@ -68,7 +76,7 @@ async function uploadImage(file: File): Promise<{ success: boolean; publicUrl?: 
       return { success: false, error: 'No uploaded file details returned' };
     }
 
-    const publicUrl = `${PUBLIC_DOMAIN}/public_images/${uploadedFile.file}`;
+    const publicUrl = `${PUBLIC_DOMAIN}/${uploadFolder}/${uploadedFile.file}`;
     return { success: true, publicUrl };
   } catch (error) {
     console.error('Image upload error:', error);
@@ -81,7 +89,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // Verify user authentication
     const userId  = (await auth()).userId;
     if (!userId) {
-      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized', paymentId: '' }, { status: 401 });
     }
 
     // Connect to database
@@ -90,6 +98,11 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     // Parse form data
     const formData = await req.formData();
     const file = formData.get('file') as File;
+    const receiptFile = formData.get('receipt') as File;
+    
+    // Generate payment ID
+    const paymentId = `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
     const houseData: HouseFormData = {
       name: formData.get('name') as string,
       bedroom: Number(formData.get('bedroom')),
@@ -107,7 +120,7 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
       currency: formData.get('currency') as string,
       userId,
       createdAt: new Date(),
-      paymentId: "1",
+      paymentId,
       visiblity: "Private",
       status: "Pending",
     };
@@ -116,33 +129,60 @@ export async function POST(req: NextRequest): Promise<NextResponse<ApiResponse>>
     if (!houseData.name || !houseData.bedroom || !houseData.size || 
         !houseData.bathroom || !houseData.parkingSpace || !houseData.price || 
         !houseData.description) {
-      return NextResponse.json({ success: false, error: 'Missing required fields' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Missing required fields', paymentId: '' }, { status: 400 });
     }
 
-    // Upload image if provided
+    // Upload house image if provided
     let imageUrl: string | undefined;
     if (file) {
-      const uploadResult = await uploadImage(file);
+      console.log('Uploading image to cPanel...');
+      const uploadResult = await uploadImage(file, 'public_images');
       if (!uploadResult.success) {
-        return NextResponse.json({ success: false, error: uploadResult.error }, { status: 500 });
+        console.error('Image upload failed:', uploadResult.error);
+        return NextResponse.json({ success: false, error: uploadResult.error, paymentId: '' }, { status: 500 });
       }
       imageUrl = uploadResult.publicUrl;
+      console.log('Image uploaded successfully. Public URL:', imageUrl);
     }
 
-    // Save house with image URL
-    const houseToSave = new House({ ...houseData, imageUrl });
+    // Upload receipt if provided
+    let receiptUrl: string | undefined;
+    if (receiptFile) {
+      console.log('Uploading receipt to cPanel...');
+      const uploadResult = await uploadImage(receiptFile, 'receipts');
+      if (!uploadResult.success) {
+        console.error('Receipt upload failed:', uploadResult.error);
+        return NextResponse.json({ success: false, error: uploadResult.error, paymentId: '' }, { status: 500 });
+      }
+      receiptUrl = uploadResult.publicUrl;
+      console.log('Receipt uploaded successfully. Public URL:', receiptUrl);
+    }
+
+    // Save house with image URL and receipt details
+    console.log('Saving house to MongoDB with image URL:', imageUrl);
+    const houseToSave = new House({ 
+      ...houseData, 
+      imageUrl,
+      paymentReceipt: receiptUrl ? {
+        url: receiptUrl,
+        paymentId,
+        uploadedAt: new Date()
+      } : undefined
+    });
     const result = await houseToSave.save();
+    console.log('House saved successfully. ID:', result._id);
 
     return NextResponse.json({
       success: true,
       message: 'House created successfully',
       houseId: result._id.toString(),
+      paymentId
     });
 
   } catch (error) {
     console.error('House creation error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create house' },
+      { success: false, error: 'Failed to create house', paymentId: '' },
       { status: 500 }
     );
   }

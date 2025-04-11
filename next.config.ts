@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     unoptimized: false,
+    domains: ['diplomatcorner.net'],
   },
 
   webpack(config, { isServer }) {
