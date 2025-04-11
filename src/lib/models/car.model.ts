@@ -1,6 +1,6 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
-export interface ICar extends Document {
+export interface ICar {
   _id: string;
   name: string;
   userId: string;
@@ -21,12 +21,15 @@ export interface ICar extends Document {
   maintenance: string;
   currency: string;
   tags: string;
+  imageUrl?: string;
   paymentId: string;
   visiblity: "Private" | "Public";
   status: "Pending" | "Active";
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
-const CarSchema: Schema = new Schema(
+const carSchema = new Schema(
   {
     name: { type: String, required: true },
     userId: { type: String, required: true },
@@ -47,6 +50,7 @@ const CarSchema: Schema = new Schema(
     maintenance: { type: String, default: "" },
     currency: { type: String, default: "ETB" },
     tags: { type: String, default: "" },
+    imageUrl: { type: String },
     paymentId: {
       type: String,
       required: true,
@@ -65,4 +69,4 @@ const CarSchema: Schema = new Schema(
   { timestamps: true }
 );
 
-export default mongoose.models.Car || mongoose.model<ICar>("Car", CarSchema);
+export default mongoose.models.Car || mongoose.model<ICar>("Car", carSchema);
