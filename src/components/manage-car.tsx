@@ -209,32 +209,6 @@ const ManageCar: React.FC<ManageCarProps> = ({ initialData, isEditMode = false }
       <MaxWidthWrapper>
         <h1 className="text-xl md:text-2xl font-semibold text-primary m-6">Manage Products and Ads</h1>
         <div className="flex flex-col lg:flex-row bg-secondary h-auto lg:h-screen bg-primary-light p-4 lg:p-6 space-y-4 lg:space-y-0 lg:space-x-4">
-          <aside className="w-full lg:w-1/5 bg-secondary rounded-3xl shadow-md p-4 border-2 border-primary">
-            <ul className="space-y-4 text-primary font-semibold text-sm md:text-base">
-              <Link href="/advertisement">
-                <li className="flex items-center">
-                  <ShoppingCart size={20} className="mr-2" />Products
-                </li>
-              </Link>
-              <li className="pl-4 flex items-center">
-                <Plus size={16} className="mr-2" />Add Products
-              </li>
-              <li className="pl-4 flex items-center">
-                <Pen size={16} className="mr-2" />Edit Products
-              </li>
-              <li className="flex items-center">
-                <Tv size={20} className="mr-2" />Adverts
-              </li>
-              <Link href="/advertisement">
-                <li className="pl-4 flex items-center">
-                  <Plus size={16} className="mr-2" />Add Adverts
-                </li>
-              </Link>
-              <li className="pl-4 flex items-center">
-                <Pen size={16} className="mr-2" />Edit Adverts
-              </li>
-            </ul>
-          </aside>
           <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-4 lg:p-6 flex flex-col">
             <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
               <Link href="/CarProduct">

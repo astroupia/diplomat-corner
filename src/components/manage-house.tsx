@@ -241,40 +241,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({ initialData, isEditMode = fal
             {isEditMode ? "Edit House" : "Manage Products and Ads"}
         </h1>
           
-          <div className="flex flex-col lg:flex-row gap-6">
-            {/* Sidebar */}
-            <aside className="w-full lg:w-1/5 bg-white rounded-xl shadow-sm p-4 border border-gray-200">
-              <ul className="space-y-3">
-                <li className="flex items-center gap-3 text-gray-700 hover:text-primary transition-colors">
-                  <ShoppingCart className="w-5 h-5" />
-                  <span className="font-medium">Products</span>
-              </li>
-                <li className="pl-8 flex items-center gap-3 text-gray-600 hover:text-primary transition-colors">
-                  <Plus className="w-4 h-4" />
-                  <span className="text-sm">Add Products</span>
-              </li>
-                <li className="pl-8 flex items-center gap-3 text-gray-600 hover:text-primary transition-colors">
-                  <Pen className="w-4 h-4" />
-                  <span className="text-sm">Edit Products</span>
-              </li>
-                <li className="flex items-center gap-3 text-gray-700 hover:text-primary transition-colors">
-                  <Tv className="w-5 h-5" />
-                  <span className="font-medium">Adverts</span>
-              </li>
-              <Link href="/advertisment">
-                  <li className="pl-8 flex items-center gap-3 text-gray-600 hover:text-primary transition-colors">
-                    <Plus className="w-4 h-4" />
-                    <span className="text-sm">Add Adverts</span>
-                </li>
-              </Link>
-              <Link href="/Ad">
-                  <li className="pl-8 flex items-center gap-3 text-gray-600 hover:text-primary transition-colors">
-                    <Pen className="w-4 h-4" />
-                    <span className="text-sm">Edit Adverts</span>
-                </li>
-              </Link>
-            </ul>
-          </aside>
+          
 
             {/* Main Content */}
             <main className="flex-1 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
@@ -628,8 +595,8 @@ const ManageHouse: React.FC<ManageHouseProps> = ({ initialData, isEditMode = fal
               </div>
             </div>
           </main>
-          </div>
         </div>
+        
       </MaxWidthWrapper>
     </section>
   );
