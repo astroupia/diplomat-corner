@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { Bed, Bath, Ruler, Car, ArrowLeft } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
+import { Bed, Bath, Ruler, Car, ArrowLeft } from "lucide-react";
 
 interface House {
   _id: string;
@@ -52,8 +52,11 @@ export default function HouseDetails() {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-16">
-        <p className="text-center text-gray-600 text-lg animate-pulse">Loading property details...</p>
+      <div className="flex flex-col items-center justify-center min-h-screen p-8">
+        <div className="w-16 h-16 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
+        <p className="text-lg font-medium text-gray-700">
+          Loading House Details...
+        </p>
       </div>
     );
   }
@@ -81,7 +84,7 @@ export default function HouseDetails() {
         className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
       >
         <ArrowLeft size={18} className="mr-2" />
-        Back to Properties
+        Back to Houses
       </button>
 
       <div className="lg:flex lg:space-x-12">
@@ -95,14 +98,18 @@ export default function HouseDetails() {
             priority
           />
           <div>
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Description</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Description
+            </h2>
             <p className="text-gray-600 leading-relaxed">{house.description}</p>
           </div>
         </div>
 
         <div className="lg:w-1/3 mt-8 lg:mt-0">
           <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight">{house.name}</h1>
+            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+              {house.name}
+            </h1>
             <span className="bg-green-600 text-white text-xs font-medium px-2.5 py-1 rounded-full">
               {house.advertisementType}
             </span>
@@ -131,13 +138,30 @@ export default function HouseDetails() {
           </div>
 
           <div className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">Additional Details</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">
+              Additional Details
+            </h2>
             <div className="space-y-3 text-gray-700">
-              <p><strong className="font-medium">Payment Method:</strong> {house.paymentMethod}</p>
-              <p><strong className="font-medium">House Type:</strong> {house.houseType}</p>
-              <p><strong className="font-medium">Condition:</strong> {house.condition}</p>
-              <p><strong className="font-medium">Maintenance:</strong> {house.maintenance}</p>
-              <p><strong className="font-medium">Essentials:</strong> {house.essentials?.join(", ") || "None"}</p>
+              <p>
+                <strong className="font-medium">Payment Method:</strong>{" "}
+                {house.paymentMethod}
+              </p>
+              <p>
+                <strong className="font-medium">House Type:</strong>{" "}
+                {house.houseType}
+              </p>
+              <p>
+                <strong className="font-medium">Condition:</strong>{" "}
+                {house.condition}
+              </p>
+              <p>
+                <strong className="font-medium">Maintenance:</strong>{" "}
+                {house.maintenance}
+              </p>
+              <p>
+                <strong className="font-medium">Essentials:</strong>{" "}
+                {house.essentials?.join(", ") || "None"}
+              </p>
             </div>
           </div>
 
