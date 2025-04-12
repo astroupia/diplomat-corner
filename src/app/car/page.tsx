@@ -1,4 +1,4 @@
-import CarContainer from "@/components/car/car-container";
+import CarContainer from "@/components/car/card-container";
 
 const Car = () => {
   return <CarContainer />;
