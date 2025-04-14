@@ -21,70 +21,37 @@ export default function EditCarPage() {
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        // Early return if no ID or user not loaded
-        if (!id || !isLoaded) {
-          setLoading(false);
-          return;
-        }
+        const response = await fetch(`/api/cars/${id}`);
+        const data = await response.json();
 
-        // If user is not authenticated, set permission denied
-        if (!user) {
-          setPermissionDenied(true);
-          setLoading(false);
-          return;
-        }
-
-        const res = await fetch(`/api/cars/${id}`);
-        const data = await res.json();
-
-        if (!res.ok) {
+        if (!response.ok) {
           throw new Error(data.error || "Failed to fetch car");
         }
 
-        // Check if car exists
-        if (!data) {
-          setLoading(false);
-          return;
-        }
-
-        // Check if the current user owns the car
-        if (data.userId !== user.id) {
+        // Check if the current user owns this car
+        if (data.userId !== user?.id) {
           setPermissionDenied(true);
-          setLoading(false);
           return;
         }
 
         setCar(data);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unknown error");
+        setError(err instanceof Error ? err.message : "Failed to fetch car");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchCar();
-  }, [id, user, isLoaded]);
+    if (id && user) {
+      fetchCar();
+    }
+  }, [id, user]);
 
-  // Show loading screen while data is being fetched
-  if (!isLoaded || loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen />;
+  if (permissionDenied)
+    return <PermissionDeniedScreen message="You do not have permission to edit this car." />;
+  if (error) return <ErrorScreen message={error} />;
+  if (!car) return <NotFoundScreen />;
 
-  // Show permission denied screen if user is not authenticated or doesn't own the car
-  if (!user || permissionDenied) {
-    return <PermissionDeniedScreen />;
-  }
-
-  // Show error screen if there's an error
-  if (error) {
-    return <ErrorScreen message={error} />;
-  }
-
-  // Show not found screen if car doesn't exist
-  if (!car) {
-    return <NotFoundScreen message="Car not found." />;
-  }
-
-  // Render the edit form if all checks pass
   return <ManageCar initialData={car} isEditMode={true} />;
 }

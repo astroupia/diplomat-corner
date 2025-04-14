@@ -18,7 +18,7 @@ export async function GET(request: Request) {
       _id: notification._id.toString(),
     }));
     return NextResponse.json(response);
-  } catch (error) {
+  } catch (error: any) {
     return NextResponse.json(
       { error: "Failed to fetch notifications: " + (error as Error).message },
       { status: 500 }
@@ -70,7 +70,7 @@ export async function POST(request: Request) {
           { status: 500 }
         );
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await new Promise((resolve) => setTimeout(resolve, 1000)).catch(() => {});
     }
   }
 }

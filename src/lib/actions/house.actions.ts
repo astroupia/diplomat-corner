@@ -92,6 +92,6 @@ export async function getAllHouse(): Promise<IHouse[]> {
 
 export async function getHouseById(id: string) {
   await connectToDatabase();
-  const house = await House.findById(id).lean();
+  const house = await House.findById(id);
   return house;
 }

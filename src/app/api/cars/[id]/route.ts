@@ -257,7 +257,7 @@ export async function GET(
       );
     }
 
-    return NextResponse.json({ success: true, car });
+    return NextResponse.json({ success: true, ...car.toObject() });
   } catch (error) {
     console.error("Error fetching car:", error);
     return NextResponse.json(

@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@clerk/nextjs";
 import {
   Bell,
   Car,
@@ -17,17 +18,15 @@ import {
 } from "lucide-react";
 
 // Define notification types
-type NotificationType = "message" | "alert" | "update" | "system" | "security";
+type NotificationType = "message" | "alert" | "update" | "system" | "security" | "Order";
 
 interface Notification {
-  id: string;
-  type: NotificationType;
-  title: string;
+  _id: string;
+  userId: string;
   message: string;
-  time: string;
-  isRead: boolean;
-  link?: string;
-  category?: "car" | "house" | "account" | "system";
+  type: NotificationType;
+  readStatus: boolean;
+  timestamp: string;
 }
 
 export default function Notifications() {
@@ -37,117 +36,72 @@ export default function Notifications() {
   const [expandedNotification, setExpandedNotification] = useState<
     string | null
   >(null);
+  const { userId } = useAuth();
 
-  // Fetch notifications (simulated)
+  // Fetch notifications from API
   useEffect(() => {
     const fetchNotifications = async () => {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Sample notifications data
-      const sampleNotifications: Notification[] = [
-        {
-          id: "1",
-          type: "message",
-          title: "New message from seller",
-          message:
-            "The seller of the BMW X5 has responded to your inquiry. They've provided additional information about the vehicle's history and maintenance records.",
-          time: "Just now",
-          isRead: false,
-          link: "/messages/123",
-          category: "car",
-        },
-        {
-          id: "2",
-          type: "alert",
-          title: "Price drop alert",
-          message:
-            "A property you saved has dropped in price by 5%. Check it out now!",
-          time: "2 hours ago",
-          isRead: false,
-          link: "/house/456",
-          category: "house",
-        },
-        {
-          id: "3",
-          type: "update",
-          title: "Listing updated",
-          message:
-            "Your car listing has been approved and is now live on our platform.",
-          time: "Yesterday",
-          isRead: true,
-          link: "/car/789",
-          category: "car",
-        },
-        {
-          id: "4",
-          type: "system",
-          title: "System maintenance",
-          message:
-            "Our platform will undergo scheduled maintenance on Saturday, June 15th from 2:00 AM to 4:00 AM. Some features may be temporarily unavailable during this time.",
-          time: "2 days ago",
-          isRead: true,
-          category: "system",
-        },
-        {
-          id: "5",
-          type: "security",
-          title: "New login detected",
-          message:
-            "A new login to your account was detected from Addis Ababa, Ethiopia.",
-          time: "3 days ago",
-          isRead: true,
-          category: "account",
-        },
-        {
-          id: "6",
-          type: "message",
-          title: "New inquiry on your listing",
-          message:
-            "Someone is interested in your apartment listing and has sent you a message.",
-          time: "5 days ago",
-          isRead: true,
-          link: "/messages/456",
-          category: "house",
-        },
-      ];
-
-      setNotifications(sampleNotifications);
-      setLoading(false);
+      setLoading(true);
+      try {
+        if (!userId) {
+          console.log("User not logged in");
+          setLoading(false);
+          return;
+        }
+        const response = await fetch(`/api/notifications?userId=${userId}`);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch notifications: ${response.status}`);
+        }
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      } finally {
+        setLoading(false);
+      }
     };
 
     fetchNotifications();
-  }, []);
+  }, [userId]);
 
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {
     if (activeFilter === "all") return true;
-    if (activeFilter === "unread") return !notification.isRead;
-    return notification.category === activeFilter;
+    if (activeFilter === "unread") return !notification.readStatus;
+    return notification.type === activeFilter;
   });
 
   // Mark notification as read
-  const markAsRead = (id: string) => {
+  const markAsRead = async (id: string) => {
     setNotifications((prev) =>
       prev.map((notification) =>
-        notification.id === id
-          ? { ...notification, isRead: true }
+        notification._id === id
+          ? { ...notification, readStatus: true }
           : notification
       )
     );
+
+    // Update read status on the server
+    await fetch("/api/notifications", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notificationId: id }),
+    });
   };
 
   // Mark all as read
   const markAllAsRead = () => {
-    setNotifications((prev) =>
-      prev.map((notification) => ({ ...notification, isRead: true }))
-    );
+    filteredNotifications.forEach((notification) => {
+      markAsRead(notification._id);
+    });
   };
 
   // Delete notification
   const deleteNotification = (id: string) => {
     setNotifications((prev) =>
-      prev.filter((notification) => notification.id !== id)
+      prev.filter((notification) => notification._id !== id)
     );
   };
 
@@ -163,7 +117,7 @@ export default function Notifications() {
 
   // Get unread count
   const unreadCount = notifications.filter(
-    (notification) => !notification.isRead
+    (notification) => !notification.readStatus
   ).length;
 
   // Get icon for notification type
@@ -183,6 +137,8 @@ export default function Notifications() {
         return <Settings className="h-5 w-5" />;
       case "security":
         return <ShieldAlert className="h-5 w-5" />;
+      case "Order":
+        return <Bell className="h-5 w-5" />;
       default:
         return <Bell className="h-5 w-5" />;
     }
@@ -296,6 +252,19 @@ export default function Notifications() {
                 Account
               </span>
             </button>
+            <button
+              onClick={() => setActiveFilter("Order")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === "Order"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              <span className="flex items-center">
+                <Bell className="h-4 w-4 mr-2" />
+                Orders
+              </span>
+            </button>
           </div>
 
           {/* Notifications List */}
@@ -328,36 +297,36 @@ export default function Notifications() {
                 <AnimatePresence>
                   {filteredNotifications.map((notification) => (
                     <motion.li
-                      key={notification.id}
+                      key={notification._id}
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0, height: 0 }}
                       className={`relative ${
-                        notification.isRead ? "" : "bg-primary/5"
+                        notification.readStatus ? "" : "bg-primary/5"
                       }`}
                     >
                       <div
                         className="px-6 py-4 cursor-pointer"
-                        onClick={() => toggleExpanded(notification.id)}
+                        onClick={() => toggleExpanded(notification._id)}
                       >
                         <div className="flex items-start gap-4">
                           <div
                             className={`p-2 rounded-full ${
-                              notification.isRead
+                              notification.readStatus
                                 ? "bg-gray-100"
                                 : "bg-primary/10"
                             }`}
                           >
                             <span
                               className={
-                                notification.isRead
+                                notification.readStatus
                                   ? "text-gray-500"
                                   : "text-primary"
                               }
                             >
                               {getNotificationIcon(
                                 notification.type,
-                                notification.category
+                                notification.type
                               )}
                             </span>
                           </div>
@@ -365,21 +334,21 @@ export default function Notifications() {
                             <div className="flex items-start justify-between">
                               <h3
                                 className={`text-sm font-medium ${
-                                  notification.isRead
+                                  notification.readStatus
                                     ? "text-gray-700"
                                     : "text-gray-900"
                                 }`}
                               >
-                                {notification.title}
+                                {notification.message}
                               </h3>
                               <div className="flex items-center ml-4">
                                 <span className="text-xs text-gray-500 whitespace-nowrap flex items-center">
                                   <Clock className="h-3 w-3 mr-1" />
-                                  {notification.time}
+                                  {notification.timestamp}
                                 </span>
                                 <ChevronDown
                                   className={`h-4 w-4 ml-2 text-gray-400 transition-transform ${
-                                    expandedNotification === notification.id
+                                    expandedNotification === notification._id
                                       ? "rotate-180"
                                       : ""
                                   }`}
@@ -395,7 +364,7 @@ export default function Notifications() {
 
                       {/* Expanded content */}
                       <AnimatePresence>
-                        {expandedNotification === notification.id && (
+                        {expandedNotification === notification._id && (
                           <motion.div
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
@@ -408,7 +377,7 @@ export default function Notifications() {
                                 {notification.message}
                               </p>
                               <div className="flex items-center justify-between">
-                                {notification.link ? (
+                                {/* {notification.link ? (
                                   <a
                                     href={notification.link}
                                     className="text-sm text-primary hover:text-primary/80 font-medium"
@@ -417,11 +386,11 @@ export default function Notifications() {
                                   </a>
                                 ) : (
                                   <div></div>
-                                )}
+                                )} */}
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    deleteNotification(notification.id);
+                                    deleteNotification(notification._id);
                                   }}
                                   className="text-sm text-gray-500 hover:text-red-500 flex items-center"
                                 >

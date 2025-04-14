@@ -11,6 +11,7 @@ import { DashboardHeader } from "@/components/admin/dashboard-header";
 import { DashboardStats } from "@/components/admin/dashboard-stats";
 import { RecentListings } from "@/components/admin/recent-listings";
 import { RecentAds } from "@/components/admin/recent-ads";
+import RequestsTable from "@/components/admin/requests-table";
 
 export default function DashboardPage() {
   return (
@@ -21,6 +22,7 @@ export default function DashboardPage() {
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="products">Products</TabsTrigger>
           <TabsTrigger value="advertisements">Advertisements</TabsTrigger>
+          <TabsTrigger value="requests">Requests</TabsTrigger>
         </TabsList>
         <TabsContent value="overview" className="space-y-4">
           <DashboardStats />
@@ -164,6 +166,9 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+        <TabsContent value="requests" className="space-y-4">
+          <RequestsTable />
         </TabsContent>
       </Tabs>
     </div>

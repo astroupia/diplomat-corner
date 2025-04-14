@@ -1,4 +1,6 @@
-"use client"
+"use client";
+
+import { sendNotification } from "@/lib/actions/notification.actions";
 
 import type React from "react"
 
@@ -70,36 +72,79 @@ export default function ContactSellerDialog({
       return
     }
 
-    setIsSubmitting(true)
-    setError(null)
+    setIsSubmitting(true);
+    setError(null);
 
     try {
-      // This would be replaced with your actual API call
-      console.log("Submitting contact request:", {
-        userId,
-        productId,
-        phoneNumber,
-        description,
-        productType,
-      })
+      // Fetch the product details to get the seller's user ID
+      const productResponse = await fetch(
+        `/api/${productType === "car" ? "cars" : "house"}/${productId}`
+      );
+      if (!productResponse.ok) {
+        throw new Error(`Failed to fetch product details: ${productResponse.status}`);
+      }
+      const productData = await productResponse.json();
+      const toUserId = productData.userId;
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      // Create a new request in the database
+      const requestResponse = await fetch("/api/requests", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fromUserId: userId,
+          toUserId: toUserId,
+          productId: productId,
+          itemType: productType,
+          message: description,
+        }),
+      });
+if (!requestResponse.ok) {
+  throw new Error(`Failed to create request: ${requestResponse.status}`);
+}
 
-      // Success
-      setIsSubmitted(true)
+if (productType === "car") {
+  // Send a notification to the seller
+  const sellerNotificationId = await sendNotification({
+    userId: toUserId,
+    message: `You have received a new inquiry about your ${productType}.`,
+    type: "Order",
+    origin: window.location.origin, // Pass the origin here
+  });
+
+  if (!sellerNotificationId) {
+    console.error("Failed to send notification to seller");
+  }
+
+  // Send a notification to the user
+  const userNotificationId = await sendNotification({
+    userId: userId,
+    message: `Your inquiry about the ${productType} has been sent.`,
+    type: "Order",
+    origin: window.location.origin, // Pass the origin here
+  });
+
+  if (!userNotificationId) {
+    console.error("Failed to send notification to user");
+  }
+}
+
+// Success
+setIsSubmitted(true);
+      setIsSubmitted(true);
 
       // Auto close after success (optional)
       setTimeout(() => {
-        onClose()
-      }, 3000)
-    } catch (err) {
-      console.error("Error submitting contact request:", err)
-      setError("Failed to send your message. Please try again.")
+        onClose();
+      }, 3000);
+    } catch (err: any) {
+      console.error("Error submitting contact request:", err);
+      setError("Failed to send your message. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Get product type specific details
   const getProductDetails = () => {

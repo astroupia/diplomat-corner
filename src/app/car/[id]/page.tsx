@@ -25,7 +25,7 @@ export default function CarDetails() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setCar(data.car);
+        setCar(data);
       } catch (err) {
         setError((err as Error).message);
       } finally {
