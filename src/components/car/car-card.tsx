@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import { ICar } from "@/lib/models/car.model";
 
-interface CardProps extends ICar {
+interface CarCardProps extends ICar {
   listedBy: string;
 }
 
-const Card: React.FC<CardProps> = ({
+const CarCard: React.FC<CarCardProps> = ({
   _id,
   name,
   price = 0,
@@ -118,4 +118,4 @@ const Card: React.FC<CardProps> = ({
   );
 };
 
-export default Card;
+export default CarCard;

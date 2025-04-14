@@ -129,7 +129,7 @@ export default function ManageAds() {
 
   return (
     <div className="p-6 bg-secondary min-h-screen text-primary">
-      <h1 className="text-2xl font-bold">Manage Products and Ads</h1>
+      <h1 className="text-2xl font-bold">Manage Ads</h1>
       <div className="mt-6 flex gap-4">
         <aside className="w-1/4 bg-secondary p-4 rounded-3xl shadow-md border-2 border-primary">
           <h2 className="text-lg font-semibold">Products</h2>

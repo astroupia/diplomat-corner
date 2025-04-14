@@ -454,7 +454,7 @@ const ManageProduct: React.FC<ManageProductProps> = ({
           <h1 className="text-2xl font-bold text-gray-900 mb-6">
             {isEditMode
               ? `Edit ${formData.type === "house" ? "House" : "Car"}`
-              : "Manage Products and Ads"}
+              : "Manage Products"}
           </h1>
 
           <div className="flex flex-col lg:flex-row gap-6">
