@@ -1,11 +1,10 @@
-import webpack from "webpack";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
-    unoptimized: false,
-    domains: ['diplomatcorner.net'],
+    domains: ["diplomatcorner.net"],
+    unoptimized: true,
   },
 
   webpack(config, { isServer }) {

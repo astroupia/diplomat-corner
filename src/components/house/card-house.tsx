@@ -1,11 +1,12 @@
-import { IHouse } from "@/lib/models/house.model";
+import React, { useEffect, useState } from "react";
 import { Bath, Bed, Car, Ruler, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+import { useUser } from "@clerk/nextjs";
+import { IHouse } from "@/lib/models/house.model";
 
 interface CardProps extends IHouse {
-  listedBy?: string; // Optional, defaults to "Admin"
+  listedBy?: string;
 }
 
 const CardHouse: React.FC<CardProps> = ({
@@ -20,7 +21,34 @@ const CardHouse: React.FC<CardProps> = ({
   imageUrl,
   advertisementType,
   listedBy = "Admin",
+  userId,
 }) => {
+  const { user } = useUser();
+  const isOwner = user?.id === userId;
+  const [displayName, setDisplayName] = useState(listedBy || "Admin");
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.user) {
+            setDisplayName(
+              data.user.name || data.user.email || listedBy || "Admin"
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+
+    if (userId && userId !== "admin") {
+      fetchUserInfo();
+    }
+  }, [userId, listedBy]);
+
   return (
     <div className="relative">
       <Link href={`/house/${_id}`} className="block">
@@ -29,8 +57,8 @@ const CardHouse: React.FC<CardProps> = ({
             <Image
               width={300}
               height={200}
-              src={imageUrl || "/c.jpg"}
-              alt={name}
+              src={imageUrl || "/assets/images/house.jpg"}
+              alt="House Image"
               className="w-full h-48 object-cover"
             />
             <span className="absolute top-2 right-2 bg-primary text-white text-xs font-semibold px-2 py-1 rounded-full">
@@ -38,7 +66,9 @@ const CardHouse: React.FC<CardProps> = ({
             </span>
           </div>
           <div className="p-4">
-            <h2 className="text-lg font-semibold text-gray-800 truncate">{name}</h2>
+            <h2 className="text-lg font-semibold text-gray-800 truncate">
+              {name}
+            </h2>
             <p className="text-green-600 text-xl font-bold mt-1">
               {currency} {price.toLocaleString()}
             </p>
@@ -60,17 +90,21 @@ const CardHouse: React.FC<CardProps> = ({
                 <span>{parkingSpace} Parking</span>
               </div>
             </div>
-            <p className="text-gray-500 text-sm mt-2 truncate">Listed by {listedBy}</p>
+            <p className="text-gray-500 text-sm mt-2 truncate">
+              Listed by {displayName}
+            </p>
           </div>
         </div>
       </Link>
-      <Link 
-        href={`/house/${_id}/edit`}
-        className="absolute top-2 left-2 bg-white text-primary p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200"
-        title="Edit property"
-      >
-        <Pencil size={16} />
-      </Link>
+      {isOwner && (
+        <Link
+          href={`/house/${_id}/edit`}
+          className="absolute top-2 left-2 bg-white text-primary p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200"
+          title="Edit property"
+        >
+          <Pencil size={16} />
+        </Link>
+      )}
     </div>
   );
 };
