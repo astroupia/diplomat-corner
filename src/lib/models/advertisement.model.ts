@@ -1,5 +1,6 @@
 // lib/models/advertisement.model.ts
 import mongoose, { Document, Schema } from "mongoose";
+import { Url } from "node:url";
 
 // Interface for the Mongoose document
 export interface IAdvertisement extends Document {
@@ -10,11 +11,12 @@ export interface IAdvertisement extends Document {
   advertisementType: string;
   startTime?: string;
   endTime?: string;
-  status: "Active" | "Inactive" | "Scheduled" | "Expired";
+  status: "Active" | "Inactive" | "Scheduled" | "Expired" | "Draft";
   priority: "High" | "Medium" | "Low";
   performanceMetrics?: string;
   hashtags?: string[];
   timestamp: string;
+  link: string;
 }
 
 // Interface for the JSON response (plain object)
@@ -26,7 +28,7 @@ export interface AdvertisementResponse {
   advertisementType: string;
   startTime?: string | null;
   endTime?: string | null;
-  status: "Active" | "Inactive" | "Scheduled" | "Expired";
+  status: "Active" | "Inactive" | "Scheduled" | "Expired" | "Draft";
   priority: "High" | "Medium" | "Low";
   performanceMetrics?: string | null;
   hashtags: string[];
@@ -43,12 +45,13 @@ const AdvertisementSchema: Schema = new Schema({
   status: {
     type: String,
     required: true,
-    enum: ["Active", "Inactive", "Scheduled", "Expired"],
+    enum: ["Active", "Inactive", "Scheduled", "Expired", "Draft"],
   },
   priority: { type: String, required: true, enum: ["High", "Medium", "Low"] },
   performanceMetrics: { type: String, required: false },
   hashtags: { type: [String], required: false },
   timestamp: { type: String, required: true },
+  link: { type: String, required: true },
 });
 
 export default mongoose.models.Advertisement ||

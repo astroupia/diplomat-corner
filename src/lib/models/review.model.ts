@@ -1,42 +1,40 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, model, models, Document } from "mongoose";
 
-export interface IReview extends Document {  // Changed from IContact to IReview
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  subject: 'General Inquiry' | 'Advert has errors' | 'Want admin';
-  message: string;
+export interface IReview extends Document {
+  userId: string;
+  targetUserId: string;
+  rating: number;
+  comment: string;
   createdAt: Date;
-  status: 'pending' | 'processed' | 'rejected';
+  updatedAt: Date;
+  productId: string;
 }
 
-const ReviewSchema: Schema = new Schema<IReview>({  // Changed from ContactSchema
-  firstName: { type: String, required: true, trim: true },
-  lastName: { type: String, required: true, trim: true },
-  email: { 
-    type: String, 
-    required: true, 
-    trim: true, 
-    lowercase: true,
-    match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address']
+const ReviewSchema = new Schema<IReview>(
+  {
+    userId: {
+      type: String,
+      ref: "User",
+      required: true,
+    },
+    targetUserId: {
+      type: String,
+      ref: "User",
+      required: true,
+    },
+    rating: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 5,
+    },
+    productId: { type: String, required: true },
+    comment: {
+      type: String,
+      default: "",
+    },
   },
-  phone: { type: String, required: true, trim: true, minlength: 8 },
-  subject: { 
-    type: String, 
-    enum: ['General Inquiry', 'Advert has errors', 'Want admin'], 
-    required: true 
-  },
-  message: { type: String, required: true, trim: true },
-  createdAt: { type: Date, default: Date.now },
-  status: { 
-    type: String, 
-    enum: ['pending', 'processed', 'rejected'], 
-    default: 'pending' 
-  },
-});
+  { timestamps: { createdAt: true, updatedAt: false } }
+);
 
-ReviewSchema.index({ email: 1 });
-ReviewSchema.index({ createdAt: -1 });
-
-export default mongoose.models.Review || mongoose.model<IReview>('Review', ReviewSchema);
+export default models.Review || model<IReview>("Review", ReviewSchema);
