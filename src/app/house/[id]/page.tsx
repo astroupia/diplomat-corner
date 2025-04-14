@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Bed, Bath, Ruler, Car, ArrowLeft } from "lucide-react";
+import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
 
 interface House {
   _id: string;
@@ -31,6 +32,7 @@ export default function HouseDetails() {
   const [house, setHouse] = useState<House | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchHouse = async () => {
@@ -76,6 +78,10 @@ export default function HouseDetails() {
       </div>
     );
   }
+  const openDialog = () => {
+    setIsDialogOpen(true);
+  };
+  const closeDialog = () => setIsDialogOpen(false);
 
   return (
     <div className="container mx-auto px-4 py-16 max-w-6xl">
@@ -164,10 +170,18 @@ export default function HouseDetails() {
               </p>
             </div>
           </div>
-
-          <button className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-green-500 transition-colors duration-200">
-            Contact Agent
+          <button
+            onClick={openDialog}
+            className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-green-500 transition-colors duration-200"
+          >
+            Inquire Now
           </button>
+          <ContactSellerDialog
+            isOpen={isDialogOpen}
+            onClose={closeDialog}
+            productType="house"
+            sellerName="the seller"
+          />
         </div>
       </div>
     </div>

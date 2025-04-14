@@ -5,14 +5,17 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { CarFront, GaugeCircle, Fuel, Settings, ArrowLeft } from "lucide-react";
 import { ICar } from "@/lib/models/car.model";
+import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
+import { Button } from "@/components/ui/button";
 
-export default function CarDetailsPage() {
-  const params = useParams();
+export default function CarDetails() {
+  const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = params.id as string;
   const [car, setCar] = useState<ICar | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchCar = async () => {
@@ -155,10 +158,20 @@ export default function CarDetailsPage() {
               )}
             </div>
           </div>
-
-          <button className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-green-500 transition-colors duration-200">
+          
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-green-500 transition-colors duration-200"
+          >
             Inquire Now
-          </button>
+          </Button>
+          {/* Contact Seller Dialog */}
+          <ContactSellerDialog
+            isOpen={isDialogOpen}
+            onClose={() => setIsDialogOpen(false)}
+            productType="car"
+            sellerName="the seller"
+          />
         </div>
       </div>
     </div>

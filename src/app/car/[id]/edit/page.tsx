@@ -12,7 +12,7 @@ import PermissionDeniedScreen from "@/components/error/permission-denied";
 
 export default function EditCarPage() {
   const { id } = useParams();
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const [car, setCar] = useState<ICar | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +21,11 @@ export default function EditCarPage() {
   useEffect(() => {
     const fetchCar = async () => {
       try {
+        if (!id || !user) {
+          setLoading(false);
+          return;
+        }
+
         const res = await fetch(`/api/cars/${id}`);
         const data = await res.json();
 
@@ -28,8 +33,10 @@ export default function EditCarPage() {
           throw new Error(data.error || "Failed to fetch car");
         }
 
-        if (data.userId !== user?.id) {
+        // Check if the car exists and if the current user owns it
+        if (!data || data.userId !== user.id) {
           setPermissionDenied(true);
+          setLoading(false);
           return;
         }
 
@@ -41,10 +48,13 @@ export default function EditCarPage() {
       }
     };
 
-    if (id && user) fetchCar();
-  }, [id, user]);
+    if (isLoaded) {
+      fetchCar();
+    }
+  }, [id, user, isLoaded]);
 
-  if (loading) return <LoadingScreen />;
+  if (!isLoaded || loading) return <LoadingScreen />;
+  if (!user) return <PermissionDeniedScreen />;
   if (permissionDenied) return <PermissionDeniedScreen />;
   if (error) return <ErrorScreen message={error} />;
   if (!car) return <NotFoundScreen message="Car not found." />;
