@@ -1,101 +1,445 @@
 "use client";
 import { useState, useEffect } from "react";
-import { getUserNotifications, markNotificationAsRead } from "@/lib/actions/notification.actions";
-import { Bell, CheckCircle, Circle } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Bell,
+  Car,
+  Check,
+  ChevronDown,
+  Clock,
+  Home,
+  Info,
+  MessageSquare,
+  Settings,
+  ShieldAlert,
+  Trash2,
+  User,
+} from "lucide-react";
+
+// Define notification types
+type NotificationType = "message" | "alert" | "update" | "system" | "security";
 
 interface Notification {
-  _id: string;
-  userId: string;
+  id: string;
+  type: NotificationType;
+  title: string;
   message: string;
-  type: "Order" | "Promotion" | "Payment" | "Delivery" | "System";
-  readStatus: boolean;
-  timestamp: string;
+  time: string;
+  isRead: boolean;
+  link?: string;
+  category?: "car" | "house" | "account" | "system";
 }
 
-export default function NotificationsPage() {
+export default function Notifications() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [activeFilter, setActiveFilter] = useState<string>("all");
+  const [expandedNotification, setExpandedNotification] = useState<
+    string | null
+  >(null);
 
-  // Mock userId for the seller (in a real app, this would come from authentication)
-  const userId = "seller123";
-
+  // Fetch notifications (simulated)
   useEffect(() => {
     const fetchNotifications = async () => {
-      try {
-        setLoading(true);
-        const fetchedNotifications = await getUserNotifications(userId);
-        setNotifications(fetchedNotifications);
-      } catch (err) {
-        setError("Failed to load notifications: " + (err as Error).message);
-      } finally {
-        setLoading(false);
-      }
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Sample notifications data
+      const sampleNotifications: Notification[] = [
+        {
+          id: "1",
+          type: "message",
+          title: "New message from seller",
+          message:
+            "The seller of the BMW X5 has responded to your inquiry. They've provided additional information about the vehicle's history and maintenance records.",
+          time: "Just now",
+          isRead: false,
+          link: "/messages/123",
+          category: "car",
+        },
+        {
+          id: "2",
+          type: "alert",
+          title: "Price drop alert",
+          message:
+            "A property you saved has dropped in price by 5%. Check it out now!",
+          time: "2 hours ago",
+          isRead: false,
+          link: "/house/456",
+          category: "house",
+        },
+        {
+          id: "3",
+          type: "update",
+          title: "Listing updated",
+          message:
+            "Your car listing has been approved and is now live on our platform.",
+          time: "Yesterday",
+          isRead: true,
+          link: "/car/789",
+          category: "car",
+        },
+        {
+          id: "4",
+          type: "system",
+          title: "System maintenance",
+          message:
+            "Our platform will undergo scheduled maintenance on Saturday, June 15th from 2:00 AM to 4:00 AM. Some features may be temporarily unavailable during this time.",
+          time: "2 days ago",
+          isRead: true,
+          category: "system",
+        },
+        {
+          id: "5",
+          type: "security",
+          title: "New login detected",
+          message:
+            "A new login to your account was detected from Addis Ababa, Ethiopia.",
+          time: "3 days ago",
+          isRead: true,
+          category: "account",
+        },
+        {
+          id: "6",
+          type: "message",
+          title: "New inquiry on your listing",
+          message:
+            "Someone is interested in your apartment listing and has sent you a message.",
+          time: "5 days ago",
+          isRead: true,
+          link: "/messages/456",
+          category: "house",
+        },
+      ];
+
+      setNotifications(sampleNotifications);
+      setLoading(false);
     };
 
     fetchNotifications();
   }, []);
 
-  const handleMarkAsRead = async (notificationId: string) => {
-    try {
-      await markNotificationAsRead(notificationId);
-      setNotifications((prev) =>
-        prev.map((notification) =>
-          notification._id === notificationId
-            ? { ...notification, readStatus: true }
-            : notification
-        )
-      );
-    } catch (err) {
-      setError("Failed to mark notification as read: " + (err as Error).message);
+  // Filter notifications
+  const filteredNotifications = notifications.filter((notification) => {
+    if (activeFilter === "all") return true;
+    if (activeFilter === "unread") return !notification.isRead;
+    return notification.category === activeFilter;
+  });
+
+  // Mark notification as read
+  const markAsRead = (id: string) => {
+    setNotifications((prev) =>
+      prev.map((notification) =>
+        notification.id === id
+          ? { ...notification, isRead: true }
+          : notification
+      )
+    );
+  };
+
+  // Mark all as read
+  const markAllAsRead = () => {
+    setNotifications((prev) =>
+      prev.map((notification) => ({ ...notification, isRead: true }))
+    );
+  };
+
+  // Delete notification
+  const deleteNotification = (id: string) => {
+    setNotifications((prev) =>
+      prev.filter((notification) => notification.id !== id)
+    );
+  };
+
+  // Toggle expanded notification
+  const toggleExpanded = (id: string) => {
+    if (expandedNotification === id) {
+      setExpandedNotification(null);
+    } else {
+      setExpandedNotification(id);
+      markAsRead(id);
+    }
+  };
+
+  // Get unread count
+  const unreadCount = notifications.filter(
+    (notification) => !notification.isRead
+  ).length;
+
+  // Get icon for notification type
+  const getNotificationIcon = (type: NotificationType, category?: string) => {
+    switch (type) {
+      case "message":
+        return <MessageSquare className="h-5 w-5" />;
+      case "alert":
+        return category === "car" ? (
+          <Car className="h-5 w-5" />
+        ) : (
+          <Home className="h-5 w-5" />
+        );
+      case "update":
+        return <Info className="h-5 w-5" />;
+      case "system":
+        return <Settings className="h-5 w-5" />;
+      case "security":
+        return <ShieldAlert className="h-5 w-5" />;
+      default:
+        return <Bell className="h-5 w-5" />;
     }
   };
 
   return (
-    <div className="p-6 bg-secondary min-h-screen text-primary">
-      <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
-        <Bell size={24} /> Notifications
-      </h1>
-
-      {loading && <p className="text-gray-600">Loading notifications...</p>}
-      {error && <p className="text-red-600">{error}</p>}
-
-      {!loading && !error && notifications.length === 0 && (
-        <p className="text-gray-600">No notifications available.</p>
-      )}
-
-      <div className="space-y-4">
-        {notifications.map((notification) => (
-          <div
-            key={notification._id}
-            className={`p-4 rounded-lg border-2 border-primary flex justify-between items-center ${
-              notification.readStatus ? "bg-white" : "bg-yellow-100"
-            }`}
-          >
+    <div className="min-h-screen bg-gray-50 pt-5 pb-16">
+      <div className="container mx-auto px-2">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-4xl mx-auto"
+        >
+          {/* Header */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
             <div>
-              <p className="font-semibold">{notification.type} Notification</p>
-              <p>{notification.message}</p>
-              <p className="text-sm text-gray-600">
-                {new Date(notification.timestamp).toLocaleString()}
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Notifications
+              </h1>
+              <p className="text-gray-600">
+                Stay updated with the latest activity and important alerts from
+                Diplomat Corner.
               </p>
             </div>
+            {unreadCount > 0 && (
+              <button
+                onClick={markAllAsRead}
+                className="mt-4 md:mt-0 flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg text-gray-700 hover:text-primary hover:border-primary/50 transition-colors shadow-sm"
+              >
+                <Check className="h-4 w-4" />
+                <span>Mark all as read</span>
+              </button>
+            )}
+          </div>
+
+          {/* Filters */}
+          <div className="mb-6 flex flex-wrap gap-2">
             <button
-              onClick={() => handleMarkAsRead(notification._id)}
-              disabled={notification.readStatus}
-              className={`p-2 rounded-full ${
-                notification.readStatus
-                  ? "text-gray-400 cursor-not-allowed"
-                  : "text-primary hover:bg-primary hover:text-white"
+              onClick={() => setActiveFilter("all")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === "all"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
               }`}
             >
-              {notification.readStatus ? (
-                <CheckCircle size={20} />
-              ) : (
-                <Circle size={20} />
+              All
+              {activeFilter === "all" && notifications.length > 0 && (
+                <span className="ml-2 bg-white text-primary rounded-full px-2 py-0.5 text-xs">
+                  {notifications.length}
+                </span>
               )}
             </button>
+            <button
+              onClick={() => setActiveFilter("unread")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === "unread"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              Unread
+              {unreadCount > 0 && (
+                <span
+                  className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
+                    activeFilter === "unread"
+                      ? "bg-white text-primary"
+                      : "bg-primary text-white"
+                  }`}
+                >
+                  {unreadCount}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveFilter("car")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === "car"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              <span className="flex items-center">
+                <Car className="h-4 w-4 mr-2" />
+                Cars
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveFilter("house")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === "house"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              <span className="flex items-center">
+                <Home className="h-4 w-4 mr-2" />
+                Properties
+              </span>
+            </button>
+            <button
+              onClick={() => setActiveFilter("account")}
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                activeFilter === "account"
+                  ? "bg-primary text-white"
+                  : "bg-white text-gray-700 hover:bg-gray-100 border border-gray-200"
+              }`}
+            >
+              <span className="flex items-center">
+                <User className="h-4 w-4 mr-2" />
+                Account
+              </span>
+            </button>
           </div>
-        ))}
+
+          {/* Notifications List */}
+          {loading ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8">
+              <div className="flex flex-col items-center justify-center">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mb-4"></div>
+                <p className="text-gray-500">Loading notifications...</p>
+              </div>
+            </div>
+          ) : filteredNotifications.length === 0 ? (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <Bell className="h-8 w-8 text-gray-400" />
+              </div>
+              <h3 className="text-lg font-medium text-gray-800 mb-2">
+                No notifications
+              </h3>
+              <p className="text-gray-500 max-w-md mx-auto">
+                {activeFilter === "all"
+                  ? "You don't have any notifications at the moment."
+                  : `You don't have any ${
+                      activeFilter === "unread" ? "unread" : activeFilter
+                    } notifications at the moment.`}
+              </p>
+            </div>
+          ) : (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+              <ul className="divide-y divide-gray-100">
+                <AnimatePresence>
+                  {filteredNotifications.map((notification) => (
+                    <motion.li
+                      key={notification.id}
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className={`relative ${
+                        notification.isRead ? "" : "bg-primary/5"
+                      }`}
+                    >
+                      <div
+                        className="px-6 py-4 cursor-pointer"
+                        onClick={() => toggleExpanded(notification.id)}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div
+                            className={`p-2 rounded-full ${
+                              notification.isRead
+                                ? "bg-gray-100"
+                                : "bg-primary/10"
+                            }`}
+                          >
+                            <span
+                              className={
+                                notification.isRead
+                                  ? "text-gray-500"
+                                  : "text-primary"
+                              }
+                            >
+                              {getNotificationIcon(
+                                notification.type,
+                                notification.category
+                              )}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between">
+                              <h3
+                                className={`text-sm font-medium ${
+                                  notification.isRead
+                                    ? "text-gray-700"
+                                    : "text-gray-900"
+                                }`}
+                              >
+                                {notification.title}
+                              </h3>
+                              <div className="flex items-center ml-4">
+                                <span className="text-xs text-gray-500 whitespace-nowrap flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {notification.time}
+                                </span>
+                                <ChevronDown
+                                  className={`h-4 w-4 ml-2 text-gray-400 transition-transform ${
+                                    expandedNotification === notification.id
+                                      ? "rotate-180"
+                                      : ""
+                                  }`}
+                                />
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                              {notification.message}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Expanded content */}
+                      <AnimatePresence>
+                        {expandedNotification === notification.id && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: "auto", opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="px-6 pb-4 pt-0"
+                          >
+                            <div className="ml-12">
+                              <p className="text-sm text-gray-600 mb-4">
+                                {notification.message}
+                              </p>
+                              <div className="flex items-center justify-between">
+                                {notification.link ? (
+                                  <a
+                                    href={notification.link}
+                                    className="text-sm text-primary hover:text-primary/80 font-medium"
+                                  >
+                                    View Details
+                                  </a>
+                                ) : (
+                                  <div></div>
+                                )}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    deleteNotification(notification.id);
+                                  }}
+                                  className="text-sm text-gray-500 hover:text-red-500 flex items-center"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.li>
+                  ))}
+                </AnimatePresence>
+              </ul>
+            </div>
+          )}
+        </motion.div>
       </div>
     </div>
   );

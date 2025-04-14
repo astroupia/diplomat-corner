@@ -1,53 +1,41 @@
 "use client";
 
-import CardHouse from "@/components/house/card-house";
-import type { IHouse } from "@/lib/models/house.model";
+import Card from "@/components/car/car-card";
+import type { ICar } from "@/lib/models/car.model";
 import React, { useEffect, useState } from "react";
-import LoadingSkeleton from "@/app/house/loading";
-import { useAuth } from "@clerk/nextjs";
+import LoadingSkeleton from "@/app/car/loading";
+import { useAuth, useUser } from "@clerk/nextjs";
 import { ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
-import FilterSection from "../filter-section";
+import FilterSection, { FilterOption } from "../filter-section";
 
 const CardContainer: React.FC = () => {
   const { userId } = useAuth();
-  const [houses, setHouses] = useState<IHouse[]>([]);
-  const [userHouses, setUserHouses] = useState<IHouse[]>([]);
+  const { user } = useUser();
+  const [cars, setCars] = useState<ICar[]>([]);
+  const [userCars, setUserCars] = useState<ICar[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sortOrder, setSortOrder] = useState<string>("Default");
   const [filterOpen, setFilterOpen] = useState(false);
   const [displayLimit, setDisplayLimit] = useState(6);
   const [hasMore, setHasMore] = useState(true);
-  const [sortOrder, setSortOrder] = useState<string>("Default");
+  const [fullCars, setFullCars] = useState<ICar[]>([]);
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
-  const [fullHouses, setFullHouses] = useState<IHouse[]>([]);
 
-  // Filter options for properties
-  const filterOptions = [
-    { value: "Default", label: "Sort: Default" },
+  const filterOptions: FilterOption[] = [
+    { value: "Default", label: "Default" },
     { value: "Price Low to High", label: "Price: Low to High" },
     { value: "Price High to Low", label: "Price: High to Low" },
     { value: "Size Small to Large", label: "Size: Small to Large" },
     { value: "Size Large to Small", label: "Size: Large to Small" },
-    { value: "Bedrooms (Ascending)", label: "Bedrooms: Fewest First" },
-    { value: "Bedrooms (Descending)", label: "Bedrooms: Most First" },
+    { value: "Sedan", label: "Sedan" },
+    { value: "SUV", label: "SUV" },
   ];
-
-  // Additional filter chips
-  const filterChips = [
-    { value: "1-bedroom", label: "1 Bedroom" },
-    { value: "2-bedroom", label: "2 Bedrooms" },
-    { value: "3-bedroom", label: "3+ Bedrooms" },
-    { value: "parking", label: "Parking" },
-    { value: "furnished", label: "Furnished" },
-    { value: "pets-allowed", label: "Pets Allowed" },
-  ];
-
-  const allFilterOptions = [...filterOptions, ...filterChips];
 
   useEffect(() => {
-    const fetchHouses = async () => {
+    const fetchCars = async () => {
       try {
-        const response = await fetch("/api/house", {
+        const response = await fetch("/api/cars", {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -59,58 +47,79 @@ const CardContainer: React.FC = () => {
         }
 
         const data = await response.json();
-        if (Array.isArray(data)) {
-          // Separate user houses from all houses
+        if (data.success && Array.isArray(data.cars)) {
+          // Validate and transform car data before setting state
+          const validatedCars = data.cars.map((car: ICar) => ({
+            ...car,
+            price: Number(car.price) || 0,
+            mileage: Number(car.mileage) || 0,
+            milesPerGallon: Number(car.milesPerGallon) || 0,
+            speed: Number(car.speed) || 0,
+            transmission: car.transmission || "N/A",
+            fuel: car.fuel || "N/A",
+            bodyType: car.bodyType || "N/A",
+            currency: car.currency || "ETB",
+            advertisementType: car.advertisementType || "Sale",
+          }));
+
+          // Separate user cars from all cars
           if (userId) {
-            const userOwnedHouses = data.filter(
-              (house) => house.userId === userId
+            const userOwnedCars = validatedCars.filter(
+              (car: ICar) => car.userId === userId
             );
-            setUserHouses(userOwnedHouses);
+            setUserCars(userOwnedCars);
           }
 
-          setHouses(data);
-          setHasMore(data.length > displayLimit);
+          setCars(validatedCars);
+          setHasMore(validatedCars.length > displayLimit);
         } else {
-          throw new Error("Invalid data format: Expected an array");
+          throw new Error(
+            data.error || "Invalid data format: Expected an array of cars"
+          );
         }
       } catch (error) {
-        console.error("Error fetching houses:", error);
+        console.error("Error fetching cars:", error);
         setError((error as Error).message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchHouses();
+    fetchCars();
   }, [userId, displayLimit]);
 
   const handleSortChange = (value: string) => {
     setSortOrder(value);
-    let sortedHouses = [...houses];
+    let sortedCars = [...cars];
 
+    // Sort conditions based on value. Adjust or add cases as needed.
     if (value === "Price Low to High") {
-      sortedHouses.sort((a, b) => a.price - b.price);
+      sortedCars.sort((a, b) => a.price - b.price);
     } else if (value === "Price High to Low") {
-      sortedHouses.sort((a, b) => b.price - a.price);
+      sortedCars.sort((a, b) => b.price - a.price);
     } else if (value === "Size Small to Large") {
-      sortedHouses.sort((a, b) => a.size - b.size);
-    } else if (value === "Size Large to Small") {
-      sortedHouses.sort((a, b) => b.size - a.size);
-    } else {
-      sortedHouses = [...houses];
+      sortedCars.sort((a, b) => a.mileage - b.mileage);
+    } else if (value === "mileage Large to Small") {
+      sortedCars.sort((a, b) => b.mileage - a.mileage);
     }
-    setHouses(sortedHouses);
+    // Default: No sort (or sort by original order, e.g., by id)
+    else {
+      sortedCars = [...cars];
+    }
+    setCars(sortedCars);
   };
 
+  // Handle filtering: update activeFilters and filter from the full list.
   const handleFilterChange = (filters: string[]) => {
     setActiveFilters(filters);
     if (filters.length === 0) {
-      setHouses(fullHouses);
+      setCars(fullCars);
     } else {
-      const filteredHouses = fullHouses.filter((house) =>
-        filters.includes(house.advertisementType.toLowerCase())
+      // As an example, assume filters are based on car types.
+      const filteredCars = fullCars.filter((car) =>
+        filters.includes(car.bodyType.toLowerCase())
       );
-      setHouses(filteredHouses);
+      setCars(filteredCars);
     }
   };
 
@@ -130,13 +139,13 @@ const CardContainer: React.FC = () => {
     );
   }
 
-  const displayedHouses = houses.slice(0, displayLimit);
+  const displayedCars = cars.slice(0, displayLimit);
 
   return (
     <>
       <div
         className="container mx-w-8xl rounded-lg py-8 relative h-64 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: 'url("/assets/images/house_preview.jpg")' }}
+        style={{ backgroundImage: 'url("/assets/images/car_preview.jpg")' }}
       >
         <div className="text-center text-white bg-black bg-opacity-50 p-4 rounded-lg">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
@@ -147,25 +156,25 @@ const CardContainer: React.FC = () => {
       </div>
       <div className="container mx-auto px-4 py-8">
         {/* Filter Section */}
-        <div className="container mx-auto px-4">
+        <div className="container mx-w-8xl">
           <FilterSection
             sortOrder={sortOrder}
             onSortChange={handleSortChange}
-            filterOptions={allFilterOptions}
+            filterOptions={filterOptions}
             activeFilters={activeFilters}
             onFilterChange={handleFilterChange}
           />
         </div>
 
         {/* User's Listings Section */}
-        {userId && userHouses.length > 0 && (
+        {userId && userCars.length > 0 && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
               Your Listings
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {userHouses.map((house) => (
-                <CardHouse key={house._id} {...house} />
+              {userCars.map((car) => (
+                <Card key={car._id} {...car} listedBy={userId} />
               ))}
             </div>
           </div>
@@ -173,13 +182,17 @@ const CardContainer: React.FC = () => {
 
         {/* All Listings Section */}
         <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
-          All Available Properties
+          All Available Cars
         </h2>
-        {displayedHouses.length > 0 ? (
+        {displayedCars.length > 0 ? (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {displayedHouses.map((house) => (
-                <CardHouse key={house._id} {...house} />
+              {displayedCars.map((car) => (
+                <Card
+                  key={car._id}
+                  {...car}
+                  listedBy={user?.firstName || "Unkown User"}
+                />
               ))}
             </div>
 
@@ -195,9 +208,7 @@ const CardContainer: React.FC = () => {
             )}
           </>
         ) : (
-          <p className="text-center py-10 text-gray-500">
-            No properties available.
-          </p>
+          <p className="text-center py-10 text-gray-500">No cars available.</p>
         )}
       </div>
     </>
