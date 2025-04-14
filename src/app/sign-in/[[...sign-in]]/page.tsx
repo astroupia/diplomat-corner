@@ -5,7 +5,14 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle, Lock, Mail, User } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle,
+  FolderCode,
+  Lock,
+  Mail,
+  User,
+} from "lucide-react";
 
 export default function SignInPage() {
   const [mounted, setMounted] = useState(false);
@@ -170,26 +177,16 @@ export default function SignInPage() {
                   </div>
                   <div className="flex justify-center space-x-6">
                     <Image
-                      src="/placeholder.svg?height=30&width=80&text=Trusted+Partner"
-                      alt="Partner 1"
-                      width={80}
+                      src="/assets/images/sydek-logo.png"
+                      alt="sydek logo"
+                      width={30}
                       height={30}
-                      className="opacity-50 hover:opacity-80 transition-opacity"
+                      className="rounded-lg opacity-50 hover:opacity-80 transition-opacity"
                     />
-                    <Image
-                      src="/placeholder.svg?height=30&width=80&text=Verified+Secure"
-                      alt="Partner 2"
-                      width={80}
-                      height={30}
-                      className="opacity-50 hover:opacity-80 transition-opacity"
-                    />
-                    <Image
-                      src="/placeholder.svg?height=30&width=80&text=ISO+Certified"
-                      alt="Partner 3"
-                      width={80}
-                      height={30}
-                      className="opacity-50 hover:opacity-80 transition-opacity"
-                    />
+                  </div>
+                  <div className="pt-5 flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
+                    <FolderCode className="h-4 w-4 text-green-500" />
+                    <span>Developed By Sydek</span>
                   </div>
                 </motion.div>
               </div>

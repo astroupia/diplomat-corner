@@ -21,7 +21,15 @@ export default function EditCarPage() {
   useEffect(() => {
     const fetchCar = async () => {
       try {
-        if (!id || !user) {
+        // Early return if no ID or user not loaded
+        if (!id || !isLoaded) {
+          setLoading(false);
+          return;
+        }
+
+        // If user is not authenticated, set permission denied
+        if (!user) {
+          setPermissionDenied(true);
           setLoading(false);
           return;
         }
@@ -33,8 +41,14 @@ export default function EditCarPage() {
           throw new Error(data.error || "Failed to fetch car");
         }
 
-        // Check if the car exists and if the current user owns it
-        if (!data || data.userId !== user.id) {
+        // Check if car exists
+        if (!data) {
+          setLoading(false);
+          return;
+        }
+
+        // Check if the current user owns the car
+        if (data.userId !== user.id) {
           setPermissionDenied(true);
           setLoading(false);
           return;
@@ -48,16 +62,29 @@ export default function EditCarPage() {
       }
     };
 
-    if (isLoaded) {
-      fetchCar();
-    }
+    fetchCar();
   }, [id, user, isLoaded]);
 
-  if (!isLoaded || loading) return <LoadingScreen />;
-  if (!user) return <PermissionDeniedScreen />;
-  if (permissionDenied) return <PermissionDeniedScreen />;
-  if (error) return <ErrorScreen message={error} />;
-  if (!car) return <NotFoundScreen message="Car not found." />;
+  // Show loading screen while data is being fetched
+  if (!isLoaded || loading) {
+    return <LoadingScreen />;
+  }
 
+  // Show permission denied screen if user is not authenticated or doesn't own the car
+  if (!user || permissionDenied) {
+    return <PermissionDeniedScreen />;
+  }
+
+  // Show error screen if there's an error
+  if (error) {
+    return <ErrorScreen message={error} />;
+  }
+
+  // Show not found screen if car doesn't exist
+  if (!car) {
+    return <NotFoundScreen message="Car not found." />;
+  }
+
+  // Render the edit form if all checks pass
   return <ManageCar initialData={car} isEditMode={true} />;
 }

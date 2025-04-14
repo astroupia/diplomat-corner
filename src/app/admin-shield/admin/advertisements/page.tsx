@@ -13,7 +13,7 @@ export default function AdvertisementsPage() {
           Advertisements
         </h1>
         <div className="flex items-center gap-2">
-          <Link href="/admin/advertisements/create">
+          <Link href="/admin-shield/admin/advertisements/create">
             <Button variant="default">
               <Plus className="mr-2 h-4 w-4" />
               Create Advertisement

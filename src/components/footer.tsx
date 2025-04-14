@@ -4,6 +4,8 @@ import type React from "react";
 import Link from "next/link";
 import { SignUpButton, SignInButton } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
+import Image from "next/image";
+import { FolderCode } from "lucide-react";
 
 // Define types for our link data
 interface FooterLink {
@@ -175,28 +177,34 @@ const Footer: React.FC = () => {
 
       {/* Footer Bottom */}
       <div className="container mx-auto px-4 mt-8 pt-6 border-t border-gray-100">
-        <div className="flex flex-col md:flex-row justify-between items-center">
+        <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-sm text-gray-500">
             Diplomat Corner — All rights reserved.
           </p>
-          <div className="flex space-x-6 mt-4 md:mt-0">
-            {socialLinks.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-gray-400 hover:text-primary transition-colors duration-300"
-              >
-                <span className="sr-only">{item.name}</span>
-                <svg
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  {item.icon}
-                </svg>
-              </a>
-            ))}
+          <div className="flex items-center gap-4">
+            <Link
+              href="https://sydek.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
+            >
+              <FolderCode className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+              <span>Developed By Sydek</span>
+            </Link>
+            <Link
+              href="https://sydek.dev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group"
+            >
+              <Image
+                src="/assets/images/sydek-logo.png"
+                alt="sydek logo"
+                width={30}
+                height={30}
+                className="rounded-lg opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110"
+              />
+            </Link>
           </div>
         </div>
       </div>
