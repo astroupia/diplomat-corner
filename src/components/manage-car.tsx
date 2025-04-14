@@ -1,5 +1,5 @@
 "use client";
-
+import Image from "next/image";
 import {
   Car,
   CheckCircle,
@@ -17,6 +17,10 @@ import { useState, useEffect, useRef } from "react";
 import { createCar } from "@/lib/actions/car.action";
 import { useUser } from "@clerk/nextjs";
 import { ICar } from "@/lib/models/car.model";
+import LoadingComponent from "./ui/loading-component";
+import ErrorDialog from "./dialogs/error-dialog";
+import ValidationDialog from "./dialogs/validation-dialog";
+import SuccessDialog from "./dialogs/success-dialog";
 
 interface CarFormData {
   name: string;
@@ -73,10 +77,15 @@ const ManageCar: React.FC<ManageCarProps> = ({
     tags: initialData?.tags || "",
   });
   const [isSending, setIsSending] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorDetails, setErrorDetails] = useState<string>("");
+  const [missingFields, setMissingFields] = useState<
+    { name: string; label: string; valid: boolean }[]
+  >([]);
+  const [createdCarId, setCreatedCarId] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
@@ -139,15 +148,40 @@ const ManageCar: React.FC<ManageCarProps> = ({
     }));
   };
 
+  // Add handleKeyDown function to prevent form submission on Enter key
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && e.target instanceof HTMLElement) {
+      // Prevent form submission when pressing Enter on input fields
+      // unless it's a textarea or button
+      const tagName = e.target.tagName.toLowerCase();
+      if (tagName !== "textarea" && tagName !== "button") {
+        e.preventDefault();
+      }
+    }
+  };
+
+  const validateForm = () => {
+    const requiredFields = [
+      { name: "name", label: "Car Name" },
+      { name: "price", label: "Price" },
+      { name: "mileage", label: "Mileage" },
+      { name: "description", label: "Description" },
+    ];
+
+    const invalidFields = requiredFields.map((field) => ({
+      ...field,
+      valid: Boolean(formData[field.name as keyof CarFormData]),
+    }));
+
+    setMissingFields(invalidFields);
+    return invalidFields.every((field) => field.valid);
+  };
+
   const handleSend = async () => {
     setIsSending(true);
-    setSubmitResult(null);
 
-    if (!formData.name || !formData.price || !formData.mileage) {
-      setSubmitResult({
-        success: false,
-        message: "Please fill all required fields",
-      });
+    if (!validateForm()) {
+      setShowValidationDialog(true);
       setIsSending(false);
       return;
     }
@@ -155,7 +189,11 @@ const ManageCar: React.FC<ManageCarProps> = ({
     try {
       const apiFormData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        apiFormData.append(key, value.toString());
+        if (key === "essentials" && Array.isArray(value)) {
+          apiFormData.append(key, JSON.stringify(value));
+        } else {
+          apiFormData.append(key, value.toString());
+        }
       });
 
       if (selectedFile) {
@@ -168,7 +206,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
 
       const endpoint = isEditMode
         ? `/api/cars/${initialData?._id}`
-        : "/api/cars";
+        : "/api/cars/create";
       const method = isEditMode ? "PUT" : "POST";
 
       const response = await fetch(endpoint, {
@@ -176,15 +214,16 @@ const ManageCar: React.FC<ManageCarProps> = ({
         body: apiFormData,
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+
       const result = await response.json();
 
       if (result.success) {
-        setSubmitResult({
-          success: true,
-          message: isEditMode
-            ? "Car updated successfully!"
-            : "Car saved successfully!",
-        });
+        setCreatedCarId(result.carId || "");
+        setShowSuccessDialog(true);
 
         if (!isEditMode) {
           setFormData({
@@ -219,21 +258,12 @@ const ManageCar: React.FC<ManageCarProps> = ({
           }
         }
       } else {
-        setSubmitResult({
-          success: false,
-          message: result.error || "Failed to save car",
-        });
+        throw new Error(result.error || "Failed to save car");
       }
     } catch (error) {
-      setSubmitResult({
-        success: false,
-        message: `Failed to save car: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-        message: `Failed to save car: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-      });
+      setErrorMessage("Failed to save car");
+      setErrorDetails(error instanceof Error ? error.message : "Unknown error");
+      setShowErrorDialog(true);
     } finally {
       setIsSending(false);
     }
@@ -241,36 +271,44 @@ const ManageCar: React.FC<ManageCarProps> = ({
 
   // If Clerk is still loading the user, show a loading state
   if (!isLoaded) {
-    return <div>Loading...</div>;
+    return <LoadingComponent />;
   }
 
   return (
-    <section className="flex flex-col min-h-screen text-Lato">
+    <section
+      className="flex flex-col min-h-screen bg-gray-50"
+      onKeyDown={handleKeyDown}
+    >
       <MaxWidthWrapper>
-        <h1 className="text-xl md:text-2xl font-semibold text-primary m-6">
-          Manage Products and Ads
-        </h1>
-        <div className="flex flex-col lg:flex-row bg-secondary h-auto lg:h-screen bg-primary-light p-4 lg:p-6 space-y-4 lg:space-y-0 lg:space-x-4">
-          <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-4 lg:p-6 flex flex-col">
-            <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6">
-              <Link href="/CarProduct">
-                <button className="flex items-center justify-center space-x-2 bg-secondary text-primary border border-primary px-6 py-3 rounded-lg shadow-md w-full sm:w-auto">
-                  <Car size={20} />
-                  <span className="font-semibold">Car For Sale</span>
-                </button>
-              </Link>
+        <div className="py-6 px-4 sm:px-6 lg:px-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-6">
+            {isEditMode ? "Edit Car" : "Manage Products and Ads"}
+          </h1>
+
+          {/* Main Content */}
+          <main className="flex-1 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
+            {/* Navigation Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
+                <Car className="w-5 h-5" />
+                <span className="font-medium">Car For Sale</span>
+              </button>
               <Link href="/manage-product/house">
-                <button className="flex items-center justify-center space-x-2 bg-white text-primary px-6 py-3 rounded-lg shadow-md border border-primary w-full sm:w-auto">
-                  <Home size={20} />
-                  <span className="font-semibold">House For Rent</span>
+                <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors w-full sm:w-auto">
+                  <Home className="w-5 h-5" />
+                  <span className="font-medium">House For Rent</span>
                 </button>
               </Link>
             </div>
-            <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 rounded-3xl p-4 lg:p-6">
-              <div className="col-span-12 lg:col-span-8 space-y-6 bg-secondary p-4 lg:p-6 rounded-3xl shadow-md border-3 border-primary">
+
+            {/* Form Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              {/* Left Column */}
+              <div className="lg:col-span-8 space-y-6">
+                {/* Basic Information */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-primary">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Name *
                     </label>
                     <input
@@ -278,13 +316,13 @@ const ManageCar: React.FC<ManageCarProps> = ({
                       name="name"
                       value={formData.name}
                       onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-secondary"
-                      placeholder="Ford F150"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                      placeholder="New Car Listing"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Year
                     </label>
                     <input
@@ -292,14 +330,16 @@ const ManageCar: React.FC<ManageCarProps> = ({
                       name="year"
                       value={formData.year || ""}
                       onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-secondary"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                       placeholder="2022"
                     />
                   </div>
                 </div>
+
+                {/* Car Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-primary">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Mileage *
                     </label>
                     <input
@@ -307,315 +347,437 @@ const ManageCar: React.FC<ManageCarProps> = ({
                       name="mileage"
                       value={formData.mileage || ""}
                       onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-secondary"
-                      placeholder="132"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                      placeholder="50000"
                       required
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">
-                      Transmission
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Speed
                     </label>
-                    <div className="flex flex-wrap space-x-2">
-                      {["Automatic", "Manual"].map((option) => (
-                        <button
-                          key={option}
-                          type="button"
-                          className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                            formData.transmission === option
-                              ? "bg-primary text-white border border-primary"
-                              : "bg-secondary text-black border border-black"
-                          }`}
-                          onClick={() =>
-                            handleOptionChange("transmission", option)
-                          }
-                        >
-                          {formData.transmission === option ? (
-                            <CheckCircle size={16} />
-                          ) : (
-                            <Circle size={16} />
-                          )}
-                          <span>{option}</span>
-                        </button>
-                      ))}
-                    </div>
+                    <input
+                      type="number"
+                      name="speed"
+                      value={formData.speed || ""}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                      placeholder="120"
+                    />
                   </div>
                 </div>
+
+                {/* Transmission */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary">
-                    Fuel
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Transmission
                   </label>
-                  <div className="flex flex-wrap space-x-2">
-                    {["Gasoline", "Diesel", "Electric"].map((option) => (
+                  <div className="flex flex-wrap gap-2">
+                    {["Automatic", "Manual"].map((option) => (
                       <button
                         key={option}
                         type="button"
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                          formData.fuel === option
-                            ? "bg-primary text-white border border-primary"
-                            : "bg-secondary text-black border border-black"
+                        onClick={() =>
+                          handleOptionChange("transmission", option)
+                        }
+                        className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
+                          formData.transmission === option
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-gray-700 border-gray-300 hover:border-primary"
                         }`}
-                        onClick={() => handleOptionChange("fuel", option)}
                       >
-                        {formData.fuel === option ? (
-                          <CheckCircle size={16} />
+                        {formData.transmission === option ? (
+                          <CheckCircle className="w-4 h-4" />
                         ) : (
-                          <Circle size={16} />
+                          <Circle className="w-4 h-4" />
                         )}
-                        <span>{option}</span>
+                        <span className="text-sm">{option}</span>
                       </button>
                     ))}
                   </div>
                 </div>
+
+                {/* Fuel Type */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary">
-                    Body Type
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Fuel Type
                   </label>
-                  <div className="flex flex-wrap space-x-2">
-                    {["Truck", "SUV", "Sedan", "Hatchback", "Minivan"].map(
+                  <div className="flex flex-wrap gap-2">
+                    {["Gasoline", "Diesel", "Electric", "Hybrid"].map(
                       (option) => (
                         <button
                           key={option}
                           type="button"
-                          className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                            formData.bodyType === option
-                              ? "bg-primary text-white border border-primary"
-                              : "bg-secondary text-black border border-black"
+                          onClick={() => handleOptionChange("fuel", option)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
+                            formData.fuel === option
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary"
                           }`}
-                          onClick={() => handleOptionChange("bodyType", option)}
                         >
-                          {formData.bodyType === option ? (
-                            <CheckCircle size={16} />
+                          {formData.fuel === option ? (
+                            <CheckCircle className="w-4 h-4" />
                           ) : (
-                            <Circle size={16} />
+                            <Circle className="w-4 h-4" />
                           )}
-                          <span>{option}</span>
+                          <span className="text-sm">{option}</span>
                         </button>
                       )
                     )}
                   </div>
                 </div>
+
+                {/* Body Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Body Type
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {["Truck", "SUV", "Sedan", "Hatchback", "Minivan"].map(
+                      (option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() => handleOptionChange("bodyType", option)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
+                            formData.bodyType === option
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                          }`}
+                        >
+                          {formData.bodyType === option ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <Circle className="w-4 h-4" />
+                          )}
+                          <span className="text-sm">{option}</span>
+                        </button>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    placeholder="Car description"
+                    rows={4}
+                    required
+                  />
+                </div>
               </div>
-              <div className="col-span-12 lg:col-span-4 space-y-6 border-2 border-primary p-4 lg:p-6 rounded-3xl shadow-md overflow-y-auto max-h-[calc(100vh-200px)]">
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-primary">
-                    Car Image
-                  </label>
-                  <div className="h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg relative">
-                    {imagePreview ? (
-                      <>
-                        <img
-                          src={imagePreview}
-                          alt="Car preview"
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <Upload size={40} className="text-white" />
-                          <p className="mt-4 text-sm text-white">
-                            Click to change image
+
+              {/* Right Column */}
+              <div className="lg:col-span-4 space-y-6">
+                {/* File Uploads */}
+                <div className="space-y-4">
+                  {/* Car Image Upload */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Car Image
+                    </label>
+                    <div
+                      className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          fileInputRef.current?.click();
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Upload car image"
+                    >
+                      {imagePreview ? (
+                        <>
+                          <Image
+                            src={imagePreview}
+                            alt="Car preview"
+                            width={400}
+                            height={400}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            priority
+                          />
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <Upload className="w-8 h-8 text-white" />
+                            <p className="mt-2 text-sm text-white">
+                              Click to change image
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-gray-400" />
+                          <p className="mt-2 text-sm text-gray-500">
+                            Click to upload car image
                           </p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={40} className="text-primary" />
-                        <p className="mt-4 text-sm text-primary">
-                          Upload car image
-                        </p>
-                      </>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      name="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      ref={fileInputRef}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
+                    >
+                      Choose Car Image
+                    </button>
+                    {selectedFile && (
+                      <span className="ml-2 text-sm text-gray-600">
+                        {selectedFile.name}
+                      </span>
                     )}
                   </div>
-                  <input
-                    type="file"
-                    name="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    ref={fileInputRef}
-                    className="w-full text-sm"
-                  />
-                </div>
 
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-primary">
-                    Payment Receipt
-                  </label>
-                  <div className="h-40 flex flex-col items-center justify-center border-dashed border-2 border-primary rounded-lg relative">
-                    {receiptPreview ? (
-                      <>
-                        <img
-                          src={receiptPreview}
-                          alt="Receipt preview"
-                          className="absolute inset-0 w-full h-full object-cover"
-                        />
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                          <Upload size={40} className="text-white" />
-                          <p className="mt-4 text-sm text-white">
-                            Click to change receipt
+                  {/* Receipt Upload */}
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Payment Receipt (Optional)
+                    </label>
+                    <div
+                      className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
+                      onClick={() => receiptInputRef.current?.click()}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          receiptInputRef.current?.click();
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label="Upload payment receipt"
+                    >
+                      {receiptPreview ? (
+                        <>
+                          <Image
+                            src={receiptPreview}
+                            alt="Receipt preview"
+                            width={400}
+                            height={400}
+                            className="absolute inset-0 w-full h-full object-cover"
+                            priority
+                          />
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                            <Upload className="w-8 h-8 text-white" />
+                            <p className="mt-2 text-sm text-white">
+                              Click to change receipt
+                            </p>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="w-8 h-8 text-gray-400" />
+                          <p className="mt-2 text-sm text-gray-500">
+                            Click to upload payment receipt
                           </p>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <Upload size={40} className="text-primary" />
-                        <p className="mt-4 text-sm text-primary">
-                          Upload payment receipt
-                        </p>
-                      </>
+                        </>
+                      )}
+                    </div>
+                    <input
+                      type="file"
+                      name="receipt"
+                      accept="image/*,.pdf"
+                      onChange={handleReceiptChange}
+                      ref={receiptInputRef}
+                      className="hidden"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => receiptInputRef.current?.click()}
+                      className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
+                    >
+                      Choose Receipt File
+                    </button>
+                    {selectedReceipt && (
+                      <span className="ml-2 text-sm text-gray-600">
+                        {selectedReceipt.name}
+                      </span>
                     )}
                   </div>
-                  <input
-                    type="file"
-                    name="receipt"
-                    accept="image/*,.pdf"
-                    onChange={handleReceiptChange}
-                    ref={receiptInputRef}
-                    className="w-full text-sm"
-                  />
                 </div>
 
+                {/* Additional Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-semibold text-primary">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Condition
                     </label>
                     <input
                       type="text"
                       name="condition"
-                      value={formData.condition || ""}
+                      value={formData.condition}
                       onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                       placeholder="Excellent"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Engine
                     </label>
                     <input
                       type="text"
                       name="engine"
-                      value={formData.engine || ""}
+                      value={formData.engine}
                       onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                       placeholder="3.8L V6"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-semibold text-primary">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Maintenance
                     </label>
                     <input
                       type="text"
                       name="maintenance"
-                      value={formData.maintenance || ""}
+                      value={formData.maintenance}
                       onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-white"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                       placeholder="Frequent"
                     />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <div>
-                    <label className="block text-sm font-semibold text-primary">
-                      Price *
-                    </label>
-                    <input
-                      type="number"
-                      name="price"
-                      value={formData.price || ""}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-white"
-                      placeholder="Price"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-primary">
-                      Service Price *
-                    </label>
-                    <input
-                      type="number"
-                      name="servicePrice"
-                      value={formData.servicePrice || ""}
-                      onChange={handleInputChange}
-                      className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-white"
-                      placeholder="Service Price"
-                      required
-                    />
-                  </div>
-                  <div className="flex space-x-4">
-                    {(["ETB", "USD"] as const).map((option) => (
+
+                {/* Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price *
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price || ""}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    placeholder="1000"
+                    required
+                  />
+                </div>
+
+                {/* Service Price */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Service Price *
+                  </label>
+                  <input
+                    type="number"
+                    name="servicePrice"
+                    value={formData.servicePrice || ""}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    placeholder="100"
+                    required
+                  />
+                </div>
+
+                {/* Currency */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Currency
+                  </label>
+                  <div className="flex gap-2">
+                    {["ETB", "USD"].map((option) => (
                       <button
                         key={option}
                         type="button"
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-full text-sm font-semibold ${
-                          formData.currency === option
-                            ? "bg-primary text-white border border-primary"
-                            : "bg-white text-black border border-black"
-                        }`}
                         onClick={() => handleOptionChange("currency", option)}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
+                          formData.currency === option
+                            ? "bg-primary text-white border-primary"
+                            : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                        }`}
                       >
                         {formData.currency === option ? (
-                          <CheckCircle size={16} />
+                          <CheckCircle className="w-4 h-4" />
                         ) : (
-                          <Circle size={16} />
+                          <Circle className="w-4 h-4" />
                         )}
-                        <span>{option}</span>
+                        <span className="text-sm">{option}</span>
                       </button>
                     ))}
                   </div>
                 </div>
+
+                {/* Tags */}
                 <div>
-                  <label className="block text-sm font-semibold text-primary">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
                     Tags
                   </label>
                   <input
                     type="text"
                     name="tags"
-                    value={formData.tags || ""}
+                    value={formData.tags}
                     onChange={handleInputChange}
-                    className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-white"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
                     placeholder="#Ford #F150 #2022"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-semibold text-primary">
-                    Brief Description
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description || ""}
-                    onChange={handleInputChange}
-                    className="w-full p-2 border-b-2 border-primary focus:outline-none focus:border-primary bg-white"
-                    placeholder="Write your message here..."
-                  />
-                </div>
+
+                {/* Submit Button */}
                 <button
                   type="button"
                   onClick={handleSend}
                   disabled={isSending}
-                  className={`w-full py-3 rounded-lg font-semibold text-white ${
+                  className={`w-full py-3 rounded-lg font-medium text-white transition-colors ${
                     isSending
                       ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-primary hover:bg-primary-dark"
+                      : "bg-primary hover:bg-primary/90"
                   }`}
                 >
-                  {isSending ? "Sending..." : "Send"}
+                  {isSending
+                    ? isEditMode
+                      ? "Updating..."
+                      : "Creating..."
+                    : isEditMode
+                    ? "Update"
+                    : "Create"}
                 </button>
-                {submitResult && (
-                  <p
-                    className={`text-sm mt-2 ${
-                      submitResult.success ? "text-green-600" : "text-red-600"
-                    }`}
-                  >
-                    {submitResult.message}
-                  </p>
-                )}
               </div>
             </div>
           </main>
         </div>
       </MaxWidthWrapper>
+
+      {/* Dialogs */}
+      <ErrorDialog
+        isOpen={showErrorDialog}
+        onClose={() => setShowErrorDialog(false)}
+        onRetry={handleSend}
+        title="Error Creating Car"
+        errorMessage={errorMessage}
+        errorDetails={errorDetails}
+      />
+
+      <ValidationDialog
+        isOpen={showValidationDialog}
+        onClose={() => setShowValidationDialog(false)}
+        missingFields={missingFields}
+        onGoBack={() => setShowValidationDialog(false)}
+      />
+
+      <SuccessDialog
+        isOpen={showSuccessDialog}
+        onClose={() => setShowSuccessDialog(false)}
+        productName={formData.name}
+        productId={createdCarId}
+        productType="car"
+      />
     </section>
   );
 };

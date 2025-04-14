@@ -2,7 +2,14 @@
 
 import { IHouse } from "@/lib/models/house.model";
 import { ICar } from "@/lib/models/car.model";
-import { Car, CheckCircle, Circle, Home, PlayCircle, Upload } from "lucide-react";
+import {
+  Car,
+  CheckCircle,
+  Circle,
+  Home,
+  PlayCircle,
+  Upload,
+} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { useUser } from "@clerk/nextjs";
@@ -56,16 +63,16 @@ interface ManageProductProps {
   onTabChange: (tab: ProductType) => void;
 }
 
-const ManageProduct: React.FC<ManageProductProps> = ({ 
-  initialData, 
+const ManageProduct: React.FC<ManageProductProps> = ({
+  initialData,
   isEditMode = false,
   activeTab,
-  onTabChange
+  onTabChange,
 }) => {
   const { user, isLoaded } = useUser();
   const [formData, setFormData] = useState<ProductFormData>(() => {
     if (initialData) {
-      if ('bedroom' in initialData) {
+      if ("bedroom" in initialData) {
         return {
           type: "house",
           name: initialData.name || "",
@@ -74,8 +81,11 @@ const ManageProduct: React.FC<ManageProductProps> = ({
           price: initialData.price || 0,
           servicePrice: 0,
           description: initialData.description || "",
-          advertisementType: initialData.advertisementType as "Rent" | "Sale" || "Rent",
-          paymentMethod: initialData.paymentMethod as "Monthly" | "Quarterly" | "Annual" || "Monthly",
+          advertisementType:
+            (initialData.advertisementType as "Rent" | "Sale") || "Rent",
+          paymentMethod:
+            (initialData.paymentMethod as "Monthly" | "Quarterly" | "Annual") ||
+            "Monthly",
           houseType: initialData.houseType || "House",
           essentials: initialData.essentials || [],
           currency: initialData.currency || "ETB",
@@ -93,7 +103,8 @@ const ManageProduct: React.FC<ManageProductProps> = ({
           price: initialData.price || 0,
           servicePrice: 0,
           description: initialData.description || "",
-          advertisementType: initialData.advertisementType as "Rent" | "Sale" || "Rent",
+          advertisementType:
+            (initialData.advertisementType as "Rent" | "Sale") || "Rent",
           paymentMethod: initialData.paymentMethod?.toString() || "",
           currency: initialData.currency || "ETB",
           year: initialData.year || 0,
@@ -108,110 +119,132 @@ const ManageProduct: React.FC<ManageProductProps> = ({
         };
       }
     } else {
-      return activeTab === "house" ? {
-        type: "house",
-        name: "",
-        condition: "",
-        maintenance: "",
-        price: 0,
-        servicePrice: 0,
-        description: "",
-        advertisementType: "Rent",
-        paymentMethod: "Monthly",
-        houseType: "House",
-        essentials: [],
-        currency: "ETB",
-        bedroom: 0,
-        size: 0,
-        bathroom: 0,
-        parkingSpace: 0,
-      } : {
-        type: "car",
-        name: "",
-        condition: "",
-        maintenance: "",
-        price: 0,
-        servicePrice: 0,
-        description: "",
-        advertisementType: "Rent",
-        paymentMethod: "",
-        currency: "ETB",
-        year: 0,
-        mileage: 0,
-        speed: 0,
-        milesPerGallon: 0,
-        transmission: "",
-        fuel: "",
-        bodyType: "",
-        engine: "",
-        tags: "",
-      };
+      return activeTab === "house"
+        ? {
+            type: "house",
+            name: "",
+            condition: "",
+            maintenance: "",
+            price: 0,
+            servicePrice: 0,
+            description: "",
+            advertisementType: "Rent",
+            paymentMethod: "Monthly",
+            houseType: "House",
+            essentials: [],
+            currency: "ETB",
+            bedroom: 0,
+            size: 0,
+            bathroom: 0,
+            parkingSpace: 0,
+          }
+        : {
+            type: "car",
+            name: "",
+            condition: "",
+            maintenance: "",
+            price: 0,
+            servicePrice: 0,
+            description: "",
+            advertisementType: "Rent",
+            paymentMethod: "",
+            currency: "ETB",
+            year: 0,
+            mileage: 0,
+            speed: 0,
+            milesPerGallon: 0,
+            transmission: "",
+            fuel: "",
+            bodyType: "",
+            engine: "",
+            tags: "",
+          };
     }
   });
 
   // Reset form data when tab changes
   useEffect(() => {
     if (!initialData) {
-      setFormData(activeTab === "house" ? {
-        type: "house",
-        name: "",
-        condition: "",
-        maintenance: "",
-        price: 0,
-        servicePrice: 0,
-        description: "",
-        advertisementType: "Rent",
-        paymentMethod: "Monthly",
-        houseType: "House",
-        essentials: [],
-        currency: "ETB",
-        bedroom: 0,
-        size: 0,
-        bathroom: 0,
-        parkingSpace: 0,
-      } : {
-        type: "car",
-        name: "",
-        condition: "",
-        maintenance: "",
-        price: 0,
-        servicePrice: 0,
-        description: "",
-        advertisementType: "Rent",
-        paymentMethod: "",
-        currency: "ETB",
-        year: 0,
-        mileage: 0,
-        speed: 0,
-        milesPerGallon: 0,
-        transmission: "",
-        fuel: "",
-        bodyType: "",
-        engine: "",
-        tags: "",
-      });
+      setFormData(
+        activeTab === "house"
+          ? {
+              type: "house",
+              name: "",
+              condition: "",
+              maintenance: "",
+              price: 0,
+              servicePrice: 0,
+              description: "",
+              advertisementType: "Rent",
+              paymentMethod: "Monthly",
+              houseType: "House",
+              essentials: [],
+              currency: "ETB",
+              bedroom: 0,
+              size: 0,
+              bathroom: 0,
+              parkingSpace: 0,
+            }
+          : {
+              type: "car",
+              name: "",
+              condition: "",
+              maintenance: "",
+              price: 0,
+              servicePrice: 0,
+              description: "",
+              advertisementType: "Rent",
+              paymentMethod: "",
+              currency: "ETB",
+              year: 0,
+              mileage: 0,
+              speed: 0,
+              milesPerGallon: 0,
+              transmission: "",
+              fuel: "",
+              bodyType: "",
+              engine: "",
+              tags: "",
+            }
+      );
     }
   }, [activeTab, initialData]);
 
   const [isSending, setIsSending] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [submitResult, setSubmitResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(initialData?.imageUrl || null);
+  const [imagePreview, setImagePreview] = useState<string | null>(
+    initialData?.imageUrl || null
+  );
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: name === "bedroom" || name === "size" || name === "bathroom" ||
-              name === "parkingSpace" || name === "price" || name === "year" ||
-              name === "mileage" || name === "speed" || name === "milesPerGallon" ||
-              name === "servicePrice" ? Number(value) : value,
+      [name]:
+        name === "bedroom" ||
+        name === "size" ||
+        name === "bathroom" ||
+        name === "parkingSpace" ||
+        name === "price" ||
+        name === "year" ||
+        name === "mileage" ||
+        name === "speed" ||
+        name === "milesPerGallon" ||
+        name === "servicePrice"
+          ? Number(value)
+          : value,
     }));
   };
 
@@ -240,21 +273,21 @@ const ManageProduct: React.FC<ManageProductProps> = ({
   };
 
   const handleOptionChange = (field: string, value: string) => {
-    setFormData(prev => {
-      if (field === 'houseType' && prev.type === 'house') {
+    setFormData((prev) => {
+      if (field === "houseType" && prev.type === "house") {
         return {
           ...prev,
-          houseType: value
+          houseType: value,
         };
-      } else if (field === 'carType' && prev.type === 'car') {
+      } else if (field === "carType" && prev.type === "car") {
         return {
           ...prev,
-          carType: value
+          carType: value,
         };
       } else {
         return {
           ...prev,
-          [field]: value
+          [field]: value,
         };
       }
     });
@@ -268,6 +301,20 @@ const ManageProduct: React.FC<ManageProductProps> = ({
     }));
   };
 
+  const toggleSelection = (item: string) => {
+    setFormData((prev) => {
+      if (prev.type === "house") {
+        return {
+          ...prev,
+          essentials: prev.essentials.includes(item)
+            ? prev.essentials.filter((i) => i !== item)
+            : [...prev.essentials, item],
+        };
+      }
+      return prev;
+    });
+  };
+
   const handleSend = async () => {
     setIsSending(true);
     setSubmitResult(null);
@@ -275,93 +322,113 @@ const ManageProduct: React.FC<ManageProductProps> = ({
     try {
       const apiFormData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        apiFormData.append(key, typeof value === 'object' ? JSON.stringify(value) : value.toString());
+        if (key === "essentials" && Array.isArray(value)) {
+          apiFormData.append(key, JSON.stringify(value));
+        } else {
+          apiFormData.append(key, value.toString());
+        }
       });
-      
+
       if (selectedFile) {
-        apiFormData.append('file', selectedFile);
+        apiFormData.append("file", selectedFile);
       }
 
       if (selectedReceipt) {
-        apiFormData.append('receipt', selectedReceipt);
+        apiFormData.append("receipt", selectedReceipt);
       }
 
-      const endpoint = isEditMode 
-        ? `/api/${formData.type}s/${initialData?._id}` 
+      const endpoint = isEditMode
+        ? `/api/${formData.type}s/${initialData?._id}`
         : `/api/${formData.type}s/create`;
-      const method = isEditMode ? 'PUT' : 'POST';
+      const method = isEditMode ? "PUT" : "POST";
 
       const response = await fetch(endpoint, {
         method,
         body: apiFormData,
       });
 
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Server error: ${response.status} - ${errorText}`);
+      }
+
       const result = await response.json();
 
       if (result.success) {
-        setSubmitResult({ 
-          success: true, 
-          message: isEditMode ? `${formData.type} updated successfully!` : `${formData.type} saved successfully!` 
+        setSubmitResult({
+          success: true,
+          message: isEditMode
+            ? `${formData.type} updated successfully!`
+            : `${formData.type} saved successfully!`,
         });
-        
+
         if (!isEditMode) {
           // Reset form
-          setFormData(formData.type === 'house' ? {
-            type: 'house',
-            name: "",
-            bedroom: 0,
-            size: 0,
-            bathroom: 0,
-            parkingSpace: 0,
-            condition: "",
-            maintenance: "",
-            price: 0,
-            servicePrice: 0,
-            description: "",
-            advertisementType: "Rent",
-            paymentMethod: "Monthly",
-            houseType: "House",
-            essentials: [],
-            currency: "ETB",
-          } : {
-            type: 'car',
-            name: "",
-            year: 0,
-            mileage: 0,
-            speed: 0,
-            milesPerGallon: 0,
-            transmission: "Automatic",
-            fuel: "Gasoline",
-            bodyType: "Truck",
-            condition: "",
-            engine: "",
-            maintenance: "",
-            price: 0,
-            servicePrice: 0,
-            description: "",
-            advertisementType: "Sale",
-            paymentMethod: "1",
-            currency: "ETB",
-            tags: "",
-          });
+          setFormData(
+            formData.type === "house"
+              ? {
+                  type: "house",
+                  name: "",
+                  bedroom: 0,
+                  size: 0,
+                  bathroom: 0,
+                  parkingSpace: 0,
+                  condition: "",
+                  maintenance: "",
+                  price: 0,
+                  servicePrice: 0,
+                  description: "",
+                  advertisementType: "Rent",
+                  paymentMethod: "Monthly",
+                  houseType: "House",
+                  essentials: [],
+                  currency: "ETB",
+                }
+              : {
+                  type: "car",
+                  name: "",
+                  year: 0,
+                  mileage: 0,
+                  speed: 0,
+                  milesPerGallon: 0,
+                  transmission: "Automatic",
+                  fuel: "Gasoline",
+                  bodyType: "Truck",
+                  condition: "",
+                  engine: "",
+                  maintenance: "",
+                  price: 0,
+                  servicePrice: 0,
+                  description: "",
+                  advertisementType: "Sale",
+                  paymentMethod: "1",
+                  currency: "ETB",
+                  tags: "",
+                }
+          );
           setSelectedFile(null);
           setSelectedReceipt(null);
           setImagePreview(null);
           setReceiptPreview(null);
           if (fileInputRef.current) {
-            fileInputRef.current.value = '';
+            fileInputRef.current.value = "";
           }
           if (receiptInputRef.current) {
-            receiptInputRef.current.value = '';
+            receiptInputRef.current.value = "";
           }
         }
       } else {
-        setSubmitResult({ success: false, message: result.error || `Failed to save ${formData.type}` });
+        setSubmitResult({
+          success: false,
+          message: result.error || `Failed to save ${formData.type}`,
+        });
       }
     } catch (error) {
       setSubmitResult({
         success: false,
-        message: `Failed to save ${formData.type}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        message: `Failed to save ${formData.type}: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`,
       });
     } finally {
       setIsSending(false);
@@ -385,31 +452,33 @@ const ManageProduct: React.FC<ManageProductProps> = ({
       <MaxWidthWrapper>
         <div className="py-6 px-4 sm:px-6 lg:px-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-6">
-            {isEditMode ? `Edit ${formData.type === 'house' ? 'House' : 'Car'}` : "Manage Products and Ads"}
+            {isEditMode
+              ? `Edit ${formData.type === "house" ? "House" : "Car"}`
+              : "Manage Products and Ads"}
           </h1>
-          
+
           <div className="flex flex-col lg:flex-row gap-6">
             {/* Main Content */}
             <main className="flex-1 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
               {/* Navigation Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 mb-6">
                 <button
-                  onClick={() => onTabChange('car')}
+                  onClick={() => onTabChange("car")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${
-                    activeTab === 'car'
-                      ? 'bg-primary text-white'
-                      : 'bg-white text-primary border border-primary hover:bg-primary/5'
+                    activeTab === "car"
+                      ? "bg-primary text-white"
+                      : "bg-white text-primary border border-primary hover:bg-primary/5"
                   }`}
                 >
                   <Car className="w-5 h-5" />
                   <span className="font-medium">Car For Sale</span>
                 </button>
                 <button
-                  onClick={() => onTabChange('house')}
+                  onClick={() => onTabChange("house")}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors w-full sm:w-auto ${
-                    activeTab === 'house'
-                      ? 'bg-primary text-white'
-                      : 'bg-white text-primary border border-primary hover:bg-primary/5'
+                    activeTab === "house"
+                      ? "bg-primary text-white"
+                      : "bg-white text-primary border border-primary hover:bg-primary/5"
                   }`}
                 >
                   <Home className="w-5 h-5" />
@@ -424,24 +493,32 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                   {/* Basic Information */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Name *
+                      </label>
                       <input
                         type="text"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                        placeholder={formData.type === 'house' ? "New House Listing" : "New Car Listing"}
+                        placeholder={
+                          formData.type === "house"
+                            ? "New House Listing"
+                            : "New Car Listing"
+                        }
                         required
                       />
                     </div>
-                    {formData.type === 'house' ? (
+                    {formData.type === "house" ? (
                       <div className="flex flex-wrap gap-2">
                         {["House", "Apartment", "Guest House"].map((type) => (
                           <button
                             key={type}
                             type="button"
-                            onClick={() => handleOptionChange("houseType", type)}
+                            onClick={() =>
+                              handleOptionChange("houseType", type)
+                            }
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                               formData.houseType === type
                                 ? "bg-primary text-white border-primary"
@@ -449,15 +526,21 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                             }`}
                           >
                             {type === "House" && <Home className="w-5 h-5" />}
-                            {type === "Apartment" && <Home className="w-5 h-5" />}
-                            {type === "Guest House" && <PlayCircle className="w-5 h-5" />}
+                            {type === "Apartment" && (
+                              <Home className="w-5 h-5" />
+                            )}
+                            {type === "Guest House" && (
+                              <PlayCircle className="w-5 h-5" />
+                            )}
                             <span className="text-sm font-medium">{type}</span>
                           </button>
                         ))}
                       </div>
                     ) : (
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Year *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Year *
+                        </label>
                         <input
                           type="number"
                           name="year"
@@ -472,10 +555,12 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                   </div>
 
                   {/* Property/Car Details */}
-                  {formData.type === 'house' ? (
+                  {formData.type === "house" ? (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Bedroom *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bedroom *
+                        </label>
                         <input
                           type="number"
                           name="bedroom"
@@ -487,7 +572,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Size *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Size *
+                        </label>
                         <input
                           type="number"
                           name="size"
@@ -499,7 +586,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Bathroom *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Bathroom *
+                        </label>
                         <input
                           type="number"
                           name="bathroom"
@@ -511,7 +600,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Parking Space *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Parking Space *
+                        </label>
                         <input
                           type="number"
                           name="parkingSpace"
@@ -524,9 +615,11 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                       </div>
                     </div>
                   ) : (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Mileage *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Mileage *
+                        </label>
                         <input
                           type="number"
                           name="mileage"
@@ -538,43 +631,174 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Transmission</label>
-                        <select
-                          name="transmission"
-                          value={formData.transmission}
-                          onChange={handleSelectChange}
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Year
+                        </label>
+                        <input
+                          type="number"
+                          name="year"
+                          value={formData.year || ""}
+                          onChange={handleInputChange}
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                        >
-                          <option value="Automatic">Automatic</option>
-                          <option value="Manual">Manual</option>
-                        </select>
+                          placeholder="2022"
+                        />
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Fuel Type</label>
-                        <select
-                          name="fuel"
-                          value={formData.fuel}
-                          onChange={handleSelectChange}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                        >
-                          <option value="Gasoline">Gasoline</option>
-                          <option value="Diesel">Diesel</option>
-                          <option value="Electric">Electric</option>
-                          <option value="Hybrid">Hybrid</option>
-                        </select>
+                    </div>
+                  )}
+
+                  {/* House Essentials */}
+                  {formData.type === "house" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Essentials
+                      </label>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        {[
+                          "WiFi",
+                          "Furnished",
+                          "Play Ground",
+                          "Living Area",
+                          "Gym",
+                          "Outdoor",
+                          "Dining Area",
+                          "Jacuzzi",
+                          "Steam",
+                        ].map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            onClick={() => toggleSelection(item)}
+                            className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
+                              formData.essentials.includes(item)
+                                ? "bg-primary text-white border-primary"
+                                : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                            }`}
+                          >
+                            {formData.essentials.includes(item) ? (
+                              <CheckCircle className="w-4 h-4" />
+                            ) : (
+                              <Circle className="w-4 h-4" />
+                            )}
+                            <span className="text-sm">{item}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Car Transmission */}
+                  {formData.type === "car" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Transmission
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {["Automatic", "Manual"].map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() =>
+                              handleOptionChange("transmission", option)
+                            }
+                            className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                              formData.transmission === option
+                                ? "bg-primary text-white border-primary"
+                                : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                            }`}
+                          >
+                            {formData.transmission === option ? (
+                              <CheckCircle className="w-4 h-4" />
+                            ) : (
+                              <Circle className="w-4 h-4" />
+                            )}
+                            <span className="text-sm">{option}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Car Fuel Type */}
+                  {formData.type === "car" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Fuel Type
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {["Gasoline", "Diesel", "Electric", "Hybrid"].map(
+                          (option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() => handleOptionChange("fuel", option)}
+                              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                                formData.fuel === option
+                                  ? "bg-primary text-white border-primary"
+                                  : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                              }`}
+                            >
+                              {formData.fuel === option ? (
+                                <CheckCircle className="w-4 h-4" />
+                              ) : (
+                                <Circle className="w-4 h-4" />
+                              )}
+                              <span className="text-sm">{option}</span>
+                            </button>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Car Body Type */}
+                  {formData.type === "car" && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Body Type
+                      </label>
+                      <div className="flex flex-wrap gap-2">
+                        {["Truck", "SUV", "Sedan", "Hatchback", "Minivan"].map(
+                          (option) => (
+                            <button
+                              key={option}
+                              type="button"
+                              onClick={() =>
+                                handleOptionChange("bodyType", option)
+                              }
+                              className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                                formData.bodyType === option
+                                  ? "bg-primary text-white border-primary"
+                                  : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                              }`}
+                            >
+                              {formData.bodyType === option ? (
+                                <CheckCircle className="w-4 h-4" />
+                              ) : (
+                                <Circle className="w-4 h-4" />
+                              )}
+                              <span className="text-sm">{option}</span>
+                            </button>
+                          )
+                        )}
                       </div>
                     </div>
                   )}
 
                   {/* Description */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Description *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Description *
+                    </label>
                     <textarea
                       name="description"
                       value={formData.description}
                       onChange={handleInputChange}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                      placeholder={formData.type === 'house' ? "House description" : "Car description"}
+                      placeholder={
+                        formData.type === "house"
+                          ? "House description"
+                          : "Car description"
+                      }
                       rows={4}
                       required
                     />
@@ -597,13 +821,17 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                             />
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                               <Upload className="w-8 h-8 text-white" />
-                              <p className="mt-2 text-sm text-white">Click to change image</p>
+                              <p className="mt-2 text-sm text-white">
+                                Click to change image
+                              </p>
                             </div>
                           </>
                         ) : (
                           <>
                             <Upload className="w-8 h-8 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">Upload {formData.type} image</p>
+                            <p className="mt-2 text-sm text-gray-500">
+                              Upload {formData.type} image
+                            </p>
                           </>
                         )}
                       </div>
@@ -629,13 +857,17 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                             />
                             <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                               <Upload className="w-8 h-8 text-white" />
-                              <p className="mt-2 text-sm text-white">Click to change receipt</p>
+                              <p className="mt-2 text-sm text-white">
+                                Click to change receipt
+                              </p>
                             </div>
                           </>
                         ) : (
                           <>
                             <Upload className="w-8 h-8 text-gray-400" />
-                            <p className="mt-2 text-sm text-gray-500">Upload payment receipt</p>
+                            <p className="mt-2 text-sm text-gray-500">
+                              Upload payment receipt
+                            </p>
                           </>
                         )}
                       </div>
@@ -653,7 +885,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                   {/* Additional Details */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Condition</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Condition
+                      </label>
                       <input
                         type="text"
                         name="condition"
@@ -664,7 +898,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">Maintenance</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Maintenance
+                      </label>
                       <input
                         type="text"
                         name="maintenance"
@@ -678,7 +914,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
 
                   {/* Price */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Price *
+                    </label>
                     <input
                       type="number"
                       name="price"
@@ -692,7 +930,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
 
                   {/* Service Price */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Service Price *</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Service Price *
+                    </label>
                     <input
                       type="number"
                       name="servicePrice"
@@ -706,7 +946,9 @@ const ManageProduct: React.FC<ManageProductProps> = ({
 
                   {/* Currency */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Currency</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Currency
+                    </label>
                     <div className="flex gap-2">
                       {["ETB", "USD"].map((option) => (
                         <button
@@ -732,14 +974,18 @@ const ManageProduct: React.FC<ManageProductProps> = ({
 
                   {/* Payment Terms */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Payment Terms</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Terms
+                    </label>
                     <div className="flex flex-wrap gap-2">
-                      {formData.type === 'house' ? (
+                      {formData.type === "house" ? (
                         ["Monthly", "Quarterly", "Annual"].map((option) => (
                           <button
                             key={option}
                             type="button"
-                            onClick={() => handleOptionChange("paymentMethod", option)}
+                            onClick={() =>
+                              handleOptionChange("paymentMethod", option)
+                            }
                             className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
                               formData.paymentMethod === option
                                 ? "bg-primary text-white border-primary"
@@ -778,7 +1024,13 @@ const ManageProduct: React.FC<ManageProductProps> = ({
                         : "bg-primary hover:bg-primary/90"
                     }`}
                   >
-                    {isSending ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update" : "Create")}
+                    {isSending
+                      ? isEditMode
+                        ? "Updating..."
+                        : "Creating..."
+                      : isEditMode
+                      ? "Update"
+                      : "Create"}
                   </button>
 
                   {/* Result Message */}
@@ -803,4 +1055,4 @@ const ManageProduct: React.FC<ManageProductProps> = ({
   );
 };
 
-export default ManageProduct; 
+export default ManageProduct;

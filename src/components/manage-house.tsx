@@ -1,7 +1,9 @@
 "use client";
 
 import { IHouse } from "@/lib/models/house.model";
+import Image from "next/image";
 import {
+  ArrowLeft,
   Car,
   CheckCircle,
   Circle,
@@ -17,6 +19,11 @@ import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { useUser } from "@clerk/nextjs";
+import LoadingComponent from "./ui/loading-component";
+import router from "next/router";
+import ErrorDialog from "./dialogs/error-dialog";
+import ValidationDialog from "./dialogs/validation-dialog";
+import SuccessDialog from "./dialogs/success-dialog";
 
 interface HouseFormData {
   name: string;
@@ -35,11 +42,6 @@ interface HouseFormData {
   essentials: string[];
   currency: string;
   imageUrl?: string;
-}
-
-interface ManageHouseProps {
-  initialData?: IHouse;
-  isEditMode?: boolean;
 }
 
 interface ManageHouseProps {
@@ -75,10 +77,15 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     currency: initialData?.currency || "ETB",
   });
   const [isSending, setIsSending] = useState(false);
-  const [submitResult, setSubmitResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const [showErrorDialog, setShowErrorDialog] = useState(false);
+  const [showValidationDialog, setShowValidationDialog] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [errorDetails, setErrorDetails] = useState<string>("");
+  const [missingFields, setMissingFields] = useState<
+    { name: string; label: string; valid: boolean }[]
+  >([]);
+  const [createdHouseId, setCreatedHouseId] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedReceipt, setSelectedReceipt] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
@@ -156,23 +163,31 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     }));
   };
 
+  const validateForm = () => {
+    const requiredFields = [
+      { name: "name", label: "House Name" },
+      { name: "bedroom", label: "Number of Bedrooms" },
+      { name: "size", label: "Size" },
+      { name: "bathroom", label: "Number of Bathrooms" },
+      { name: "parkingSpace", label: "Parking Space" },
+      { name: "price", label: "Price" },
+      { name: "description", label: "Description" },
+    ];
+
+    const invalidFields = requiredFields.map((field) => ({
+      ...field,
+      valid: Boolean(formData[field.name as keyof HouseFormData]),
+    }));
+
+    setMissingFields(invalidFields);
+    return invalidFields.every((field) => field.valid);
+  };
+
   const handleSend = async () => {
     setIsSending(true);
-    setSubmitResult(null);
 
-    if (
-      !formData.name ||
-      !formData.bedroom ||
-      !formData.size ||
-      !formData.bathroom ||
-      !formData.parkingSpace ||
-      !formData.price ||
-      !formData.description
-    ) {
-      setSubmitResult({
-        success: false,
-        message: "Please fill all required fields",
-      });
+    if (!validateForm()) {
+      setShowValidationDialog(true);
       setIsSending(false);
       return;
     }
@@ -199,11 +214,6 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
         : "/api/house/create";
       const method = isEditMode ? "PUT" : "POST";
 
-      const endpoint = isEditMode
-        ? `/api/house/${initialData?._id}`
-        : "/api/house/create";
-      const method = isEditMode ? "PUT" : "POST";
-
       const response = await fetch(endpoint, {
         method,
         body: apiFormData,
@@ -212,12 +222,8 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
       const result = await response.json();
 
       if (result.success) {
-        setSubmitResult({
-          success: true,
-          message: isEditMode
-            ? "House updated successfully!"
-            : "House saved successfully!",
-        });
+        setCreatedHouseId(result.houseId || "");
+        setShowSuccessDialog(true);
 
         if (!isEditMode) {
           setFormData({
@@ -249,33 +255,29 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
           }
         }
       } else {
-        setSubmitResult({
-          success: false,
-          message: result.error || "Failed to save house",
-        });
+        throw new Error(result.error || "Failed to save house");
       }
     } catch (error) {
-      setSubmitResult({
-        success: false,
-        message: `Failed to save house: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`,
-      });
+      setErrorMessage("Failed to save house");
+      setErrorDetails(error instanceof Error ? error.message : "Unknown error");
+      setShowErrorDialog(true);
     } finally {
       setIsSending(false);
     }
   };
 
   useEffect(() => {
-    if (submitResult?.success) {
+    if (showErrorDialog || showSuccessDialog || showValidationDialog) {
       const timer = setTimeout(() => {
-        setSubmitResult(null);
+        setShowErrorDialog(false);
+        setShowSuccessDialog(false);
+        setShowValidationDialog(false);
       }, 3000);
       return () => clearTimeout(timer);
     }
-  }, [submitResult]);
+  }, [showErrorDialog, showSuccessDialog, showValidationDialog]);
 
-  if (!isLoaded) return <div>Loading...</div>;
+  if (!isLoaded) return <LoadingComponent />;
   if (!user) return <div>Please log in</div>;
 
   return (
@@ -289,16 +291,26 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
           {/* Main Content */}
           <main className="flex-1 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <Link href="/manage-product/car">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors w-full sm:w-auto">
-                  <Car className="w-5 h-5" />
-                  <span className="font-medium">Car For Sale</span>
+            <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center">
+              {isEditMode ? (
+                <button
+                  onClick={() => router.back()}
+                  className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
+                >
+                  <ArrowLeft size={18} className="mr-2" />
+                  Back to Houses
                 </button>
-              </Link>
+              ) : (
+                <Link href="/manage-product/car">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors w-full sm:w-auto">
+                    <Car className="w-5 h-5" />
+                    <span className="font-medium">Car For Sale</span>
+                  </button>
+                </Link>
+              )}
               <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
                 <Home className="w-5 h-5" />
-                <span className="font-medium">House For Rent</span>
+                <span className="font-medium">Create House</span>
               </button>
             </div>
 
@@ -432,6 +444,22 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                     ))}
                   </div>
                 </div>
+
+                {/* Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description *
+                  </label>
+                  <textarea
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    placeholder="House description"
+                    rows={4}
+                    required
+                  />
+                </div>
               </div>
 
               {/* Right Column */}
@@ -440,13 +468,21 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                 <div className="space-y-4">
                   {/* House Image Upload */}
                   <div className="space-y-2">
-                    <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      House Image
+                    </label>
+                    <div
+                      className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       {imagePreview ? (
                         <>
-                          <img
+                          <Image
                             src={imagePreview}
                             alt="House preview"
                             className="absolute inset-0 w-full h-full object-cover"
+                            width={500}
+                            height={300}
                           />
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                             <Upload className="w-8 h-8 text-white" />
@@ -459,7 +495,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                         <>
                           <Upload className="w-8 h-8 text-gray-400" />
                           <p className="mt-2 text-sm text-gray-500">
-                            Upload house image
+                            Click to upload house image
                           </p>
                         </>
                       )}
@@ -470,19 +506,39 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                       accept="image/*"
                       onChange={handleFileChange}
                       ref={fileInputRef}
-                      className="w-full text-sm"
+                      className="hidden"
                     />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
+                    >
+                      Choose House Image
+                    </button>
+                    {selectedFile && (
+                      <span className="ml-2 text-sm text-gray-600">
+                        {selectedFile.name}
+                      </span>
+                    )}
                   </div>
 
                   {/* Receipt Upload */}
                   <div className="space-y-2">
-                    <div className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Payment Receipt (Optional)
+                    </label>
+                    <div
+                      className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
+                      onClick={() => receiptInputRef.current?.click()}
+                    >
                       {receiptPreview ? (
                         <>
-                          <img
+                          <Image
                             src={receiptPreview}
                             alt="Receipt preview"
                             className="absolute inset-0 w-full h-full object-cover"
+                            width={500}
+                            height={300}
                           />
                           <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                             <Upload className="w-8 h-8 text-white" />
@@ -495,7 +551,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                         <>
                           <Upload className="w-8 h-8 text-gray-400" />
                           <p className="mt-2 text-sm text-gray-500">
-                            Upload payment receipt
+                            Click to upload payment receipt
                           </p>
                         </>
                       )}
@@ -506,8 +562,20 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                       accept="image/*,.pdf"
                       onChange={handleReceiptChange}
                       ref={receiptInputRef}
-                      className="w-full text-sm"
+                      className="hidden"
                     />
+                    <button
+                      type="button"
+                      onClick={() => receiptInputRef.current?.click()}
+                      className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
+                    >
+                      Choose Receipt File
+                    </button>
+                    {selectedReceipt && (
+                      <span className="ml-2 text-sm text-gray-600">
+                        {selectedReceipt.name}
+                      </span>
+                    )}
                   </div>
                 </div>
 
@@ -584,7 +652,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                         key={option}
                         type="button"
                         onClick={() => handleOptionChange("currency", option)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                        className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
                           formData.currency === option
                             ? "bg-primary text-white border-primary"
                             : "bg-white text-gray-700 border-gray-300 hover:border-primary"
@@ -614,7 +682,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                         onClick={() =>
                           handleOptionChange("paymentMethod", option)
                         }
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                        className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
                           formData.paymentMethod === option
                             ? "bg-primary text-white border-primary"
                             : "bg-white text-gray-700 border-gray-300 hover:border-primary"
@@ -629,22 +697,6 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                       </button>
                     ))}
                   </div>
-                </div>
-
-                {/* Description */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Description *
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                    placeholder="House description"
-                    rows={4}
-                    required
-                  />
                 </div>
 
                 {/* Submit Button */}
@@ -666,24 +718,36 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                     ? "Update"
                     : "Create"}
                 </button>
-
-                {/* Result Message */}
-                {submitResult && (
-                  <div
-                    className={`p-3 rounded-lg ${
-                      submitResult.success
-                        ? "bg-green-50 text-green-700"
-                        : "bg-red-50 text-red-700"
-                    }`}
-                  >
-                    {submitResult.message}
-                  </div>
-                )}
               </div>
             </div>
           </main>
         </div>
       </MaxWidthWrapper>
+
+      {/* Dialogs */}
+      <ErrorDialog
+        isOpen={showErrorDialog}
+        onClose={() => setShowErrorDialog(false)}
+        onRetry={handleSend}
+        title="Error Creating House"
+        errorMessage={errorMessage}
+        errorDetails={errorDetails}
+      />
+
+      <ValidationDialog
+        isOpen={showValidationDialog}
+        onClose={() => setShowValidationDialog(false)}
+        missingFields={missingFields}
+        onGoBack={() => setShowValidationDialog(false)}
+      />
+
+      <SuccessDialog
+        isOpen={showSuccessDialog}
+        onClose={() => setShowSuccessDialog(false)}
+        productName={formData.name}
+        productId={createdHouseId}
+        productType="house"
+      />
     </section>
   );
 };
