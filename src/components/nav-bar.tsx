@@ -15,6 +15,16 @@ interface SearchResult {
   type: "car" | "house";
 }
 
+interface NavItem {
+  label: string;
+  href: string;
+  children?: NavItem[]; // Optional nested items
+  isAdmin?: boolean; // Optional flag for admin-only items
+  isAuth?: boolean;
+  name: string;
+  type: "car" | "house";
+}
+
 const NavBar: React.FC = () => {
   const { user } = useUser();
 
@@ -30,11 +40,13 @@ const NavBar: React.FC = () => {
   const [isVisible, setIsVisible] = useState<boolean>(true);
   const searchRef = useRef<HTMLDivElement>(null); // Ref for the search container
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+
   // Debounced search function
   const fetchSearchResults = useCallback(async (query: string) => {
     if (!query) {
       setSearchResults([]);
       setIsSearchLoading(false);
+      return;
     }
     setIsSearchLoading(true);
     setIsDropdownVisible(true); // Show dropdown immediately when typing starts
@@ -114,7 +126,7 @@ const NavBar: React.FC = () => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [searchRef]); // Dependency on the ref
+  }, []);
 
   const handleInputFocus = () => {
     if (searchResults.length > 0 || isSearchLoading) {
@@ -122,23 +134,52 @@ const NavBar: React.FC = () => {
     }
   };
 
-  // // Optional: Handle blur with a slight delay if needed, but handleClickOutside might be sufficient
-  // const handleInputBlur = () => {
-  //   // setTimeout(() => setIsDropdownVisible(false), 150); // Delay to allow clicks on dropdown items
-  // };
-
   const handleResultClick = () => {
     setIsDropdownVisible(false); // Hide dropdown when a result is clicked
     setSearchQuery(""); // Optional: clear search query after selection
   };
 
+  // Define navigation items with conditional visibility
+  const navItems: NavItem[] = [
+    {
+      label: "Cars",
+      href: "/car",
+      name: "",
+      type: "car",
+    },
+    {
+      label: "Houses",
+      href: "/house",
+      name: "",
+      type: "house",
+    },
+    {
+      label: "About Us",
+      href: "/about-us",
+      name: "",
+      type: "car",
+    },
+    {
+      label: "Contact Us",
+      href: "/contact-us",
+      name: "",
+      type: "car",
+    },
+    {
+      label: "Admin",
+      href: "/admin-shield/admin/dashboard",
+      isAdmin: true,
+      name: "",
+      type: "car",
+    },
+  ];
+
   return (
     <nav
       className={`bg-white border px-6 py-2 fixed top-0 left-0 right-0 z-50 shadow-md m-0 transition-all duration-700 ease-out ${
-        // Increased z-index to 50
         isVisible
-          ? "opacity-100 translate-y-0 "
-          : "opacity-0 -translate-y-full pointer-events-none" // Use -translate-y-full
+          ? "opacity-100 translate-y-0"
+          : "opacity-0 -translate-y-full pointer-events-none"
       }`}
     >
       <section className="w-full">
@@ -147,13 +188,6 @@ const NavBar: React.FC = () => {
             {/* Left Section: Brand Logo */}
             <div className="flex items-center flex-shrink-0">
               <Link href="/">
-                {/* <Image
-                  src="/assets/images/logo.png"
-                  alt="Diplomat Corner Logo"
-                  width={120}
-                  height={40}
-                  className="w-20 h-10 object-contain"
-                /> */}
                 <span className="text-black font-normal text-base">
                   <div className="flex flex-col pl-2">
                     <h3>Diplomat</h3>
@@ -174,41 +208,36 @@ const NavBar: React.FC = () => {
             </div>
 
             {/* Middle Section: Navigation Links - Desktop */}
-            <div className="flex-1 hidden lg:flex justify-center gap-8 text-base text-black font-normal px-6 min-w-0">
-              <Link href="/car" className="hover:text-primary transition">
-                Cars
-              </Link>
-              <Link href="/house" className="hover:text-primary transition">
-                Houses
-              </Link>
-              <Link href="/about-us" className="hover:text-primary transition">
-                About Us
-              </Link>
-              <Link
-                href="/contact-us"
-                className="hover:text-primary transition"
-              >
-                Contact Us
-              </Link>
+            <div className="flex-1 hidden lg:flex justify-center gap-6 text-base text-black font-normal px-6 min-w-0">
+              {navItems
+                .filter(
+                  (item) =>
+                    (!item.isAdmin || (item.isAdmin && isAdmin)) &&
+                    (!item.isAuth || (item.isAuth && user))
+                )
+                .map((item) => (
+                  <Link
+                    key={item.label}
+                    href={item.href}
+                    className="hover:text-primary transition"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
             </div>
 
             {/* Right Section: Search, Notifications, and Authentication */}
             <div className="flex items-center gap-4 flex-shrink-0 min-w-0">
               {/* --- Search Component --- */}
               <div className="relative" ref={searchRef}>
-                {" "}
-                {/* Added ref here */}
                 <div className="relative">
-                  {" "}
-                  {/* Wrapper for input and icon */}
                   <input
                     type="text"
-                    placeholder="Search..." // Updated placeholder
+                    placeholder="Search..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={handleInputFocus} // Show dropdown on focus if results exist
-                    // onBlur={handleInputBlur} // Optional blur handling
-                    className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-40 lg:w-56 pr-8" // Increased width slightly
+                    onFocus={handleInputFocus}
+                    className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-40 lg:w-56 pr-8"
                   />
                   <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
                     {isSearchLoading ? (
@@ -221,39 +250,38 @@ const NavBar: React.FC = () => {
                 {/* --- Dropdown --- */}
                 {isDropdownVisible && (
                   <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
-                    {" "}
-                    {/* Increased z-index */}
-                    {
-                      isSearchLoading && searchResults.length === 0 ? (
-                        <div className="p-2 text-center text-gray-500">
-                          Loading...
-                        </div>
-                      ) : searchResults.length > 0 ? (
-                        <ul>
-                          {searchResults.map((result) => (
-                            <li
-                              key={`${result.type}-${result.id}`}
-                              className="border-b last:border-b-0"
+                    {isSearchLoading && searchResults.length === 0 ? (
+                      <div className="p-2 text-center text-gray-500">
+                        Loading...
+                      </div>
+                    ) : searchResults.length > 0 ? (
+                      <ul>
+                        {searchResults.map((result) => (
+                          <li
+                            key={`${result.type}-${result.id}`}
+                            className="border-b last:border-b-0"
+                          >
+                            <Link
+                              href={`/${result.type}/${result.id}`}
+                              onClick={handleResultClick}
+                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                             >
-                              <Link
-                                href={`/${result.type}/${result.id}`}
-                                onClick={handleResultClick} // Hide dropdown on click
-                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                              >
-                                {result.name}{" "}
-                                <span className="text-xs text-gray-400">
-                                  ({result.type})
-                                </span>
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : !isSearchLoading && searchQuery ? ( // Show only if not loading and query exists
+                              {result.name}{" "}
+                              <span className="text-xs text-gray-400">
+                                ({result.type})
+                              </span>
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      !isSearchLoading &&
+                      searchQuery && (
                         <div className="p-2 text-center text-gray-500">
                           No results found.
                         </div>
-                      ) : null /* Don't show anything if loading initial results or query is empty */
-                    }
+                      )
+                    )}
                   </div>
                 )}
               </div>
@@ -313,59 +341,35 @@ const NavBar: React.FC = () => {
 
           {/* Mobile Menu - shown when hamburger is clicked */}
           {isMobileMenuOpen && (
-            <div className="lg:hidden mt-4">
-              <div className="flex flex-col gap-4 text-lg text-black font-semibold">
-                <Link href="/car" className="hover:text-primary transition">
-                  Car For Sale
-                </Link>
-                <Link href="/house" className="hover:text-primary transition">
-                  House For Rent
-                </Link>
-                <Link
-                  href="/about-us"
-                  className="hover:text-primary transition"
-                >
-                  About Us
-                </Link>
-
-                {/* Mobile Search Bar */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search"
-                    className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-full"
-                  />
-                  <button className="absolute right-2 top-1/2 transform -translate-y-1/2 text-primary">
-                    <Link href="#">
-                      <Search className="w-5 h-5" />
-                    </Link>
-                  </button>
-                </div>
-
-                {/* Mobile Authentication */}
-                {!user ? (
-                  <Link href="/sign-up">
-                    <Button>Get Started</Button>
-                  </Link>
-                ) : (
-                  <div className="flex flex-col gap-4">
-                    <Link href="/notifications" className="text-primary">
-                      <Megaphone className="w-6 h-6" />
-                    </Link>
+            <div className="lg:hidden mt-4 border-t border-gray-200">
+              <div className="flex flex-col gap-4 text-lg text-black font-semibold p-4">
+                {/* Navigation Links */}
+                {navItems
+                  .filter(
+                    (item) =>
+                      (!item.isAdmin || (item.isAdmin && isAdmin)) &&
+                      (!item.isAuth || (item.isAuth && user))
+                  )
+                  .map((item) => (
                     <Link
-                      href="/manage-product/house"
+                      key={item.label}
+                      href={item.href}
                       className="hover:text-primary transition"
+                      onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      Manage Products
+                      {item.label}
                     </Link>
-                    {isAdmin && (
-                      <span className="text-sm text-primary font-bold">
-                        Admin
-                      </span>
-                    )}
-                    <UserButton />
-                  </div>
-                )}
+                  ))}
+                {/* Authentication */}
+                <div className="flex items-center justify-between gap-4">
+                  {!user ? (
+                    <Link href="/sign-up">
+                      <Button>Get Started</Button>
+                    </Link>
+                  ) : (
+                    <UserButton afterSignOutUrl="/" />
+                  )}
+                </div>
               </div>
             </div>
           )}

@@ -1,21 +1,13 @@
 "use client";
 import Image from "next/image";
-import {
-  Car,
-  CheckCircle,
-  Circle,
-  Home,
-  Pen,
-  Plus,
-  ShoppingCart,
-  Tv,
-  Upload,
-} from "lucide-react";
+import { Car, CheckCircle, Circle, Home, Upload } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import { useState, useEffect, useRef } from "react";
-import { createCar } from "@/lib/actions/car.action";
 import { useUser } from "@clerk/nextjs";
+import { ArrowLeft } from "lucide-react";
+
 import { ICar } from "@/lib/models/car.model";
 import LoadingComponent from "./ui/loading-component";
 import ErrorDialog from "./dialogs/error-dialog";
@@ -53,6 +45,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
   isEditMode = false,
 }) => {
   const { user, isLoaded } = useUser();
+  const router = useRouter();
   const userId = user?.id || "guest";
 
   const [formData, setFormData] = useState<CarFormData>({
@@ -68,7 +61,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
     engine: initialData?.engine || "",
     maintenance: initialData?.maintenance || "",
     price: initialData?.price || 0,
-    servicePrice: 0,
+    servicePrice: initialData?.servicePrice || 0,
     description: initialData?.description || "",
     advertisementType:
       (initialData?.advertisementType as "Rent" | "Sale") || "Sale",
@@ -189,11 +182,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
     try {
       const apiFormData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        if (key === "essentials" && Array.isArray(value)) {
-          apiFormData.append(key, JSON.stringify(value));
-        } else {
-          apiFormData.append(key, value.toString());
-        }
+        apiFormData.append(key, value.toString());
       });
 
       if (selectedFile) {
@@ -269,7 +258,6 @@ const ManageCar: React.FC<ManageCarProps> = ({
     }
   };
 
-  // If Clerk is still loading the user, show a loading state
   if (!isLoaded) {
     return <LoadingComponent />;
   }
@@ -289,16 +277,31 @@ const ManageCar: React.FC<ManageCarProps> = ({
           <main className="flex-1 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             {/* Navigation Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
-                <Car className="w-5 h-5" />
-                <span className="font-medium">Car For Sale</span>
-              </button>
-              <Link href="/manage-product/house">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors w-full sm:w-auto">
-                  <Home className="w-5 h-5" />
-                  <span className="font-medium">House For Rent</span>
+            {isEditMode ? (
+                
+                <button
+                  onClick={() => router.back()}
+                  className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
+                >
+                <ArrowLeft size={18} className="mr-2" />
+                  Back to Cars
                 </button>
-              </Link>
+              ) : (
+                <Link href="/manage-product/car">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors w-full sm:w-auto">
+                    <Car className="w-5 h-5" />
+                    <span className="font-medium">Create Cars</span>
+                  </button>
+                </Link>
+              )}
+              {!isEditMode && (
+                  <Link href="/manage-product/house">
+                    <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
+                    <Home className="w-5 h-5" />
+                    <span className="font-medium">Create House</span>
+                  </button>
+                  </Link>
+                )}
             </div>
 
             {/* Form Grid */}
@@ -545,70 +548,72 @@ const ManageCar: React.FC<ManageCarProps> = ({
                   </div>
 
                   {/* Receipt Upload */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Payment Receipt (Optional)
-                    </label>
-                    <div
-                      className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
-                      onClick={() => receiptInputRef.current?.click()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          receiptInputRef.current?.click();
-                        }
-                      }}
-                      tabIndex={0}
-                      role="button"
-                      aria-label="Upload payment receipt"
-                    >
-                      {receiptPreview ? (
-                        <>
-                          <Image
-                            src={receiptPreview}
-                            alt="Receipt preview"
-                            width={400}
-                            height={400}
-                            className="absolute inset-0 w-full h-full object-cover"
-                            priority
-                          />
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <Upload className="w-8 h-8 text-white" />
-                            <p className="mt-2 text-sm text-white">
-                              Click to change receipt
+                  {!isEditMode && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Payment Receipt (Optional)
+                      </label>
+                      <div
+                        className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
+                        onClick={() => receiptInputRef.current?.click()}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            receiptInputRef.current?.click();
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        aria-label="Upload payment receipt"
+                      >
+                        {receiptPreview ? (
+                          <>
+                            <Image
+                              src={receiptPreview}
+                              alt="Receipt preview"
+                              width={400}
+                              height={400}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              priority
+                            />
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                              <Upload className="w-8 h-8 text-white" />
+                              <p className="mt-2 text-sm text-white">
+                                Click to change receipt
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 text-gray-400" />
+                            <p className="mt-2 text-sm text-gray-500">
+                              Click to upload payment receipt
                             </p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-8 h-8 text-gray-400" />
-                          <p className="mt-2 text-sm text-gray-500">
-                            Click to upload payment receipt
-                          </p>
-                        </>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        name="receipt"
+                        accept="image/*,.pdf"
+                        onChange={handleReceiptChange}
+                        ref={receiptInputRef}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => receiptInputRef.current?.click()}
+                        className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
+                      >
+                        Choose Receipt File
+                      </button>
+                      {selectedReceipt && (
+                        <span className="ml-2 text-sm text-gray-600">
+                          {selectedReceipt.name}
+                        </span>
                       )}
                     </div>
-                    <input
-                      type="file"
-                      name="receipt"
-                      accept="image/*,.pdf"
-                      onChange={handleReceiptChange}
-                      ref={receiptInputRef}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => receiptInputRef.current?.click()}
-                      className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                    >
-                      Choose Receipt File
-                    </button>
-                    {selectedReceipt && (
-                      <span className="ml-2 text-sm text-gray-600">
-                        {selectedReceipt.name}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 {/* Additional Details */}
@@ -671,17 +676,23 @@ const ManageCar: React.FC<ManageCarProps> = ({
                 </div>
 
                 {/* Service Price */}
-                <div className="bg-gray-100 p-3 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <label className="block text-sm font-medium text-gray-700">
-                      Service Price
-                    </label>
-                    <span className="px-3 py-1 bg-primary/20 text-primary rounded-md font-medium">
-                      150 ETB
-                    </span>
+                {!isEditMode && (
+                  <div className="bg-gray-100 p-3 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Service Price
+                      </label>
+                      <span className="px-3 py-1 bg-primary/20 text-primary rounded-md font-medium">
+                        150 ETB
+                      </span>
+                    </div>
+                    <input
+                      type="hidden"
+                      name="servicePrice"
+                      value={formData.servicePrice}
+                    />
                   </div>
-                  <input type="hidden" name="servicePrice" value={150} />
-                </div>
+                )}
 
                 {/* Currency */}
                 <div>
@@ -737,13 +748,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
                       : "bg-primary hover:bg-primary/90"
                   }`}
                 >
-                  {isSending
-                    ? isEditMode
-                      ? "Updating..."
-                      : "Creating..."
-                    : isEditMode
-                    ? "Update"
-                    : "Create"}
+                  {isEditMode ? "Update" : "Create"}
                 </button>
               </div>
             </div>

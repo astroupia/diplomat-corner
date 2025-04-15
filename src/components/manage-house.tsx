@@ -1,20 +1,10 @@
 "use client";
 
 import { IHouse } from "@/lib/models/house.model";
+import { ArrowLeft, Car, CheckCircle, Circle, Home, PlayCircle, Upload } from "lucide-react";
 import Image from "next/image";
-import {
-  ArrowLeft,
-  Car,
-  CheckCircle,
-  Circle,
-  Home,
-  Pen,
-  PlayCircle,
-  Plus,
-  ShoppingCart,
-  Tv,
-  Upload,
-} from "lucide-react";
+
+
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
@@ -34,7 +24,7 @@ interface HouseFormData {
   condition: string;
   maintenance: string;
   price: number;
-  servicePrice: number;
+  servicePrice?: number;
   description: string;
   advertisementType: "Rent" | "Sale";
   paymentMethod: "Monthly" | "Quarterly" | "Annual";
@@ -63,7 +53,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     condition: initialData?.condition || "",
     maintenance: initialData?.maintenance || "",
     price: initialData?.price || 0,
-    servicePrice: 0,
+    servicePrice: undefined,
     description: initialData?.description || "",
     advertisementType:
       (initialData?.advertisementType as "Rent" | "Sale") || "Rent",
@@ -76,7 +66,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     essentials: initialData?.essentials || [],
     currency: initialData?.currency || "ETB",
   });
-  const [isSending, setIsSending] = useState(false);
+
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -184,12 +174,10 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
   };
 
   const handleSend = async () => {
-    setIsSending(true);
-
     if (!validateForm()) {
       setShowValidationDialog(true);
-      setIsSending(false);
       return;
+
     }
 
     try {
@@ -235,7 +223,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
             condition: "",
             maintenance: "",
             price: 0,
-            servicePrice: 0,
+            servicePrice: undefined,
             description: "",
             advertisementType: "Rent",
             paymentMethod: "Monthly",
@@ -262,7 +250,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
       setErrorDetails(error instanceof Error ? error.message : "Unknown error");
       setShowErrorDialog(true);
     } finally {
-      setIsSending(false);
+
     }
   };
 
@@ -291,13 +279,14 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
           {/* Main Content */}
           <main className="flex-1 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             {/* Navigation Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3 mb-6 items-center">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
               {isEditMode ? (
+                
                 <button
                   onClick={() => router.back()}
                   className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
                 >
-                  <ArrowLeft size={18} className="mr-2" />
+                <ArrowLeft size={18} className="mr-2" />
                   Back to Houses
                 </button>
               ) : (
@@ -308,10 +297,13 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                   </button>
                 </Link>
               )}
-              <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
-                <Home className="w-5 h-5" />
-                <span className="font-medium">Create House</span>
-              </button>
+              {!isEditMode && (
+                  <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
+                    <Home className="w-5 h-5" />
+                    <span className="font-medium">Create House</span>
+                  </button>
+                )}
+              
             </div>
 
             {/* Form Grid */}
@@ -523,117 +515,119 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                   </div>
 
                   {/* Receipt Upload */}
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Payment Receipt (Optional)
-                    </label>
-                    <div
-                      className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
-                      onClick={() => receiptInputRef.current?.click()}
-                    >
-                      {receiptPreview ? (
-                        <>
-                          <Image
-                            src={receiptPreview}
-                            alt="Receipt preview"
-                            className="absolute inset-0 w-full h-full object-cover"
-                            width={500}
-                            height={300}
-                          />
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <Upload className="w-8 h-8 text-white" />
-                            <p className="mt-2 text-sm text-white">
-                              Click to change receipt
+                  {!isEditMode && (
+                    <div className="space-y-2">
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Payment Receipt (Optional)
+                      </label>
+                      <div
+                        className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
+                        onClick={() => receiptInputRef.current?.click()}
+                      >
+                        {receiptPreview ? (
+                          <>
+                            <Image
+                              src={receiptPreview}
+                              alt="Receipt preview"
+                              className="absolute inset-0 w-full h-full object-cover"
+                              width={500}
+                              height={300}
+                            />
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                              <Upload className="w-8 h-8 text-white" />
+                              <p className="mt-2 text-sm text-white">
+                                Click to change receipt
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-8 h-8 text-gray-400" />
+                            <p className="mt-2 text-sm text-gray-500">
+                              Click to upload payment receipt
                             </p>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-8 h-8 text-gray-400" />
-                          <p className="mt-2 text-sm text-gray-500">
-                            Click to upload payment receipt
-                          </p>
-                        </>
+                          </>
+                        )}
+                      </div>
+                      <input
+                        type="file"
+                        name="receipt"
+                        accept="image/*,.pdf"
+                        onChange={handleReceiptChange}
+                        ref={receiptInputRef}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => receiptInputRef.current?.click()}
+                        className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
+                      >
+                        Choose Receipt File
+                      </button>
+                      {selectedReceipt && (
+                        <span className="ml-2 text-sm text-gray-600">
+                          {selectedReceipt.name}
+                        </span>
                       )}
                     </div>
-                    <input
-                      type="file"
-                      name="receipt"
-                      accept="image/*,.pdf"
-                      onChange={handleReceiptChange}
-                      ref={receiptInputRef}
-                      className="hidden"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => receiptInputRef.current?.click()}
-                      className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
-                    >
-                      Choose Receipt File
-                    </button>
-                    {selectedReceipt && (
-                      <span className="ml-2 text-sm text-gray-600">
-                        {selectedReceipt.name}
-                      </span>
-                    )}
-                  </div>
+                  )}
                 </div>
 
                 {/* Additional Details */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Condition
-                    </label>
-                    <input
-                      type="text"
-                      name="condition"
-                      value={formData.condition}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                      placeholder="Excellent"
-                    />
+                    Condition
+                  </label>
+                  <input
+                    type="text"
+                    name="condition"
+                    value={formData.condition}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    placeholder="Excellent"
+                  />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Maintenance
-                    </label>
-                    <input
-                      type="text"
-                      name="maintenance"
-                      value={formData.maintenance}
-                      onChange={handleInputChange}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                      placeholder="Frequent"
-                    />
+                    Maintenance
+                  </label>
+                  <input
+                    type="text"
+                    name="maintenance"
+                    value={formData.maintenance}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    placeholder="Frequent"
+                  />
                   </div>
                 </div>
 
                 {/* Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Price *
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price || ""}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                    placeholder="1000"
-                    required
-                  />
+                  Price *
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={formData.price || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                  placeholder="1000"
+                  required
+                />
                 </div>
 
                 {/* Service Price */}
-                <div className="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-md">
-                  <span className="text-sm font-medium text-gray-700">
-                    Service Price:
-                  </span>
-                  <span className="text-lg font-semibold text-primary">
-                    150 ETB
-                  </span>
-                </div>
+                 {!isEditMode && (<div className="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-md">
+                 <span className="text-sm font-medium text-gray-700">
+                  Service Price:
+                </span>
+                <span className="text-lg font-semibold text-primary">
+                  150 ETB
+                </span>
+              </div>)}
 
                 {/* Currency */}
                 <div>
@@ -697,18 +691,10 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                 <button
                   type="button"
                   onClick={handleSend}
-                  disabled={isSending}
-                  className={`w-full py-3 rounded-lg font-medium text-white transition-colors ${
-                    isSending
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-primary hover:bg-primary/90"
-                  }`}
+                  className={`w-full py-3 rounded-lg font-medium text-white transition-colors bg-primary hover:bg-primary/90`}
                 >
-                  {isSending
-                    ? isEditMode
-                      ? "Updating..."
-                      : "Creating..."
-                    : isEditMode
+
+                  {isEditMode
                     ? "Update"
                     : "Create"}
                 </button>
