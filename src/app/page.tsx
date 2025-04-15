@@ -185,7 +185,7 @@ const HeroSection = () => {
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl"></div>
                   <Link
                     href="#"
-                    className="text-white group-hover:text-primary relative flex items-center justify-center w-20 h-20 bg-transparent backdrop-blur-sm rounded-full shadow-lg border-2 border-white/80 group-hover:bg-white hover:bg-primary transition-colors duration-300"
+                    className="text-white hover:text-primary group-hover:text-primary relative flex items-center justify-center w-20 h-20 bg-transparent backdrop-blur-sm rounded-full shadow-lg border-2 border-white/80 group-hover:bg-white hover:bg-primary transition-colors duration-300"
                   >
                     <div className="text-center">
                       <ShoppingBag className="w-6 h-6 mx-auto" />

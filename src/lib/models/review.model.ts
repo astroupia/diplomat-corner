@@ -8,6 +8,7 @@ export interface IReview extends Document {
   createdAt: Date;
   updatedAt: Date;
   productId: string;
+  likes: number;
 }
 
 const ReviewSchema = new Schema<IReview>(
@@ -32,6 +33,9 @@ const ReviewSchema = new Schema<IReview>(
     comment: {
       type: String,
       default: "",
+    },
+    likes: {
+      type: Number,
     },
   },
   { timestamps: { createdAt: true, updatedAt: false } }
