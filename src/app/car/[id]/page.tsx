@@ -7,6 +7,7 @@ import { CarFront, GaugeCircle, Fuel, Settings, ArrowLeft } from "lucide-react";
 import { ICar } from "@/lib/models/car.model";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
 import { Button } from "@/components/ui/button";
+import CarDetailLoadingSkeleton from "./loading";
 
 export default function CarDetails() {
   const params = useParams<{ id: string }>();
@@ -37,12 +38,7 @@ export default function CarDetails() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
-        <p className="text-lg font-medium text-gray-700">
-          Loading Car Details...
-        </p>
-      </div>
+      <CarDetailLoadingSkeleton />
     );
   }
 

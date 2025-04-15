@@ -5,7 +5,8 @@ export type NotificationType =
   | "alert"
   | "update"
   | "system"
-  | "security";
+  | "security" |
+  "request" | "approval";
 export type NotificationCategory = "car" | "house" | "account" | "system";
 
 export interface INotification extends Document {
@@ -14,8 +15,9 @@ export interface INotification extends Document {
   message: string;
   isRead: boolean;
   link?: string;
+  productType?: "Car" | "House";
   category?: NotificationCategory;
-  userId: mongoose.Types.ObjectId;
+  userId: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -24,7 +26,7 @@ const NotificationSchema = new Schema<INotification>(
   {
     type: {
       type: String,
-      enum: ["message", "alert", "update", "system", "security"],
+      enum: ["message", "alert", "update", "system", "security", "request" ,"approval"],
       required: true,
     },
     title: {
@@ -47,10 +49,14 @@ const NotificationSchema = new Schema<INotification>(
       enum: ["car", "house", "account", "system"],
     },
     userId: {
-      type: Schema.Types.ObjectId,
+      type: String,
       ref: "User",
       required: true,
     },
+    productType: {
+      type: String,
+      enum: ["Car", "House"]
+    }
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
