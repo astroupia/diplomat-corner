@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAuth } from "@clerk/nextjs";
 
 interface Request {
   _id: string;
@@ -107,4 +106,8 @@ export default function RequestsTable() {
       </table>
     </div>
   );
+}
+
+function useAuth(): { userId: any; } {
+  throw new Error("Function not implemented.");
 }
