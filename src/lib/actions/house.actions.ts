@@ -1,8 +1,8 @@
 "use server";
 
-import House, { IHouse } from "@/lib/models/house.model";
 import { revalidatePath } from "next/cache";
-import { connectToDatabase } from "../db-connect";
+import { connectToDatabase } from "@/lib/db-connect";
+import House from "@/lib/models/house.model";
 
 interface HouseData {
   name: string;
@@ -39,11 +39,11 @@ export async function deleteHouse(houseId: string) {
   try {
     await connectToDatabase();
     const house = await House.findByIdAndDelete(houseId);
-    
+
     if (!house) {
       return { success: false, error: "House not found" };
     }
-    
+
     revalidatePath("/houses");
     return { success: true, message: "House deleted successfully" };
   } catch (error) {
@@ -55,12 +55,11 @@ export async function deleteHouse(houseId: string) {
 export async function updateHouseDetails(houseId: string, formData: HouseData) {
   try {
     await connectToDatabase();
-    
-    const house = await House.findByIdAndUpdate(
-      houseId,
-      formData,
-      { new: true, runValidators: true }
-    );
+
+    const house = await House.findByIdAndUpdate(houseId, formData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!house) {
       return { success: false, error: "House not found" };
@@ -83,7 +82,7 @@ export async function getAllHouse(): Promise<IHouse[]> {
     await connectToDatabase();
     const houses = await House.find({});
     console.log("Fetched houses:", houses);
-    return houses.map(house => toPlainObject(house));
+    return houses.map((house) => toPlainObject(house));
   } catch (error) {
     console.error("Error fetching houses:", error);
     throw new Error(`Failed to fetch houses: ${(error as Error).message}`);

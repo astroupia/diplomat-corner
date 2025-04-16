@@ -1,26 +1,17 @@
-import mongoose, { Schema, model, models, Document } from "mongoose";
+import { Schema, model, models } from "mongoose";
 
-export interface IReview extends Document {
-  userId: string;
-  targetUserId: string;
-  rating: number;
-  comment: string;
-  createdAt: Date;
-  updatedAt: Date;
-  productId: string;
-  likes: number;
-}
-
-const ReviewSchema = new Schema<IReview>(
+const reviewSchema = new Schema(
   {
     userId: {
       type: String,
-      ref: "User",
       required: true,
     },
     targetUserId: {
       type: String,
-      ref: "User",
+      required: true,
+    },
+    productId: {
+      type: String,
       required: true,
     },
     rating: {
@@ -29,16 +20,26 @@ const ReviewSchema = new Schema<IReview>(
       min: 1,
       max: 5,
     },
-    productId: { type: String, required: true },
     comment: {
       type: String,
       default: "",
     },
-    likes: {
-      type: Number,
+    likes: [
+      {
+        type: String,
+        ref: "User",
+      },
+    ],
+    user: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
     },
   },
-  { timestamps: { createdAt: true, updatedAt: false } }
+  {
+    timestamps: true,
+  }
 );
 
-export default models.Review || model<IReview>("Review", ReviewSchema);
+const Review = models.Review || model("Review", reviewSchema);
+
+export default Review;

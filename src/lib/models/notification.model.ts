@@ -5,8 +5,9 @@ export type NotificationType =
   | "alert"
   | "update"
   | "system"
-  | "security" |
-  "request" | "approval";
+  | "security"
+  | "request"
+  | "approval";
 export type NotificationCategory = "car" | "house" | "account" | "system";
 
 export interface INotification extends Document {
@@ -18,6 +19,13 @@ export interface INotification extends Document {
   productType?: "Car" | "House";
   category?: NotificationCategory;
   userId: string;
+  pushSubscription?: {
+    endpoint: string;
+    keys: {
+      p256dh: string;
+      auth: string;
+    };
+  };
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -26,7 +34,15 @@ const NotificationSchema = new Schema<INotification>(
   {
     type: {
       type: String,
-      enum: ["message", "alert", "update", "system", "security", "request" ,"approval"],
+      enum: [
+        "message",
+        "alert",
+        "update",
+        "system",
+        "security",
+        "request",
+        "approval",
+      ],
       required: true,
     },
     title: {
@@ -55,8 +71,15 @@ const NotificationSchema = new Schema<INotification>(
     },
     productType: {
       type: String,
-      enum: ["Car", "House"]
-    }
+      enum: ["Car", "House"],
+    },
+    pushSubscription: {
+      endpoint: String,
+      keys: {
+        p256dh: String,
+        auth: String,
+      },
+    },
   },
   { timestamps: { createdAt: true, updatedAt: true } }
 );
