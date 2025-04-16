@@ -7,6 +7,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
 import { Bell, Loader2, Megaphone, Menu, Search } from "lucide-react";
 import Image from "next/image";
+import { INotification } from "@/types/notifications";
 
 // Define the type for search results based on your API response
 interface SearchResult {
@@ -26,20 +27,103 @@ interface NavItem {
 }
 
 const NavBar: React.FC = () => {
-  const { user } = useUser();
-
-  const isAdmin =
-    user?.primaryEmailAddress?.emailAddress ===
-    process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const { user, isLoaded } = useUser();
   const [lastScrollY, setLastScrollY] = useState<number>(0);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]); // State for results
-  const [isSearchLoading, setIsSearchLoading] = useState<boolean>(false); // Loading state
-  const [isDropdownVisible, setIsDropdownVisible] = useState<boolean>(false); // Dropdown visibility
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState<boolean>(false);
+  const [isDropdownVisible, setIsDropdownVisible] = useState<boolean>(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
   const [isVisible, setIsVisible] = useState<boolean>(true);
-  const searchRef = useRef<HTMLDivElement>(null); // Ref for the search container
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null); // Ref for debounce timeout
+  const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationCheckInterval = useRef<NodeJS.Timeout>();
+  const lastCheckTime = useRef<Date>(new Date());
+
+  // Function to check for new notifications
+  const checkNewNotifications = async () => {
+    if (!user) return;
+
+    try {
+      const response = await fetch(
+        `/api/notifications/check-new?userId=${
+          user.id
+        }&lastCheck=${lastCheckTime.current.toISOString()}`
+      );
+
+      if (!response.ok) throw new Error("Failed to check notifications");
+
+      const data = await response.json();
+
+      if (data.newCount > 0) {
+        setUnreadNotifications((prev) => prev + data.newCount);
+
+        // Show push notification if browser supports it
+        if ("Notification" in window && Notification.permission === "granted") {
+          new Notification("New Notifications", {
+            body: `You have ${data.newCount} new notification${
+              data.newCount > 1 ? "s" : ""
+            }`,
+            icon: "/favicon.ico",
+          });
+        }
+      }
+
+      lastCheckTime.current = new Date();
+    } catch (error) {
+      console.error("Error checking notifications:", error);
+    }
+  };
+
+  // Set up notification checking
+  useEffect(() => {
+    if (!user) return;
+
+    // Request notification permission if not already granted
+    if ("Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+
+    // Initial check
+    checkNewNotifications();
+
+    // Set up interval for checking (every 30 seconds)
+    notificationCheckInterval.current = setInterval(
+      checkNewNotifications,
+      30000
+    );
+
+    // Cleanup
+    return () => {
+      if (notificationCheckInterval.current) {
+        clearInterval(notificationCheckInterval.current);
+      }
+    };
+  }, [user]);
+
+  // Fetch total unread count when component mounts or user changes
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!user) return;
+
+      try {
+        const response = await fetch(
+          `/api/notifications?userId=${user.id}&unreadOnly=true`
+        );
+        if (!response.ok) throw new Error("Failed to fetch notifications");
+
+        const notifications: INotification[] = await response.json();
+        setUnreadNotifications(notifications.length);
+      } catch (error) {
+        console.error("Error fetching notifications:", error);
+      }
+    };
+
+    if (user) {
+      fetchUnreadCount();
+    }
+  }, [user]);
 
   // Debounced search function
   const fetchSearchResults = useCallback(async (query: string) => {
@@ -134,9 +218,16 @@ const NavBar: React.FC = () => {
     }
   };
 
+  // Function to handle mobile menu collapse
+  const handleMobileMenuClose = () => {
+    setIsMobileMenuOpen(false);
+  };
+
+  // Update handleResultClick to also close mobile menu
   const handleResultClick = () => {
-    setIsDropdownVisible(false); // Hide dropdown when a result is clicked
-    setSearchQuery(""); // Optional: clear search query after selection
+    setIsDropdownVisible(false);
+    setSearchQuery("");
+    handleMobileMenuClose();
   };
 
   // Define navigation items with conditional visibility
@@ -165,18 +256,11 @@ const NavBar: React.FC = () => {
       name: "",
       type: "car",
     },
-    {
-      label: "Admin",
-      href: "/admin-shield/admin/dashboard",
-      isAdmin: true,
-      name: "",
-      type: "car",
-    },
   ];
 
   return (
     <nav
-      className={`bg-white border px-6 py-2 fixed top-0 left-0 right-0 z-50 shadow-md m-0 transition-all duration-700 ease-out ${
+      className={`bg-white border px-4 sm:px-6 py-2 fixed top-0 left-0 right-0 z-50 shadow-md m-0 transition-all duration-700 ease-out ${
         isVisible
           ? "opacity-100 translate-y-0"
           : "opacity-0 -translate-y-full pointer-events-none"
@@ -187,7 +271,7 @@ const NavBar: React.FC = () => {
           <div className="flex items-center justify-between flex-wrap min-w-0">
             {/* Left Section: Brand Logo */}
             <div className="flex items-center flex-shrink-0">
-              <Link href="/">
+              <Link href="/" onClick={handleMobileMenuClose}>
                 <span className="text-black font-normal text-base">
                   <div className="flex flex-col pl-2">
                     <h3>Diplomat</h3>
@@ -208,18 +292,15 @@ const NavBar: React.FC = () => {
             </div>
 
             {/* Middle Section: Navigation Links - Desktop */}
-            <div className="flex-1 hidden lg:flex justify-center gap-6 text-base text-black font-normal px-6 min-w-0">
+            <div className="hidden lg:flex flex-1 justify-center gap-4 xl:gap-6 text-base text-black font-normal px-4 xl:px-6 min-w-0">
               {navItems
-                .filter(
-                  (item) =>
-                    (!item.isAdmin || (item.isAdmin && isAdmin)) &&
-                    (!item.isAuth || (item.isAuth && user))
-                )
+                .filter((item) => !item.isAuth || (item.isAuth && user))
                 .map((item) => (
                   <Link
                     key={item.label}
                     href={item.href}
-                    className="hover:text-primary transition"
+                    className="hover:text-primary transition whitespace-nowrap"
+                    onClick={handleMobileMenuClose}
                   >
                     {item.label}
                   </Link>
@@ -227,8 +308,8 @@ const NavBar: React.FC = () => {
             </div>
 
             {/* Right Section: Search, Notifications, and Authentication */}
-            <div className="flex items-center gap-4 flex-shrink-0 min-w-0">
-              {/* --- Search Component --- */}
+            <div className="hidden lg:flex items-center gap-3 xl:gap-6 flex-shrink-0 min-w-0">
+              {/* Search Component */}
               <div className="relative" ref={searchRef}>
                 <div className="relative">
                   <input
@@ -237,7 +318,7 @@ const NavBar: React.FC = () => {
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     onFocus={handleInputFocus}
-                    className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-40 lg:w-56 pr-8"
+                    className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-40 xl:w-56 pr-8"
                   />
                   <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
                     {isSearchLoading ? (
@@ -247,7 +328,7 @@ const NavBar: React.FC = () => {
                     )}
                   </span>
                 </div>
-                {/* --- Dropdown --- */}
+                {/* Dropdown */}
                 {isDropdownVisible && (
                   <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
                     {isSearchLoading && searchResults.length === 0 ? (
@@ -285,13 +366,12 @@ const NavBar: React.FC = () => {
                   </div>
                 )}
               </div>
-              {/* --- End Search Component --- */}
 
               {/* Authentication Buttons */}
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-3 xl:gap-6">
                 {!user ? (
-                  <Link href="/sign-up">
-                    <Button className="bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                  <Link href="/sign-up" onClick={handleMobileMenuClose}>
+                    <Button className="bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium px-4 xl:px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
                       Get Started
                     </Button>
                   </Link>
@@ -308,66 +388,159 @@ const NavBar: React.FC = () => {
                         }}
                       />
                     </div>
-                    <Link href="/notifications">
+                    <Link href="/notifications" onClick={handleMobileMenuClose}>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="relative bg-gradient-to-r from-gray-50 to-white p-2 rounded-full border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300"
                       >
                         <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
-                        <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center">
-                          3
-                        </span>
+                        {unreadNotifications > 0 && (
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center">
+                            {unreadNotifications}
+                          </span>
+                        )}
                         <span className="sr-only">Notifications</span>
                       </Button>
                     </Link>
                     <Link
                       href="/manage-product/house"
-                      className="relative overflow-hidden px-4 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary text-gray-700 hover:text-primary transition-all duration-300 group"
+                      onClick={handleMobileMenuClose}
+                      className="relative overflow-hidden px-3 xl:px-4 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary text-gray-700 hover:text-primary transition-all duration-300 group"
                     >
                       <span className="relative z-10">Manage Products</span>
                       <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                     </Link>
-                    {isAdmin && (
-                      <span className="px-3 py-1 text-sm bg-gradient-to-r from-primary/10 to-blue-500/10 text-primary rounded-full border border-primary/20">
-                        Admin
-                      </span>
-                    )}
                   </>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Mobile Menu - shown when hamburger is clicked */}
+          {/* Mobile Menu */}
           {isMobileMenuOpen && (
             <div className="lg:hidden mt-4 border-t border-gray-200">
               <div className="flex flex-col gap-4 text-lg text-black font-semibold p-4">
                 {/* Navigation Links */}
                 {navItems
-                  .filter(
-                    (item) =>
-                      (!item.isAdmin || (item.isAdmin && isAdmin)) &&
-                      (!item.isAuth || (item.isAuth && user))
-                  )
+                  .filter((item) => !item.isAuth || (item.isAuth && user))
                   .map((item) => (
                     <Link
                       key={item.label}
                       href={item.href}
                       className="hover:text-primary transition"
-                      onClick={() => setIsMobileMenuOpen(false)}
+                      onClick={handleMobileMenuClose}
                     >
                       {item.label}
                     </Link>
                   ))}
-                {/* Authentication */}
-                <div className="flex items-center justify-between gap-4">
+
+                {/* Search Component for Mobile */}
+                <div className="relative mt-4" ref={searchRef}>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="Search..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      onFocus={handleInputFocus}
+                      className="w-full border border-primary rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary pr-8"
+                    />
+                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
+                      {isSearchLoading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <Search className="w-5 h-5" />
+                      )}
+                    </span>
+                  </div>
+                  {/* Dropdown */}
+                  {isDropdownVisible && (
+                    <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
+                      {isSearchLoading && searchResults.length === 0 ? (
+                        <div className="p-2 text-center text-gray-500">
+                          Loading...
+                        </div>
+                      ) : searchResults.length > 0 ? (
+                        <ul>
+                          {searchResults.map((result) => (
+                            <li
+                              key={`${result.type}-${result.id}`}
+                              className="border-b last:border-b-0"
+                            >
+                              <Link
+                                href={`/${result.type}/${result.id}`}
+                                onClick={handleResultClick}
+                                className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                              >
+                                {result.name}{" "}
+                                <span className="text-xs text-gray-400">
+                                  ({result.type})
+                                </span>
+                              </Link>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        !isSearchLoading &&
+                        searchQuery && (
+                          <div className="p-2 text-center text-gray-500">
+                            No results found.
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Authentication Buttons for Mobile */}
+                <div className="flex flex-col gap-4 mt-4">
                   {!user ? (
-                    <Link href="/sign-up">
-                      <Button>Get Started</Button>
+                    <Link href="/sign-up" onClick={handleMobileMenuClose}>
+                      <Button className="w-full bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        Get Started
+                      </Button>
                     </Link>
                   ) : (
-                    <UserButton afterSignOutUrl="/" />
+                    <>
+                      <div className="flex items-center gap-4">
+                        <UserButton
+                          afterSignOutUrl="/"
+                          appearance={{
+                            elements: {
+                              rootBox: "w-full",
+                            },
+                          }}
+                        />
+                        <Link
+                          href="/notifications"
+                          onClick={handleMobileMenuClose}
+                          className="flex-1"
+                        >
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="w-full relative bg-gradient-to-r from-gray-50 to-white p-2 rounded-full border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300"
+                          >
+                            <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
+                            {unreadNotifications > 0 && (
+                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center">
+                                {unreadNotifications}
+                              </span>
+                            )}
+                            <span className="sr-only">Notifications</span>
+                          </Button>
+                        </Link>
+                      </div>
+                      <Link
+                        href="/manage-product/house"
+                        onClick={handleMobileMenuClose}
+                        className="w-full text-center relative overflow-hidden px-4 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary text-gray-700 hover:text-primary transition-all duration-300 group"
+                      >
+                        <span className="relative z-10">Manage Products</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                      </Link>
+                    </>
                   )}
                 </div>
               </div>

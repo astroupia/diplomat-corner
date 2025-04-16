@@ -2,22 +2,23 @@
 
 import { motion } from "framer-motion";
 import {
-  Car,
+  Home,
   ArrowLeft,
   User,
+  MapPin,
+  Bed,
+  Bath,
+  SquareIcon as SquareFeet,
   Calendar,
-  Gauge,
-  Fuel,
-  Settings,
   DollarSign,
   Loader2,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-export default function CarDetailLoadingSkeleton() {
+export default function HouseDetailLoadingSkeleton() {
   const [progress, setProgress] = useState(0);
-  const [loadingText, setLoadingText] = useState("Loading vehicle details...");
+  const [loadingText, setLoadingText] = useState("Loading property details...");
 
   // Simulate loading progress
   useEffect(() => {
@@ -37,9 +38,9 @@ export default function CarDetailLoadingSkeleton() {
   // Update loading text based on progress
   useEffect(() => {
     if (progress < 30) {
-      setLoadingText("Loading vehicle details...");
+      setLoadingText("Loading property details...");
     } else if (progress < 60) {
-      setLoadingText("Fetching specifications...");
+      setLoadingText("Fetching property specifications...");
     } else if (progress < 90) {
       setLoadingText("Preparing images...");
     } else {
@@ -48,12 +49,12 @@ export default function CarDetailLoadingSkeleton() {
   }, [progress]);
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-5 pb-16">
+    <div className="min-h-screen bg-gray-50 pt-24 pb-16">
       <div className="container mx-auto px-4">
         {/* Back button */}
         <div className="mb-6">
           <Link
-            href="/car"
+            href="/house"
             className="inline-flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -88,7 +89,7 @@ export default function CarDetailLoadingSkeleton() {
                   }}
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <Car className="h-20 w-20 text-gray-300" />
+                  <Home className="h-20 w-20 text-gray-300" />
                 </div>
               </div>
 
@@ -112,6 +113,12 @@ export default function CarDetailLoadingSkeleton() {
                 <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
               </div>
             </div>
+
+            {/* Map skeleton */}
+            <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
+              <div className="h-8 bg-gray-200 rounded animate-pulse w-1/4 mb-4"></div>
+              <div className="h-60 bg-gray-200 rounded animate-pulse w-full"></div>
+            </div>
           </div>
 
           {/* Right column - Details */}
@@ -131,27 +138,33 @@ export default function CarDetailLoadingSkeleton() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <Calendar className="h-5 w-5 text-gray-300" />
+                    <MapPin className="h-5 w-5 text-gray-300" />
+                  </div>
+                  <div className="h-5 bg-gray-200 rounded animate-pulse w-3/4"></div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <Bed className="h-5 w-5 text-gray-300" />
                   </div>
                   <div className="h-5 bg-gray-200 rounded animate-pulse w-1/3"></div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <Gauge className="h-5 w-5 text-gray-300" />
-                  </div>
-                  <div className="h-5 bg-gray-200 rounded animate-pulse w-2/5"></div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <Fuel className="h-5 w-5 text-gray-300" />
+                    <Bath className="h-5 w-5 text-gray-300" />
                   </div>
                   <div className="h-5 bg-gray-200 rounded animate-pulse w-1/4"></div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
-                    <Settings className="h-5 w-5 text-gray-300" />
+                    <SquareFeet className="h-5 w-5 text-gray-300" />
                   </div>
                   <div className="h-5 bg-gray-200 rounded animate-pulse w-2/5"></div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
+                    <Calendar className="h-5 w-5 text-gray-300" />
+                  </div>
+                  <div className="h-5 bg-gray-200 rounded animate-pulse w-1/2"></div>
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center">
@@ -164,13 +177,13 @@ export default function CarDetailLoadingSkeleton() {
               {/* Contact button skeleton */}
               <div className="h-12 bg-gray-200 rounded-lg animate-pulse w-full mb-4"></div>
 
-              {/* Share button skeleton */}
+              {/* Schedule viewing button skeleton */}
               <div className="h-12 bg-gray-200 rounded-lg animate-pulse w-full"></div>
             </div>
           </div>
         </div>
 
-        {/* Car animation */}
+        {/* House animation */}
         <div className="fixed bottom-10 right-10">
           <motion.div
             animate={{
@@ -185,7 +198,7 @@ export default function CarDetailLoadingSkeleton() {
             <div className="relative">
               <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl"></div>
               <div className="relative bg-white p-4 rounded-full shadow-lg">
-                <Car className="h-8 w-8 text-primary" />
+                <Home className="h-8 w-8 text-primary" />
               </div>
             </div>
           </motion.div>

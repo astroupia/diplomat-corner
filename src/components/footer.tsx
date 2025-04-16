@@ -2,7 +2,7 @@
 
 import type React from "react";
 import Link from "next/link";
-import { SignUpButton, SignInButton } from "@clerk/nextjs";
+import { SignUpButton, SignInButton, useAuth } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
 import { FolderCode } from "lucide-react";
@@ -98,6 +98,8 @@ const socialLinks = [
 ];
 
 const Footer: React.FC = () => {
+  const { isSignedIn } = useAuth();
+
   return (
     <footer className="bg-white/80 backdrop-blur-md border-t border-primary/10 py-10">
       <div className="container mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8">
@@ -126,51 +128,57 @@ const Footer: React.FC = () => {
           </div>
         ))}
 
-        {/* Account Section (kept separate due to special buttons) */}
+        {/* Account Section */}
         <div>
           <h2 className="text-lg font-semibold text-primary mb-4 tracking-wide">
             Account
           </h2>
           <ul className="space-y-3">
-            <li>
-              <div className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group">
-                <SignInButton>
-                  <button className="relative overflow-hidden group flex items-center">
+            {!isSignedIn ? (
+              <>
+                <li>
+                  <div className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group">
+                    <SignInButton>
+                      <button className="relative overflow-hidden group flex items-center">
+                        <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
+                          Sign In
+                        </span>
+                        <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                      </button>
+                    </SignInButton>
+                  </div>
+                </li>
+                <li>
+                  <div className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group">
+                    <SignUpButton>
+                      <button className="relative overflow-hidden group flex items-center">
+                        <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
+                          Sign Up
+                        </span>
+                        <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                      </button>
+                    </SignUpButton>
+                  </div>
+                </li>
+              </>
+            ) : (
+              <li>
+                <Link
+                  href="/manage-products"
+                  className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group"
+                >
+                  <span className="relative overflow-hidden">
                     <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
-                      Sign In
+                      Add Products
                     </span>
                     <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
                     <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-                  </button>
-                </SignInButton>
-              </div>
-            </li>
-            <li>
-              <div className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group">
-                <SignUpButton>
-                  <button className="relative overflow-hidden group flex items-center">
-                    <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
-                      Sign Up
-                    </span>
-                    <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-                  </button>
-                </SignUpButton>
-              </div>
-            </li>
-            <li>
-              <a
-                href="#"
-                className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group"
-              >
-                <span className="relative overflow-hidden">
-                  <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
-                    Profile
                   </span>
-                  <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
-                </span>
-              </a>
-            </li>
+                </Link>
+              </li>
+            )}
           </ul>
         </div>
       </div>
