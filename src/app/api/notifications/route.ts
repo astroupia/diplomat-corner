@@ -3,98 +3,160 @@ import { connectToDatabase } from "@/lib/db-connect";
 import Notification from "@/lib/models/notification.model";
 
 export async function GET(request: Request) {
-  await connectToDatabase();
-  const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId");
-
-  if (!userId) {
-    return NextResponse.json({ error: "userId is required" }, { status: 400 });
-  }
-
   try {
-    const notifications = await Notification.find({ userId }).sort({ timestamp: -1 });
-    const response = notifications.map((notification) => ({
-      ...notification.toObject(),
-      _id: notification._id.toString(),
-    }));
-    return NextResponse.json(response);
-  } catch (error: any) {
+    await connectToDatabase();
+
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: "User ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const notifications = await Notification.find({ userId })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    return NextResponse.json(notifications);
+  } catch (error) {
+    console.error("Error fetching notifications:", error);
     return NextResponse.json(
-      { error: "Failed to fetch notifications: " + (error as Error).message },
+      { error: "Failed to fetch notifications" },
       { status: 500 }
     );
   }
 }
 
-// POST to create a new notification
 export async function POST(request: Request) {
-  await connectToDatabase();
-  const { userId, message, type } = await request.json();
+  try {
+    await connectToDatabase();
 
-  if (!userId || !message || !type) {
-    return NextResponse.json(
-      { error: "userId, message, and type are required" },
-      { status: 400 }
-    );
-  }
+    const body = await request.json();
+    const { userId, title, message, type, category, link, productType } = body;
 
-  if (!["Order", "Promotion", "Payment", "Delivery", "System"].includes(type)) {
-    return NextResponse.json({ error: "Invalid type value" }, { status: 400 });
-  }
-
-  const notification = new Notification({
-    userId,
-    message,
-    type,
-    readStatus: false,
-    timestamp: new Date().toISOString(),
-  });
-
-  // Retry logic: attempt to save the notification up to 3 times
-  let attempts = 0;
-  const maxAttempts = 3;
-  while (attempts < maxAttempts) {
-    try {
-      await notification.save();
+    if (!userId || !title || !message || !type) {
       return NextResponse.json(
-        { success: true, id: notification._id.toString() },
-        { status: 201 }
+        { error: "Missing required fields" },
+        { status: 400 }
       );
-    } catch (error) {
-      attempts++;
-      if (attempts === maxAttempts) {
+    }
+
+    // Validate notification type
+    const validTypes = [
+      "info",
+      "success",
+      "warning",
+      "error",
+      "update",
+      "request",
+    ];
+    if (!validTypes.includes(type)) {
+      return NextResponse.json(
+        { error: "Invalid notification type" },
+        { status: 400 }
+      );
+    }
+
+    // Validate category if provided
+    if (category) {
+      const validCategories = ["car", "house", "account", "system"];
+      if (!validCategories.includes(category)) {
         return NextResponse.json(
-          {
-            error: `Failed to create notification after ${maxAttempts} attempts: ${(error as Error).message}`,
-          },
-          { status: 500 }
+          { error: "Invalid notification category" },
+          { status: 400 }
         );
       }
-      await new Promise((resolve) => setTimeout(resolve, 1000)).catch(() => {});
     }
+
+    const notification = await Notification.create({
+      userId,
+      title,
+      message,
+      type,
+      category,
+      link,
+      productType,
+      isRead: false,
+    });
+
+    return NextResponse.json(notification);
+  } catch (error) {
+    console.error("Error creating notification:", error);
+    return NextResponse.json(
+      { error: "Failed to create notification" },
+      { status: 500 }
+    );
   }
 }
 
-// PUT to mark a notification as read
 export async function PUT(request: Request) {
-  await connectToDatabase();
-  const { notificationId } = await request.json();
-
-  if (!notificationId) {
-    return NextResponse.json({ error: "notificationId is required" }, { status: 400 });
-  }
-
   try {
-    const notification = await Notification.findById(notificationId);
-    if (!notification) {
-      return NextResponse.json({ error: "Notification not found" }, { status: 404 });
+    await connectToDatabase();
+
+    const body = await request.json();
+    const { notificationId } = body;
+
+    if (!notificationId) {
+      return NextResponse.json(
+        { error: "Notification ID is required" },
+        { status: 400 }
+      );
     }
 
-    await Notification.findByIdAndUpdate(notificationId, { readStatus: true });
+    const notification = await Notification.findByIdAndUpdate(
+      notificationId,
+      { isRead: true },
+      { new: true }
+    );
+
+    if (!notification) {
+      return NextResponse.json(
+        { error: "Notification not found" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(notification);
+  } catch (error) {
+    console.error("Error updating notification:", error);
+    return NextResponse.json(
+      { error: "Failed to update notification" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await connectToDatabase();
+
+    const { searchParams } = new URL(request.url);
+    const notificationId = searchParams.get("id");
+
+    if (!notificationId) {
+      return NextResponse.json(
+        { error: "Notification ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const notification = await Notification.findByIdAndDelete(notificationId);
+
+    if (!notification) {
+      return NextResponse.json(
+        { error: "Notification not found" },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Error deleting notification:", error);
     return NextResponse.json(
-      { error: "Failed to update notification: " + (error as Error).message },
+      { error: "Failed to delete notification" },
       { status: 500 }
     );
   }

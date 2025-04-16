@@ -1,0 +1,133 @@
+import { NextResponse } from "next/server";
+import { getAuth } from "@clerk/nextjs/server";
+import Review from "@/lib/models/review.model";
+import { connectToDatabase } from "@/lib/db-connect";
+import { IReview } from "@/types/reviews";
+
+export async function GET(request: Request) {
+  try {
+    await connectToDatabase();
+
+    const { userId } = getAuth(request as any);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const productId = searchParams.get("productId");
+
+    if (!productId) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const reviews = await Review.find({ productId })
+      .populate("user", "firstName lastName")
+      .sort({ createdAt: -1 });
+
+    return NextResponse.json(reviews);
+  } catch (error) {
+    console.error("Error fetching reviews:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch reviews" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: Request) {
+  try {
+    await connectToDatabase();
+
+    const { userId } = getAuth(request);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { rating, comment, productId, targetUserId } = body;
+
+    if (!rating || !productId || !targetUserId) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+
+    if (rating < 1 || rating > 5) {
+      return NextResponse.json(
+        { error: "Rating must be between 1 and 5" },
+        { status: 400 }
+      );
+    }
+
+    const review = new Review({
+      userId,
+      targetUserId,
+      productId,
+      rating,
+      comment: comment || "",
+      likes: 0,
+    });
+
+    await review.save();
+
+    const populatedReview = await Review.findById(review._id).populate(
+      "user",
+      "firstName lastName"
+    );
+
+    return NextResponse.json(populatedReview);
+  } catch (error) {
+    console.error("Error creating review:", error);
+    return NextResponse.json(
+      { error: "Failed to create review" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: Request) {
+  try {
+    await connectToDatabase();
+
+    const { userId } = getAuth(request);
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const reviewId = searchParams.get("reviewId");
+
+    if (!reviewId) {
+      return NextResponse.json(
+        { error: "Review ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const review = await Review.findById(reviewId);
+    if (!review) {
+      return NextResponse.json({ error: "Review not found" }, { status: 404 });
+    }
+
+    if (review.userId !== userId) {
+      return NextResponse.json(
+        { error: "Unauthorized to delete this review" },
+        { status: 403 }
+      );
+    }
+
+    await Review.findByIdAndDelete(reviewId);
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting review:", error);
+    return NextResponse.json(
+      { error: "Failed to delete review" },
+      { status: 500 }
+    );
+  }
+}

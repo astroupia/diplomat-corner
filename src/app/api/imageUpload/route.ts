@@ -1,9 +1,25 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from "next/server";
+import { getAuth } from "@clerk/nextjs/server";
 
-const CPANEL_API_URL = 'https://diplomatcorner.net:2083';
-const CPANEL_USERNAME = 'diplomvv';
-const CPANEL_API_TOKEN = '2JL5W3RUMNY0KOX451GL2PPY4L8RX9RS';
-const PUBLIC_DOMAIN = 'https://diplomatcorner.net';
+interface UploadResponse {
+  success: boolean;
+  publicUrl?: string;
+  error?: string;
+}
+
+const CPANEL_API_URL = process.env.NEXT_PUBLIC_CPANEL_API_URL;
+const CPANEL_USERNAME = process.env.NEXT_PUBLIC_CPANEL_USERNAME;
+const CPANEL_API_TOKEN = process.env.NEXT_PUBLIC_CPANEL_API_TOKEN;
+const PUBLIC_DOMAIN = process.env.NEXT_PUBLIC_PUBLIC_DOMAIN;
+
+if (
+  !CPANEL_API_URL ||
+  !CPANEL_USERNAME ||
+  !CPANEL_API_TOKEN ||
+  !PUBLIC_DOMAIN
+) {
+  throw new Error("Missing required cPanel environment variables");
+}
 
 // Define the cPanel API response structure
 interface CpanelResponse {
@@ -13,74 +29,75 @@ interface CpanelResponse {
     succeeded: number;
     failed: number;
     warned: number;
-    uploads: { size: number; warnings: string[]; file: string; reason: string; status: number }[];
+    uploads: {
+      size: number;
+      warnings: string[];
+      file: string;
+      reason: string;
+      status: number;
+    }[];
   };
   warnings?: string[] | null;
   messages?: string[] | null;
   metadata?: Record<string, any>;
 }
 
-// Custom response type for the API
-interface UploadResponse {
-  success: boolean;
-  publicUrl?: string;
-  error?: string;
-}
-
-export async function POST(req: NextRequest): Promise<NextResponse<UploadResponse>> {
+export async function POST(
+  request: NextRequest
+): Promise<NextResponse<UploadResponse>> {
   try {
-    const formData = await req.formData();
-    const file = formData.get('file');
-
-    if (!file || !(file instanceof File)) {
-      return NextResponse.json({ success: false, error: 'No file uploaded or invalid format' }, { status: 400 });
-    }
-
-    const apiFormData = new FormData();
-    apiFormData.append('dir', '/public_html/public_images/');
-    apiFormData.append('file-1', file, file.name);
-
-    const authHeader = `cpanel ${CPANEL_USERNAME}:${CPANEL_API_TOKEN.trim()}`;
-    console.log('Request URL:', `${CPANEL_API_URL}/execute/Fileman/upload_files`);
-    console.log('Request Headers:', { Authorization: authHeader });
-    console.log('Request Body:', [...apiFormData.entries()]);
-
-    const response = await fetch(`${CPANEL_API_URL}/execute/Fileman/upload_files`, {
-      method: 'POST',
-      headers: { Authorization: authHeader },
-      body: apiFormData,
-    });
-
-    const responseText = await response.text();
-    console.log('Raw Response:', responseText);
-    console.log('Response Status:', response.status);
-
-    if (responseText.includes('<html')) {
-      return NextResponse.json({ success: false, error: 'Authentication issue' }, { status: 401 });
-    }
-
-    const data: CpanelResponse = JSON.parse(responseText);
-    if (data.status === 0) {
+    const { userId } = getAuth(request);
+    if (!userId) {
       return NextResponse.json(
-        { success: false, error: data.errors?.join(', ') || 'Upload failed' },
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const formData = await request.formData();
+    const file = formData.get("file") as File;
+
+    if (!file) {
+      return NextResponse.json(
+        { success: false, error: "No file uploaded" },
         { status: 400 }
       );
     }
 
-    // Construct the public URL from the uploaded file path
-    const uploadedFile = data.data?.uploads[0];
-    if (!uploadedFile || !uploadedFile.file) {
-      return NextResponse.json(
-        { success: false, error: 'No uploaded file details returned' },
-        { status: 500 }
-      );
+    const buffer = await file.arrayBuffer();
+    const base64Data = Buffer.from(buffer).toString("base64");
+
+    const response = await fetch(
+      `${CPANEL_API_URL}/execute/Fileman/upload_files`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `cpanel ${CPANEL_USERNAME}:${CPANEL_API_TOKEN}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          dir: "/public_html/uploads",
+          file: {
+            name: file.name,
+            data: base64Data,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to upload file to cPanel");
     }
 
-    // The full path is /public_html/public_images/filename
-    const publicUrl = `${PUBLIC_DOMAIN}/public_images/${uploadedFile.file}`;
-    return NextResponse.json({ success: true, publicUrl });
+    const data = await response.json();
+    const fileUrl = `${PUBLIC_DOMAIN}/uploads/${file.name}`;
+
+    return NextResponse.json({ success: true, publicUrl: fileUrl });
   } catch (error) {
-    console.error('Image upload failed:', error);
-    return NextResponse.json({ success: false, error: 'Failed to upload image' }, { status: 500 });
+    console.error("Error uploading file:", error);
+    return NextResponse.json(
+      { success: false, error: "Failed to upload file" },
+      { status: 500 }
+    );
   }
 }
