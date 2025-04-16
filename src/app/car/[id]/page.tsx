@@ -4,10 +4,11 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { CarFront, GaugeCircle, Fuel, Settings, ArrowLeft } from "lucide-react";
-import { ICar } from "@/lib/models/car.model";
+import type { ICar } from "@/lib/models/car.model";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
 import { Button } from "@/components/ui/button";
-import CarDetailLoadingSkeleton from "./loading";
+import CarDetailLoadingSkeleton from "@/components/loading-effects/id-loading-car";
+import ReviewsSection from "@/components/reviews/reviews-section";
 
 export default function CarDetails() {
   const params = useParams<{ id: string }>();
@@ -37,9 +38,7 @@ export default function CarDetails() {
   }, [id]);
 
   if (loading) {
-    return (
-      <CarDetailLoadingSkeleton />
-    );
+    return <CarDetailLoadingSkeleton />;
   }
 
   if (error) {
@@ -59,7 +58,7 @@ export default function CarDetails() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-6xl">
+    <div className="container mx-auto px-4 py-5 max-w-6xl">
       <button
         onClick={() => router.back()}
         className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
@@ -84,6 +83,13 @@ export default function CarDetails() {
             </h2>
             <p className="text-gray-600 leading-relaxed">{car.description}</p>
           </div>
+
+          {/* Reviews Section */}
+          <ReviewsSection
+            productId={id}
+            productType="car"
+            sellerId={car.userId}
+          />
         </div>
 
         <div className="lg:w-1/3 mt-8 lg:mt-0">
@@ -154,7 +160,7 @@ export default function CarDetails() {
               )}
             </div>
           </div>
-          
+
           <Button
             onClick={() => setIsDialogOpen(true)}
             className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-green-500 transition-colors duration-200"

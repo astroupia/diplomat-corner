@@ -5,6 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Bed, Bath, Ruler, Car, ArrowLeft } from "lucide-react";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
+import HouseDetailLoadingSkeleton from "@/components/loading-effects/id-loading-house";
+import ReviewsSection from "@/components/reviews/reviews-section";
 
 interface House {
   _id: string;
@@ -23,6 +25,7 @@ interface House {
   condition: string;
   maintenance: string;
   essentials: string[];
+  userId: string;
 }
 
 export default function HouseDetails() {
@@ -53,14 +56,7 @@ export default function HouseDetails() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-8">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-green-600 rounded-full animate-spin mb-4"></div>
-        <p className="text-lg font-medium text-gray-700">
-          Loading House Details...
-        </p>
-      </div>
-    );
+    return <HouseDetailLoadingSkeleton />;
   }
 
   if (error) {
@@ -109,6 +105,13 @@ export default function HouseDetails() {
             </h2>
             <p className="text-gray-600 leading-relaxed">{house.description}</p>
           </div>
+
+          {/* Reviews Section */}
+          <ReviewsSection
+            productId={id}
+            productType="house"
+            sellerId={house.userId}
+          />
         </div>
 
         <div className="lg:w-1/3 mt-8 lg:mt-0">

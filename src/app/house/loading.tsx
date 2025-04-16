@@ -1,50 +1,52 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Home, Search, Filter, Loader2, ChevronDown } from "lucide-react"
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion";
+import { Home, Search, Filter, Loader2, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function LoadingSkeleton() {
-  const [progress, setProgress] = useState(0)
-  const [loadingText, setLoadingText] = useState("Searching for the perfect properties...")
-  const [animationPosition, setAnimationPosition] = useState(0)
+  const [progress, setProgress] = useState(0);
+  const [loadingText, setLoadingText] = useState(
+    "Searching for the perfect properties..."
+  );
+  const [animationPosition, setAnimationPosition] = useState(0);
 
   // Simulate loading progress
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval)
-          return 100
+          clearInterval(interval);
+          return 100;
         }
-        return prev + 1
-      })
-    }, 50)
+        return prev + 1;
+      });
+    }, 50);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   // Update loading text based on progress
   useEffect(() => {
     if (progress < 30) {
-      setLoadingText("Searching for the perfect properties...")
+      setLoadingText("Searching for the perfect properties...");
     } else if (progress < 60) {
-      setLoadingText("Preparing property information...")
+      setLoadingText("Preparing property information...");
     } else if (progress < 90) {
-      setLoadingText("Almost ready...")
+      setLoadingText("Almost ready...");
     } else {
-      setLoadingText("Finalizing results...")
+      setLoadingText("Finalizing results...");
     }
-  }, [progress])
+  }, [progress]);
 
   // Animate house position
   useEffect(() => {
     const interval = setInterval(() => {
-      setAnimationPosition((prev) => (prev + 1) % 100)
-    }, 100)
+      setAnimationPosition((prev) => (prev + 1) % 100);
+    }, 100);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   // Card skeleton items
   const skeletonItems = Array.from({ length: 6 }).map((_, index) => (
@@ -73,10 +75,10 @@ export default function LoadingSkeleton() {
         </div>
       </div>
     </motion.div>
-  ))
+  ));
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-16">
+    <div className="min-h-screen bg-gray-50 pt-5 pb-16">
       {/* Hero Section with Loading Animation */}
       <div className="container mx-auto px-4 mb-8">
         <div className="relative min-h-96 bg-gradient-to-r from-primary/80 to-primary/40 rounded-xl overflow-hidden flex items-center justify-center">
@@ -99,13 +101,13 @@ export default function LoadingSkeleton() {
                 {Array.from({ length: 30 }).map((_, i) => (
                   <rect
                     key={i}
-                    x={40 + i * 40 }
-                    y={30 }
+                    x={40 + i * 40}
+                    y={30}
                     width="2"
                     height="2"
                     fill="#FEFCE8"
                     opacity={i % 2 === 0 ? 0.6 : 0}
-                    />
+                  />
                 ))}
               </svg>
             </div>
@@ -187,7 +189,9 @@ export default function LoadingSkeleton() {
       <div className="container mx-auto px-4 mb-8 flex justify-center">
         <div className="flex items-center gap-3 bg-white px-6 py-3 rounded-full shadow-sm">
           <Loader2 className="h-5 w-5 text-primary animate-spin" />
-          <span className="text-gray-700 font-medium">Loading properties...</span>
+          <span className="text-gray-700 font-medium">
+            Loading properties...
+          </span>
           <span className="text-primary font-bold">{progress}%</span>
         </div>
       </div>
@@ -196,15 +200,20 @@ export default function LoadingSkeleton() {
       <div className="container mx-auto px-4 mb-8">
         <div className="flex flex-wrap gap-2">
           {Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="h-8 bg-gray-200 rounded-full animate-pulse w-24"></div>
+            <div
+              key={index}
+              className="h-8 bg-gray-200 rounded-full animate-pulse w-24"
+            ></div>
           ))}
         </div>
       </div>
 
       {/* Card Skeletons */}
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{skeletonItems}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {skeletonItems}
+        </div>
       </div>
     </div>
-  )
+  );
 }

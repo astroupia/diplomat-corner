@@ -1,50 +1,52 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Car, Search, Filter, Loader2, ChevronDown } from "lucide-react"
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion";
+import { Car, Search, Filter, Loader2, ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export default function LoadingSkeleton() {
-  const [progress, setProgress] = useState(0)
-  const [loadingText, setLoadingText] = useState("Searching for the best cars...")
-  const [carPosition, setCarPosition] = useState(0)
+  const [progress, setProgress] = useState(0);
+  const [loadingText, setLoadingText] = useState(
+    "Searching for the best cars..."
+  );
+  const [carPosition, setCarPosition] = useState(0);
 
   // Simulate loading progress
   useEffect(() => {
     const interval = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
-          clearInterval(interval)
-          return 100
+          clearInterval(interval);
+          return 100;
         }
-        return prev + 1
-      })
-    }, 50)
+        return prev + 1;
+      });
+    }, 50);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   // Update loading text based on progress
   useEffect(() => {
     if (progress < 30) {
-      setLoadingText("Searching for the best cars...")
+      setLoadingText("Searching for the best cars...");
     } else if (progress < 60) {
-      setLoadingText("Preparing vehicle information...")
+      setLoadingText("Preparing vehicle information...");
     } else if (progress < 90) {
-      setLoadingText("Almost ready...")
+      setLoadingText("Almost ready...");
     } else {
-      setLoadingText("Finalizing results...")
+      setLoadingText("Finalizing results...");
     }
-  }, [progress])
+  }, [progress]);
 
   // Animate car position
   useEffect(() => {
     const interval = setInterval(() => {
-      setCarPosition((prev) => (prev + 1) % 100)
-    }, 100)
+      setCarPosition((prev) => (prev + 1) % 100);
+    }, 100);
 
-    return () => clearInterval(interval)
-  }, [])
+    return () => clearInterval(interval);
+  }, []);
 
   // Card skeleton items
   const skeletonItems = Array.from({ length: 6 }).map((_, index) => (
@@ -73,10 +75,10 @@ export default function LoadingSkeleton() {
         </div>
       </div>
     </motion.div>
-  ))
+  ));
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-16">
+    <div className="min-h-screen bg-gray-50 pt-5 pb-16">
       {/* Hero Section with Loading Animation */}
       <div className="container mx-auto px-4 mb-8">
         <div className="relative min-h-96 bg-gradient-to-r from-primary/80 to-primary/40 rounded-xl overflow-hidden flex items-center justify-center">
@@ -189,8 +191,10 @@ export default function LoadingSkeleton() {
 
       {/* Card Skeletons */}
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{skeletonItems}</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {skeletonItems}
+        </div>
       </div>
     </div>
-  )
+  );
 }
