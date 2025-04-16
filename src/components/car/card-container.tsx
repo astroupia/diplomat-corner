@@ -7,7 +7,7 @@ import LoadingSkeleton from "@/app/car/loading";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
 import FilterSection, { FilterOption } from "../filter-section";
-import ListingBanner from "@/components/listing-banner"
+import ListingBanner from "@/components/listing-banner";
 
 const CardContainer: React.FC = () => {
   const { userId } = useAuth();
@@ -143,18 +143,18 @@ const CardContainer: React.FC = () => {
   const displayedCars = cars.slice(0, displayLimit);
 
   return (
- 
-    <div className="container">
+    <div className="container mx-auto">
       <ListingBanner type="car" />
-        {/* Filter Section */}
-        <div className="container py-10" >
-          <FilterSection
-            sortOrder={sortOrder}
-            onSortChange={handleSortChange}
-            filterOptions={filterOptions}
-            activeFilters={activeFilters}
-            onFilterChange={handleFilterChange}
-          />
+
+      {/* Filter Section */}
+      <div className="py-10">
+        <FilterSection
+          sortOrder={sortOrder}
+          onSortChange={handleSortChange}
+          filterOptions={filterOptions}
+          activeFilters={activeFilters}
+          onFilterChange={handleFilterChange}
+        />
 
         {/* User's Listings Section */}
         {userId && userCars.length > 0 && (
@@ -181,7 +181,7 @@ const CardContainer: React.FC = () => {
                 <Card
                   key={car._id}
                   {...car}
-                  listedBy={user?.firstName || "Unkown User"}
+                  listedBy={user?.firstName || "Unknown User"}
                 />
               ))}
             </div>
