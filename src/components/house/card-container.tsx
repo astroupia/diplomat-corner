@@ -7,6 +7,8 @@ import LoadingSkeleton from "@/app/house/loading";
 import { useAuth } from "@clerk/nextjs";
 import { ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
 import FilterSection from "../filter-section";
+import ListingBanner from "../listing-banner";
+
 
 const CardContainer: React.FC = () => {
   const { userId } = useAuth();
@@ -134,20 +136,12 @@ const CardContainer: React.FC = () => {
 
   return (
     <>
-      <div
-        className="container mx-w-8xl rounded-lg py-8 relative h-64 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: 'url("/assets/images/house_preview.jpg")' }}
-      >
-        <div className="text-center text-white bg-black bg-opacity-50 p-4 rounded-lg">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-            Properties
-          </h1>
-          <p className="text-base sm:text-lg mt-2">Find Your Perfect Home</p>
-        </div>
-      </div>
-      <div className="container mx-auto px-4 py-8">
+    <div className="container">
+      
+     <ListingBanner type="house" />
+      
         {/* Filter Section */}
-        <div className="container mx-auto px-4">
+        <div className="pt-10 pb-5">
           <FilterSection
             sortOrder={sortOrder}
             onSortChange={handleSortChange}

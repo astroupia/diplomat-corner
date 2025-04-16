@@ -87,7 +87,7 @@ const ContactSellerDialog: React.FC<ContactSellerDialogProps> = ({
     try {
       // Fetch product details to get seller's user ID
       const productResponse = await fetch(
-        `/api/${productType === "car" ? "cars" : "houses"}/${productId}`
+        `/api/${productType === "car" ? "cars" : "house"}/${productId}`
       );
 
       if (!productResponse.ok) {

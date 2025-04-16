@@ -80,7 +80,7 @@ export default function HouseDetails() {
   const closeDialog = () => setIsDialogOpen(false);
 
   return (
-    <div className="container mx-auto px-4 py-16 max-w-6xl">
+    <div className="container mx-auto px-4 py-5 max-w-6xl">
       <button
         onClick={() => router.back()}
         className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
