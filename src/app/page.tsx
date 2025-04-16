@@ -5,8 +5,8 @@ import { motion } from "framer-motion";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import Image from "next/image";
 import Link from "next/link";
-import { images } from "@public/assets/images";
-import { type products, getProduct } from "@public/assets/data/products";
+import { images } from "@/public/assets/images";
+import { type products, getProduct } from "@/public/assets/data/products";
 import {
   ChevronDown,
   Plus,
