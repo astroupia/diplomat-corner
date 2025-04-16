@@ -7,6 +7,7 @@ import LoadingSkeleton from "@/app/car/loading";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
 import FilterSection, { FilterOption } from "../filter-section";
+import ListingBanner from "@/components/listing-banner"
 
 const CardContainer: React.FC = () => {
   const { userId } = useAuth();
@@ -142,21 +143,11 @@ const CardContainer: React.FC = () => {
   const displayedCars = cars.slice(0, displayLimit);
 
   return (
-    <>
-      <div
-        className="container mx-w-8xl rounded-lg py-8 relative h-64 bg-cover bg-center flex items-center justify-center"
-        style={{ backgroundImage: 'url("/assets/images/car_preview.jpg")' }}
-      >
-        <div className="text-center text-white bg-black bg-opacity-50 p-4 rounded-lg">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">
-            Properties
-          </h1>
-          <p className="text-base sm:text-lg mt-2">Find Your Perfect Home</p>
-        </div>
-      </div>
-      <div className="container mx-auto px-4 py-8">
+ 
+    <div className="container">
+      <ListingBanner type="car" />
         {/* Filter Section */}
-        <div className="container mx-w-8xl">
+        <div className="container py-10" >
           <FilterSection
             sortOrder={sortOrder}
             onSortChange={handleSortChange}
@@ -164,7 +155,6 @@ const CardContainer: React.FC = () => {
             activeFilters={activeFilters}
             onFilterChange={handleFilterChange}
           />
-        </div>
 
         {/* User's Listings Section */}
         {userId && userCars.length > 0 && (
@@ -181,7 +171,7 @@ const CardContainer: React.FC = () => {
         )}
 
         {/* All Listings Section */}
-        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
+        <h2 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-5">
           All Available Cars
         </h2>
         {displayedCars.length > 0 ? (
@@ -211,7 +201,7 @@ const CardContainer: React.FC = () => {
           <p className="text-center py-10 text-gray-500">No cars available.</p>
         )}
       </div>
-    </>
+    </div>
   );
 };
 
