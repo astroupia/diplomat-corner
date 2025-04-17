@@ -41,111 +41,20 @@ const NavBar: React.FC = () => {
   const notificationCheckInterval = useRef<NodeJS.Timeout | null>(null);
   const lastCheckTime = useRef<Date>(new Date());
 
-  // Function to check for new notifications
-  const checkNewNotifications = async () => {
-    if (!user) return;
-
-    try {
-      const response = await fetch(
-        `/api/notifications/check-new?userId=${
-          user.id
-        }&lastCheck=${lastCheckTime.current.toISOString()}`
-      );
-
-      if (!response.ok) throw new Error("Failed to check notifications");
-
-      const data = await response.json();
-
-      if (data.count > 0) {
-        // Get the current total unread count
-        const totalResponse = await fetch(
-          `/api/notifications?userId=${user.id}&unreadOnly=true`
-        );
-
-        if (totalResponse.ok) {
-          const notifications: INotification[] = await totalResponse.json();
-          const newCount = notifications.length;
-          setUnreadNotifications(newCount);
-
-          // Update localStorage with fresh count
-          localStorage.setItem("unreadNotificationsCount", newCount.toString());
-        } else {
-          // Fallback: just add new count to existing
-          const newCount = unreadNotifications + data.count;
-          setUnreadNotifications(newCount);
-
-          // Update localStorage with new count
-          localStorage.setItem("unreadNotificationsCount", newCount.toString());
-        }
-
-        // Show browser notification if supported and permitted
-        if ("Notification" in window && Notification.permission === "granted") {
-          new Notification("New Notifications", {
-            body: `You have ${data.count} new notification${
-              data.count > 1 ? "s" : ""
-            }`,
-            icon: "/favicon.ico",
-          });
-        }
-      }
-
-      lastCheckTime.current = new Date();
-    } catch (error) {
-      console.error("Error checking notifications:", error);
-    }
-  };
-
-  // Set up notification checking
+  // Set up notification checking when user data loads
   useEffect(() => {
+    // Skip if Clerk authentication is not loaded yet
     if (!isLoaded) return;
 
-    // Request notification permission
-    if (
-      user &&
-      "Notification" in window &&
-      Notification.permission === "default"
-    ) {
-      Notification.requestPermission();
+    // Check for existing count in localStorage
+    if (typeof window !== "undefined") {
+      const storedCount = localStorage.getItem("unreadNotificationsCount");
+      if (storedCount) {
+        setUnreadNotifications(parseInt(storedCount));
+      }
     }
 
-    // Fetch initial unread count when component mounts
-    const fetchInitialUnreadCount = async () => {
-      if (!user) {
-        setUnreadNotifications(0);
-        return;
-      }
-
-      try {
-        // First check localStorage for existing count
-        const storedCount = localStorage.getItem("unreadNotificationsCount");
-        if (storedCount) {
-          setUnreadNotifications(parseInt(storedCount, 10));
-        }
-
-        // Then fetch from API to ensure accuracy
-        const response = await fetch(
-          `/api/notifications?userId=${user.id}&unreadOnly=true`
-        );
-        if (!response.ok) throw new Error("Failed to fetch notifications");
-
-        const notifications: INotification[] = await response.json();
-        setUnreadNotifications(notifications.length);
-
-        // Update localStorage with fresh count
-        localStorage.setItem(
-          "unreadNotificationsCount",
-          notifications.length.toString()
-        );
-
-        lastCheckTime.current = new Date(); // Reset check time after initial fetch
-      } catch (error) {
-        console.error("Error fetching initial notifications:", error);
-      }
-    };
-
-    fetchInitialUnreadCount();
-
-    // Listen for notification updates from the Notifications component
+    // Define notification update event handler
     const handleNotificationUpdate = (event: any) => {
       if (event.detail && typeof event.detail.count === "number") {
         setUnreadNotifications(event.detail.count);
@@ -158,30 +67,15 @@ const NavBar: React.FC = () => {
       handleNotificationUpdate
     );
 
-    // Set up interval if user is logged in
-    if (user) {
-      // Initial check
-      checkNewNotifications();
-
-      // Regular polling every 10 seconds
-      notificationCheckInterval.current = setInterval(
-        checkNewNotifications,
-        10000
-      );
-    }
-
     // Cleanup interval when component unmounts or user changes
     return () => {
-      if (notificationCheckInterval.current) {
-        clearInterval(notificationCheckInterval.current);
-      }
       // Clean up event listeners
       window.removeEventListener(
         "unreadNotificationsUpdate",
         handleNotificationUpdate
       );
     };
-  }, [isLoaded, user, checkNewNotifications]);
+  }, [isLoaded, user]);
 
   // Reset notification count when user visits notifications page
   useEffect(() => {
@@ -344,6 +238,85 @@ const NavBar: React.FC = () => {
       type: "car",
     },
   ];
+
+  // Effect to setup notification polling and WebSocket connection
+  useEffect(() => {
+    // Define checkNewNotifications function inside useEffect
+    const checkNewNotifications = async () => {
+      if (!isLoaded || !user) return;
+
+      try {
+        // Check for new notifications since last check
+        const response = await fetch(
+          `/api/notifications/check-new?userId=${
+            user.id
+          }&lastCheck=${lastCheckTime.current.toISOString()}`
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.count > 0) {
+            // Update the count
+            setUnreadNotifications(
+              (prev) => parseInt(prev.toString()) + data.count
+            );
+
+            // Dispatch event for other components
+            const event = new CustomEvent("unreadNotificationsUpdate", {
+              detail: { count: data.count },
+            });
+            window.dispatchEvent(event);
+
+            // Update last check time
+            lastCheckTime.current = new Date();
+          }
+        }
+      } catch (error) {
+        console.error("Error checking for new notifications:", error);
+      }
+    };
+
+    // Define notification update handler inside useEffect
+    const handleNotificationUpdate = (event: any) => {
+      if (event.detail && typeof event.detail.count === "number") {
+        setUnreadNotifications(event.detail.count);
+      }
+    };
+
+    // First check for new notifications
+    checkNewNotifications();
+
+    // Set up polling interval for notifications - every 30 seconds
+    notificationCheckInterval.current = setInterval(() => {
+      checkNewNotifications();
+    }, 30000);
+
+    // Connect to WebSocket for real-time notification updates
+    const socket = new WebSocket(
+      `${window.location.protocol === "https:" ? "wss" : "ws"}://${
+        window.location.host
+      }/api/ws`
+    );
+
+    socket.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+
+    socket.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "notification" && user && data.userId === user.id) {
+        handleNotificationUpdate(data);
+      }
+    };
+
+    // Clean up on unmount
+    return () => {
+      if (notificationCheckInterval.current) {
+        clearInterval(notificationCheckInterval.current);
+      }
+      socket.close();
+    };
+  }, [isLoaded, user]);
 
   return (
     <nav

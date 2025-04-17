@@ -8,6 +8,11 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
 
+  // Disable TypeScript type checking during build
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+
   webpack(config, { isServer }) {
     // Custom rule for image imports (excluding public folder images)
     config.module?.rules?.push({

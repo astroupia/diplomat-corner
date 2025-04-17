@@ -66,10 +66,14 @@ async function uploadImage(
   }
 }
 
+// PUT handler
 export async function PUT(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse<ApiResponse>> {
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { params } = context;
+  const id = params.id;
+
   try {
     const userId = (await auth()).userId;
     if (!userId) {
@@ -79,7 +83,7 @@ export async function PUT(
       );
     }
 
-    const formData = await req.formData();
+    const formData = await request.formData();
     const file = formData.get("file") as File;
     const receiptFile = formData.get("receipt") as File;
 
@@ -115,7 +119,7 @@ export async function PUT(
     await connectToDatabase();
 
     // Find existing car
-    const existingCar = await Car.findById(params.id);
+    const existingCar = await Car.findById(id);
     if (!existingCar) {
       return NextResponse.json(
         { success: false, error: "Car not found", paymentId: "" },
@@ -159,7 +163,7 @@ export async function PUT(
 
     // Update car
     const updatedCar = await Car.findByIdAndUpdate(
-      params.id,
+      id,
       {
         ...carData,
         imageUrl,
@@ -170,7 +174,7 @@ export async function PUT(
     // Update payment record if receipt was uploaded
     if (receiptUrl) {
       await Payment.findOneAndUpdate(
-        { carId: params.id },
+        { carId: id },
         {
           receiptUrl,
           servicePrice: Number(formData.get("servicePrice")),
@@ -194,10 +198,14 @@ export async function PUT(
   }
 }
 
+// DELETE handler
 export async function DELETE(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse<ApiResponse>> {
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { params } = context;
+  const id = params.id;
+
   try {
     const userId = (await auth()).userId;
     if (!userId) {
@@ -209,7 +217,7 @@ export async function DELETE(
 
     await connectToDatabase();
 
-    const car = await Car.findById(await params.id);
+    const car = await Car.findById(id);
     if (!car) {
       return NextResponse.json(
         { success: false, error: "Car not found", paymentId: "" },
@@ -224,13 +232,13 @@ export async function DELETE(
       );
     }
 
-    await Car.findByIdAndDelete(params.id);
-    await Payment.findOneAndDelete({ carId: params.id });
+    await Car.findByIdAndDelete(id);
+    await Payment.findOneAndDelete({ carId: id });
 
     return NextResponse.json({
       success: true,
       message: "Car deleted successfully",
-      carId: params.id,
+      carId: id,
       paymentId: car.paymentId,
     });
   } catch (error) {
@@ -242,14 +250,18 @@ export async function DELETE(
   }
 }
 
+// GET handler
 export async function GET(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+  request: NextRequest,
+  context: { params: { id: string } }
+) {
+  const { params } = context;
+  const id = params.id;
+
   try {
     await connectToDatabase();
 
-    const car = await Car.findById(await params.id);
+    const car = await Car.findById(id);
     if (!car) {
       return NextResponse.json(
         { success: false, error: "Car not found" },
