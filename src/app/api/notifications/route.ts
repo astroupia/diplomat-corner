@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db-connect";
 import Notification from "@/lib/models/notification.model";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET(request: Request) {
   try {
@@ -92,38 +93,71 @@ export async function POST(request: Request) {
   }
 }
 
-export async function PUT(request: Request) {
+export async function PUT(req: Request) {
   try {
     await connectToDatabase();
+    const { userId } = await auth();
 
-    const body = await request.json();
-    const { notificationId } = body;
+    if (!userId) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
 
+    const { notificationId, action, notificationIds } = await req.json();
+
+    // Handle marking all notifications as read
+    if (action === "markAllRead" && Array.isArray(notificationIds)) {
+      // Check if the user owns all these notifications
+      const updates = await Notification.updateMany(
+        {
+          _id: { $in: notificationIds },
+          userId: userId,
+        },
+        { $set: { isRead: true } }
+      );
+
+      return NextResponse.json({
+        message: "Notifications marked as read",
+        updated: updates.modifiedCount,
+      });
+    }
+
+    // Handle single notification mark as read (existing logic)
     if (!notificationId) {
       return NextResponse.json(
-        { error: "Notification ID is required" },
+        { message: "Notification ID is required" },
         { status: 400 }
       );
     }
 
-    const notification = await Notification.findByIdAndUpdate(
-      notificationId,
-      { isRead: true },
-      { new: true }
-    );
+    const notification = await Notification.findById(notificationId);
 
     if (!notification) {
       return NextResponse.json(
-        { error: "Notification not found" },
+        { message: "Notification not found" },
         { status: 404 }
       );
     }
 
-    return NextResponse.json(notification);
+    // Check if the user owns the notification
+    if (notification.userId !== userId) {
+      return NextResponse.json(
+        { message: "Unauthorized to update this notification" },
+        { status: 403 }
+      );
+    }
+
+    // Mark notification as read
+    notification.isRead = true;
+    await notification.save();
+
+    return NextResponse.json(
+      { message: "Notification marked as read" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("Error updating notification:", error);
     return NextResponse.json(
-      { error: "Failed to update notification" },
+      { message: "Internal server error" },
       { status: 500 }
     );
   }

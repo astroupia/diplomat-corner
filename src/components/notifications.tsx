@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -27,6 +27,20 @@ import {
 
 interface FormattedMessageProps {
   message: string;
+}
+
+// Helper function to convert base64 to Uint8Array for Web Push
+function urlBase64ToUint8Array(base64String: string): Uint8Array {
+  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
 }
 
 const FormattedMessage: React.FC<FormattedMessageProps> = ({ message }) => {
@@ -258,52 +272,46 @@ export default function Notifications() {
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [isPolling, setIsPolling] = useState(false);
 
-  // Subscribe to push notifications
-  const subscribeToPushNotifications = async () => {
+  // Wrap subscribeToPushNotifications in useCallback
+  const subscribeToPushNotifications = useCallback(async () => {
     if (!isLoaded || !user) return;
 
     try {
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
-        applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+        applicationServerKey: urlBase64ToUint8Array(
+          process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""
+        ),
       });
 
-      // Send subscription to server
-      await fetch("/api/notifications/subscribe", {
+      // Store the subscription on the server
+      const response = await fetch("/api/notifications/subscribe", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: user.id,
           subscription,
         }),
       });
-    } catch (error) {
-      console.error("Error subscribing to push notifications:", error);
-    }
-  };
 
-  // Check if push notifications are supported
-  useEffect(() => {
-    if (
-      isLoaded &&
-      user &&
-      "serviceWorker" in navigator &&
-      "PushManager" in window
-    ) {
-      // Request notification permission
-      Notification.requestPermission().then((permission) => {
-        if (permission === "granted") {
-          subscribeToPushNotifications();
-        }
-      });
+      if (!response.ok) {
+        throw new Error("Failed to store subscription");
+      }
+    } catch (error) {
+      console.error("Failed to subscribe to push notifications:", error);
     }
   }, [isLoaded, user]);
 
-  // Fetch notifications from API
-  const fetchNotifications = async () => {
+  // Initial subscription to push notifications
+  useEffect(() => {
+    if (isLoaded && user) {
+      subscribeToPushNotifications();
+    }
+  }, [isLoaded, user, subscribeToPushNotifications]);
+
+  // Wrap fetchNotifications in useCallback
+  const fetchNotifications = useCallback(async () => {
     if (!isLoaded || !user) {
       setLoading(false);
       return;
@@ -316,22 +324,22 @@ export default function Notifications() {
         throw new Error(`Failed to fetch notifications: ${response.status}`);
       }
       const data = await response.json();
-      // Ensure unique IDs by using a combination of _id and createdAt
-      const uniqueNotifications = data.map((notification: INotification) => ({
-        ...notification,
-        uniqueId: `${notification._id}-${notification.createdAt}`,
-      }));
-      setNotifications(uniqueNotifications);
+      setNotifications(data);
       setLastCheck(new Date());
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [isLoaded, user, setNotifications, setLastCheck, setLoading]);
 
-  // Check for new notifications
-  const checkNewNotifications = async () => {
+  // Initial fetch
+  useEffect(() => {
+    fetchNotifications();
+  }, [fetchNotifications]);
+
+  // Wrap checkNewNotifications in useCallback
+  const checkNewNotifications = useCallback(async () => {
     if (!isLoaded || !user || !lastCheck || isPolling) return;
 
     setIsPolling(true);
@@ -375,18 +383,66 @@ export default function Notifications() {
     } finally {
       setIsPolling(false);
     }
-  };
+  }, [
+    isLoaded,
+    user,
+    lastCheck,
+    isPolling,
+    setIsPolling,
+    setNotifications,
+    setLastCheck,
+  ]);
 
-  // Initial fetch
+  // Set up polling interval for new notifications
   useEffect(() => {
-    fetchNotifications();
-  }, [isLoaded, user]);
+    if (!isLoaded || !user) return;
 
-  // Poll for new notifications every 30 seconds
+    // Check for new notifications every 30 seconds
+    const intervalId = setInterval(() => {
+      checkNewNotifications();
+    }, 30000);
+
+    // Clean up on unmount
+    return () => clearInterval(intervalId);
+  }, [isLoaded, user, checkNewNotifications]);
+
+  // Update the badge count when notifications change
   useEffect(() => {
-    const interval = setInterval(checkNewNotifications, 30000);
-    return () => clearInterval(interval);
-  }, [lastCheck, isLoaded, user]);
+    // Store unread count in localStorage when it changes
+    const unreadCount = notifications.filter(
+      (notification) => !notification.isRead
+    ).length;
+
+    if (typeof window !== "undefined") {
+      // Update localStorage with current unread count
+      localStorage.setItem("unreadNotificationsCount", unreadCount.toString());
+
+      // Dispatch event to notify other components
+      const event = new CustomEvent("unreadNotificationsUpdate", {
+        detail: { count: unreadCount },
+      });
+      window.dispatchEvent(event);
+
+      // Update document title to show notification count
+      if (unreadCount > 0) {
+        const originalTitle = document.title.replace(/^\(\d+\) /, "");
+        document.title = `(${unreadCount}) ${originalTitle}`;
+      } else {
+        document.title = document.title.replace(/^\(\d+\) /, "");
+      }
+    }
+  }, [notifications]);
+
+  // Reset the badge when component unmounts (leaving the page)
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined") {
+        // Don't reset localStorage - that should persist
+        // But do update the document title
+        document.title = document.title.replace(/^\(\d+\) /, "");
+      }
+    };
+  }, []);
 
   // Filter notifications
   const filteredNotifications = notifications.filter((notification) => {
@@ -407,9 +463,14 @@ export default function Notifications() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to mark notification as read");
+        const errorData = await response.json();
+        console.error("Failed to mark notification as read:", errorData);
+        throw new Error(
+          errorData.message || "Failed to mark notification as read"
+        );
       }
 
+      // Update local state
       setNotifications((prev) =>
         prev.map((notification) =>
           notification._id === id
@@ -417,6 +478,9 @@ export default function Notifications() {
             : notification
         )
       );
+
+      // The notifications state update will trigger the effect above
+      // which will update localStorage and dispatch the event
     } catch (error) {
       console.error("Error marking notification as read:", error);
     }
@@ -427,31 +491,43 @@ export default function Notifications() {
     try {
       const unreadIds = filteredNotifications
         .filter((notification) => !notification.isRead)
-        .map((notification) => notification.uniqueId);
+        .map((notification) => notification._id);
 
       if (unreadIds.length === 0) return;
 
-      const response = await fetch("/api/notifications/mark-all-read", {
+      // Use the regular notifications endpoint with a specific action
+      const response = await fetch("/api/notifications", {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ notificationIds: unreadIds }),
+        body: JSON.stringify({
+          action: "markAllRead",
+          notificationIds: unreadIds,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error("Failed to mark all notifications as read");
+        const errorData = await response.json();
+        throw new Error(
+          errorData.message || "Failed to mark all notifications as read"
+        );
       }
 
+      // Update local state
       setNotifications((prev) =>
         prev.map((notification) =>
-          unreadIds.includes(notification.uniqueId)
+          unreadIds.includes(notification._id)
             ? { ...notification, isRead: true }
             : notification
         )
       );
+
+      // The notifications state update will trigger the effect above
+      // which will update localStorage and dispatch the event
     } catch (error) {
       console.error("Error marking all notifications as read:", error);
+      alert("Failed to mark all notifications as read. Please try again.");
     }
   };
 
@@ -460,9 +536,6 @@ export default function Notifications() {
     try {
       const response = await fetch(`/api/notifications/${id}`, {
         method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
       });
 
       if (!response.ok) {

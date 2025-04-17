@@ -72,6 +72,7 @@ const CardContainer: React.FC = () => {
           }
 
           setCars(validatedCars);
+          setFullCars(validatedCars); // Store the full set of cars for filtering
           setHasMore(validatedCars.length > displayLimit);
         } else {
           throw new Error(
@@ -116,16 +117,106 @@ const CardContainer: React.FC = () => {
     if (filters.length === 0) {
       setCars(fullCars);
     } else {
-      // As an example, assume filters are based on car types.
-      const filteredCars = fullCars.filter((car) =>
-        filters.includes(car.bodyType.toLowerCase())
-      );
+      // Apply multiple filter conditions
+      const filteredCars = fullCars.filter((car) => {
+        // Each filter can be from different categories
+        return filters.some((filter) => {
+          // Check body type filters
+          if (
+            ["Sedan", "SUV", "Truck", "Hatchback", "Minivan"].includes(filter)
+          ) {
+            return car.bodyType === filter;
+          }
+
+          // Check fuel type filters
+          if (["Gasoline", "Diesel", "Electric", "Hybrid"].includes(filter)) {
+            return car.fuel === filter;
+          }
+
+          // Check transmission filters
+          if (["Automatic", "Manual"].includes(filter)) {
+            return car.transmission === filter;
+          }
+
+          // Check price range filters (example)
+          if (filter === "Budget") {
+            return car.price < 500000;
+          }
+          if (filter === "Premium") {
+            return car.price >= 500000;
+          }
+
+          return false;
+        });
+      });
+
       setCars(filteredCars);
     }
   };
 
   const loadMore = () => {
     setDisplayLimit((prev) => prev + 6);
+  };
+
+  // Create comprehensive filter options
+  const getFilterOptions = () => {
+    // Sort options
+    const sortOptions = [
+      { value: "Default", label: "Default" },
+      { value: "Price Low to High", label: "Price: Low to High" },
+      { value: "Price High to Low", label: "Price: High to Low" },
+      { value: "Mileage Low to High", label: "Mileage: Low to High" },
+      { value: "Mileage High to Low", label: "Mileage: High to Low" },
+    ];
+
+    // Body type filters
+    const bodyTypeFilters = [
+      { value: "Sedan", label: "Sedan" },
+      { value: "SUV", label: "SUV" },
+      { value: "Truck", label: "Truck" },
+      { value: "Hatchback", label: "Hatchback" },
+      { value: "Minivan", label: "Minivan" },
+    ];
+
+    // Fuel type filters
+    const fuelTypeFilters = [
+      { value: "Gasoline", label: "Gasoline" },
+      { value: "Diesel", label: "Diesel" },
+      { value: "Electric", label: "Electric" },
+      { value: "Hybrid", label: "Hybrid" },
+    ];
+
+    // Transmission filters
+    const transmissionFilters = [
+      { value: "Automatic", label: "Automatic" },
+      { value: "Manual", label: "Manual" },
+    ];
+
+    // Price range filters
+    const priceFilters = [
+      { value: "Budget", label: "Budget (<500k)" },
+      { value: "Premium", label: "Premium (≥500k)" },
+    ];
+
+    return [
+      ...sortOptions,
+      ...bodyTypeFilters,
+      ...fuelTypeFilters,
+      ...transmissionFilters,
+      ...priceFilters,
+    ];
+  };
+
+  // Handle search result selection
+  const handleSearchResultSelect = (result: {
+    id: string;
+    name: string;
+    type: string;
+  }) => {
+    // Redirect to the car detail page if needed
+    if (result.type === "car") {
+      window.location.href = `/car/${result.id}`;
+    }
   };
 
   if (loading) {
@@ -151,9 +242,12 @@ const CardContainer: React.FC = () => {
         <FilterSection
           sortOrder={sortOrder}
           onSortChange={handleSortChange}
-          filterOptions={filterOptions}
+          filterOptions={getFilterOptions()}
           activeFilters={activeFilters}
           onFilterChange={handleFilterChange}
+          onSearchResultSelect={handleSearchResultSelect}
+          showSearchResults={true}
+          modelType="car"
         />
 
         {/* User's Listings Section */}

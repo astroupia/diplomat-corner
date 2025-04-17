@@ -16,15 +16,13 @@ export default clerkMiddleware(async (auth, req) => {
 
     // Get user's public metadata to check admin role
     const sessionClaims = authObj.sessionClaims;
-    const publicMetadata = sessionClaims?.publicMetadata as
-      | PublicMetadata
-      | undefined;
-    const isAdmin = publicMetadata?.role === "admin";
 
-    if (!isAdmin) {
-      return NextResponse.redirect(new URL("/", req.url));
-    }
+    return NextResponse.redirect(
+      new URL("/admin-shield/admin/dashboard", req.url)
+    );
   }
+
+  return NextResponse.next();
 });
 
 export const config = {

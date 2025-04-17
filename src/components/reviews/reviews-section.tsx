@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { Star, ThumbsUp, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,11 +42,7 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    fetchReviews();
-  }, [productId]);
-
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const response = await fetch(`/api/reviews?productId=${productId}`);
       if (!response.ok) throw new Error("Failed to fetch reviews");
@@ -57,7 +53,11 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
+
+  useEffect(() => {
+    fetchReviews();
+  }, [fetchReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -262,8 +262,8 @@ const ReviewsSection: React.FC<ReviewsSectionProps> = ({
           title: "Review Deleted",
           message: `A review has been deleted from your ${productType}.`,
           type: "update",
-          category: productType,
-          link: `/${productType}/${productId}`,
+          category: productType.toLowerCase() as "car" | "house",
+          link: `/${productType.toLowerCase()}/${productId}`,
         }),
       });
 

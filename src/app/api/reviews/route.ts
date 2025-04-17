@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAuth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import Review from "@/lib/models/review.model";
 import { connectToDatabase } from "@/lib/db-connect";
 import { IReview } from "@/types/reviews";
@@ -8,7 +8,7 @@ export async function GET(request: Request) {
   try {
     await connectToDatabase();
 
-    const { userId } = getAuth(request as any);
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
   try {
     await connectToDatabase();
 
-    const { userId } = getAuth(request);
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
       productId,
       rating,
       comment: comment || "",
-      likes: 0,
+      likes: [],
     });
 
     await review.save();
@@ -93,7 +93,7 @@ export async function DELETE(request: Request) {
   try {
     await connectToDatabase();
 
-    const { userId } = getAuth(request);
+    const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

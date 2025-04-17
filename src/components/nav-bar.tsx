@@ -38,7 +38,7 @@ const NavBar: React.FC = () => {
   const [unreadNotifications, setUnreadNotifications] = useState<number>(0);
   const searchRef = useRef<HTMLDivElement>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const notificationCheckInterval = useRef<NodeJS.Timeout>();
+  const notificationCheckInterval = useRef<NodeJS.Timeout | null>(null);
   const lastCheckTime = useRef<Date>(new Date());
 
   // Function to check for new notifications
@@ -56,14 +56,33 @@ const NavBar: React.FC = () => {
 
       const data = await response.json();
 
-      if (data.newCount > 0) {
-        setUnreadNotifications((prev) => prev + data.newCount);
+      if (data.count > 0) {
+        // Get the current total unread count
+        const totalResponse = await fetch(
+          `/api/notifications?userId=${user.id}&unreadOnly=true`
+        );
 
-        // Show push notification if browser supports it
+        if (totalResponse.ok) {
+          const notifications: INotification[] = await totalResponse.json();
+          const newCount = notifications.length;
+          setUnreadNotifications(newCount);
+
+          // Update localStorage with fresh count
+          localStorage.setItem("unreadNotificationsCount", newCount.toString());
+        } else {
+          // Fallback: just add new count to existing
+          const newCount = unreadNotifications + data.count;
+          setUnreadNotifications(newCount);
+
+          // Update localStorage with new count
+          localStorage.setItem("unreadNotificationsCount", newCount.toString());
+        }
+
+        // Show browser notification if supported and permitted
         if ("Notification" in window && Notification.permission === "granted") {
           new Notification("New Notifications", {
-            body: `You have ${data.newCount} new notification${
-              data.newCount > 1 ? "s" : ""
+            body: `You have ${data.count} new notification${
+              data.count > 1 ? "s" : ""
             }`,
             icon: "/favicon.ico",
           });
@@ -78,36 +97,32 @@ const NavBar: React.FC = () => {
 
   // Set up notification checking
   useEffect(() => {
-    if (!user) return;
+    if (!isLoaded) return;
 
-    // Request notification permission if not already granted
-    if ("Notification" in window && Notification.permission === "default") {
+    // Request notification permission
+    if (
+      user &&
+      "Notification" in window &&
+      Notification.permission === "default"
+    ) {
       Notification.requestPermission();
     }
 
-    // Initial check
-    checkNewNotifications();
-
-    // Set up interval for checking (every 30 seconds)
-    notificationCheckInterval.current = setInterval(
-      checkNewNotifications,
-      30000
-    );
-
-    // Cleanup
-    return () => {
-      if (notificationCheckInterval.current) {
-        clearInterval(notificationCheckInterval.current);
+    // Fetch initial unread count when component mounts
+    const fetchInitialUnreadCount = async () => {
+      if (!user) {
+        setUnreadNotifications(0);
+        return;
       }
-    };
-  }, [user]);
-
-  // Fetch total unread count when component mounts or user changes
-  useEffect(() => {
-    const fetchUnreadCount = async () => {
-      if (!user) return;
 
       try {
+        // First check localStorage for existing count
+        const storedCount = localStorage.getItem("unreadNotificationsCount");
+        if (storedCount) {
+          setUnreadNotifications(parseInt(storedCount, 10));
+        }
+
+        // Then fetch from API to ensure accuracy
         const response = await fetch(
           `/api/notifications?userId=${user.id}&unreadOnly=true`
         );
@@ -115,14 +130,86 @@ const NavBar: React.FC = () => {
 
         const notifications: INotification[] = await response.json();
         setUnreadNotifications(notifications.length);
+
+        // Update localStorage with fresh count
+        localStorage.setItem(
+          "unreadNotificationsCount",
+          notifications.length.toString()
+        );
+
+        lastCheckTime.current = new Date(); // Reset check time after initial fetch
       } catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error("Error fetching initial notifications:", error);
       }
     };
 
+    fetchInitialUnreadCount();
+
+    // Listen for notification updates from the Notifications component
+    const handleNotificationUpdate = (event: any) => {
+      if (event.detail && typeof event.detail.count === "number") {
+        setUnreadNotifications(event.detail.count);
+      }
+    };
+
+    // Add the event listeners
+    window.addEventListener(
+      "unreadNotificationsUpdate",
+      handleNotificationUpdate
+    );
+
+    // Set up interval if user is logged in
     if (user) {
-      fetchUnreadCount();
+      // Initial check
+      checkNewNotifications();
+
+      // Regular polling every 10 seconds
+      notificationCheckInterval.current = setInterval(
+        checkNewNotifications,
+        10000
+      );
     }
+
+    // Cleanup interval when component unmounts or user changes
+    return () => {
+      if (notificationCheckInterval.current) {
+        clearInterval(notificationCheckInterval.current);
+      }
+      // Clean up event listeners
+      window.removeEventListener(
+        "unreadNotificationsUpdate",
+        handleNotificationUpdate
+      );
+    };
+  }, [isLoaded, user, checkNewNotifications]);
+
+  // Reset notification count when user visits notifications page
+  useEffect(() => {
+    const handleRouteChange = () => {
+      if (user && window.location.pathname === "/notifications") {
+        // Reset the counter after a small delay (to allow for page transition)
+        setTimeout(() => {
+          setUnreadNotifications(0);
+          // Update localStorage
+          localStorage.setItem("unreadNotificationsCount", "0");
+          lastCheckTime.current = new Date();
+        }, 500);
+      }
+    };
+
+    // Listen for route changes and check initial route
+    if (typeof window !== "undefined") {
+      window.addEventListener("popstate", handleRouteChange);
+      // Check the current route when the component mounts
+      handleRouteChange();
+
+      // Cleanup listener on unmount
+      return () => {
+        window.removeEventListener("popstate", handleRouteChange);
+      };
+    }
+
+    return undefined; // Explicit return for the effect cleanup function
   }, [user]);
 
   // Debounced search function
@@ -396,8 +483,10 @@ const NavBar: React.FC = () => {
                       >
                         <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
                         {unreadNotifications > 0 && (
-                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center">
-                            {unreadNotifications}
+                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
+                            {unreadNotifications > 99
+                              ? "99+"
+                              : unreadNotifications}
                           </span>
                         )}
                         <span className="sr-only">Notifications</span>
@@ -524,8 +613,10 @@ const NavBar: React.FC = () => {
                           >
                             <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
                             {unreadNotifications > 0 && (
-                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center">
-                                {unreadNotifications}
+                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
+                                {unreadNotifications > 99
+                                  ? "99+"
+                                  : unreadNotifications}
                               </span>
                             )}
                             <span className="sr-only">Notifications</span>

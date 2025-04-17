@@ -48,7 +48,7 @@ export default function RequestsTable() {
     };
 
     fetchRequests();
-  }, []);
+  }, [userId]);
 
   if (loading) {
     return <div>Loading requests...</div>;
@@ -93,13 +93,25 @@ export default function RequestsTable() {
           {requests.map((request) => (
             <tr key={request._id}>
               <td className="px-6 py-4 whitespace-no-wrap">{request._id}</td>
-              <td className="px-6 py-4 whitespace-no-wrap">{request.fromUserId}</td>
-              <td className="px-6 py-4 whitespace-no-wrap">{request.toUserId}</td>
-              <td className="px-6 py-4 whitespace-no-wrap">{request.productId}</td>
-              <td className="px-6 py-4 whitespace-no-wrap">{request.itemType}</td>
-              <td className="px-6 py-4 whitespace-no-wrap">{request.message}</td>
+              <td className="px-6 py-4 whitespace-no-wrap">
+                {request.fromUserId}
+              </td>
+              <td className="px-6 py-4 whitespace-no-wrap">
+                {request.toUserId}
+              </td>
+              <td className="px-6 py-4 whitespace-no-wrap">
+                {request.productId}
+              </td>
+              <td className="px-6 py-4 whitespace-no-wrap">
+                {request.itemType}
+              </td>
+              <td className="px-6 py-4 whitespace-no-wrap">
+                {request.message}
+              </td>
               <td className="px-6 py-4 whitespace-no-wrap">{request.status}</td>
-              <td className="px-6 py-4 whitespace-no-wrap">{request.createdAt}</td>
+              <td className="px-6 py-4 whitespace-no-wrap">
+                {request.createdAt}
+              </td>
             </tr>
           ))}
         </tbody>
@@ -108,6 +120,6 @@ export default function RequestsTable() {
   );
 }
 
-function useAuth(): { userId: any; } {
+function useAuth(): { userId: any } {
   throw new Error("Function not implemented.");
 }

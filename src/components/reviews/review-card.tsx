@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { formatDistanceToNow } from "date-fns";
+import Image from "next/image";
 
 interface ReviewCardProps {
   review: {
@@ -58,9 +59,11 @@ export default function ReviewCard({
         <div className="flex items-center">
           <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-green-100 to-green-300 flex items-center justify-center text-green-700 font-medium">
             {review.userImage ? (
-              <img
+              <Image
                 src={review.userImage || "/placeholder.svg"}
                 alt={review.userName}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
               />
             ) : (

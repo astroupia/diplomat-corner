@@ -9,7 +9,6 @@ import { ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
 import FilterSection from "../filter-section";
 import ListingBanner from "../listing-banner";
 
-
 const CardContainer: React.FC = () => {
   const { userId } = useAuth();
   const [houses, setHouses] = useState<IHouse[]>([]);
@@ -71,6 +70,7 @@ const CardContainer: React.FC = () => {
           }
 
           setHouses(data);
+          setFullHouses(data); // Store the full set of houses for filtering
           setHasMore(data.length > displayLimit);
         } else {
           throw new Error("Invalid data format: Expected an array");
@@ -98,6 +98,10 @@ const CardContainer: React.FC = () => {
       sortedHouses.sort((a, b) => a.size - b.size);
     } else if (value === "Size Large to Small") {
       sortedHouses.sort((a, b) => b.size - a.size);
+    } else if (value === "Bedrooms (Ascending)") {
+      sortedHouses.sort((a, b) => a.bedroom - b.bedroom);
+    } else if (value === "Bedrooms (Descending)") {
+      sortedHouses.sort((a, b) => b.bedroom - a.bedroom);
     } else {
       sortedHouses = [...houses];
     }
@@ -109,10 +113,115 @@ const CardContainer: React.FC = () => {
     if (filters.length === 0) {
       setHouses(fullHouses);
     } else {
-      const filteredHouses = fullHouses.filter((house) =>
-        filters.includes(house.advertisementType.toLowerCase())
-      );
+      // Apply multiple filter conditions
+      const filteredHouses = fullHouses.filter((house) => {
+        // Each filter can be from different categories
+        return filters.some((filter) => {
+          // Check bedroom filters
+          if (filter === "1-bedroom") {
+            return house.bedroom === 1;
+          }
+          if (filter === "2-bedroom") {
+            return house.bedroom === 2;
+          }
+          if (filter === "3-bedroom") {
+            return house.bedroom >= 3;
+          }
+
+          // Check essentials filters
+          if (
+            filter === "WiFi" ||
+            filter === "Gym" ||
+            filter === "Furnished" ||
+            filter === "Play Ground" ||
+            filter === "Outdoor" ||
+            filter === "Dining Area" ||
+            filter === "Jacuzzi" ||
+            filter === "Steam"
+          ) {
+            return house.essentials && house.essentials.includes(filter);
+          }
+
+          // Check parking filter
+          if (filter === "parking") {
+            return house.parkingSpace > 0;
+          }
+
+          // Check advertisement type filters
+          if (filter === "For Rent" || filter === "For Sale") {
+            return house.advertisementType === filter.replace("For ", "");
+          }
+
+          // Check house type filters
+          if (
+            filter === "House" ||
+            filter === "Apartment" ||
+            filter === "Guest House"
+          ) {
+            return house.houseType === filter;
+          }
+
+          return false;
+        });
+      });
+
       setHouses(filteredHouses);
+    }
+  };
+
+  // Create comprehensive filter options
+  const getFilterOptions = () => {
+    // Sort options
+    const sortOptions = [
+      { value: "Default", label: "Sort: Default" },
+      { value: "Price Low to High", label: "Price: Low to High" },
+      { value: "Price High to Low", label: "Price: High to Low" },
+      { value: "Size Small to Large", label: "Size: Small to Large" },
+      { value: "Size Large to Small", label: "Size: Large to Small" },
+      { value: "Bedrooms (Ascending)", label: "Bedrooms: Fewest First" },
+      { value: "Bedrooms (Descending)", label: "Bedrooms: Most First" },
+    ];
+
+    // Features filters
+    const featureFilters = [
+      { value: "parking", label: "Parking" },
+      { value: "WiFi", label: "WiFi" },
+      { value: "Furnished", label: "Furnished" },
+      { value: "Gym", label: "Gym" },
+      { value: "Outdoor", label: "Outdoor" },
+      { value: "Dining Area", label: "Dining Area" },
+    ];
+
+    // House type filters
+    const houseTypeFilters = [
+      { value: "House", label: "House" },
+      { value: "Apartment", label: "Apartment" },
+      { value: "Guest House", label: "Guest House" },
+    ];
+
+    // Advertisement type filters
+    const adTypeFilters = [
+      { value: "For Rent", label: "For Rent" },
+      { value: "For Sale", label: "For Sale" },
+    ];
+
+    return [
+      ...sortOptions,
+      ...featureFilters,
+      ...houseTypeFilters,
+      ...adTypeFilters,
+    ];
+  };
+
+  // Handle search result selection
+  const handleSearchResultSelect = (result: {
+    id: string;
+    name: string;
+    type: string;
+  }) => {
+    // Redirect to the house detail page if needed
+    if (result.type === "house") {
+      window.location.href = `/house/${result.id}`;
     }
   };
 
@@ -136,18 +245,20 @@ const CardContainer: React.FC = () => {
 
   return (
     <>
-    <div className="container">
-      
-     <ListingBanner type="house" />
-      
+      <div className="container pb-10">
+        <ListingBanner type="house" />
+
         {/* Filter Section */}
         <div className="pt-10 pb-5">
           <FilterSection
             sortOrder={sortOrder}
             onSortChange={handleSortChange}
-            filterOptions={allFilterOptions}
+            filterOptions={getFilterOptions()}
             activeFilters={activeFilters}
             onFilterChange={handleFilterChange}
+            onSearchResultSelect={handleSearchResultSelect}
+            showSearchResults={true}
+            modelType="house"
           />
         </div>
 

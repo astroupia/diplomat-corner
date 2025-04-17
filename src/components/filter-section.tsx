@@ -1,21 +1,43 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
-import { Check, ChevronDown, Search, SlidersHorizontal, X, Filter, ArrowUpDown, Sparkles, Star } from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
+import type React from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import {
+  Check,
+  ChevronDown,
+  Search,
+  SlidersHorizontal,
+  X,
+  Filter,
+  ArrowUpDown,
+  Sparkles,
+  Star,
+  Loader2,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
+
+// Define the type for search results based on API response
+interface SearchResult {
+  id: string;
+  name: string;
+  type: "car" | "house";
+}
 
 export interface FilterOption {
-  value: string
-  label: string
+  value: string;
+  label: string;
 }
 
 export interface FilterSectionProps {
-  sortOrder: string
-  onSortChange: (value: string) => void
-  filterOptions: FilterOption[] // Options for filter chips and/or sorting options
-  activeFilters: string[]
-  onFilterChange: (filters: string[]) => void
+  sortOrder: string;
+  onSortChange: (value: string) => void;
+  filterOptions: FilterOption[]; // Options for filter chips and/or sorting options
+  activeFilters: string[];
+  onFilterChange: (filters: string[]) => void;
+  onSearchResultSelect?: (result: SearchResult) => void; // Optional callback for search result selection
+  showSearchResults?: boolean; // Flag to control if search results should be shown
+  modelType?: "car" | "house"; // Optional model type to filter search results
 }
 
 const FilterSection: React.FC<FilterSectionProps> = ({
@@ -24,48 +46,155 @@ const FilterSection: React.FC<FilterSectionProps> = ({
   filterOptions,
   activeFilters,
   onFilterChange,
+  onSearchResultSelect,
+  showSearchResults = true,
+  modelType,
 }) => {
   // Local state for search input and UI states
-  const [searchQuery, setSearchQuery] = useState("")
-  const [isSelectOpen, setIsSelectOpen] = useState(false)
-  const [isSearchFocused, setIsSearchFocused] = useState(false)
-  const [activeTab, setActiveTab] = useState<"sort" | "filter">("filter")
-  const selectRef = useRef<HTMLDivElement>(null)
-  const searchRef = useRef<HTMLInputElement>(null)
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSelectOpen, setIsSelectOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [activeTab, setActiveTab] = useState<"sort" | "filter">("filter");
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState<boolean>(false);
+  const [isDropdownVisible, setIsDropdownVisible] = useState<boolean>(false);
+  const selectRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Close the select dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (selectRef.current && !selectRef.current.contains(event.target as Node)) {
-        setIsSelectOpen(false)
+      if (
+        selectRef.current &&
+        !selectRef.current.contains(event.target as Node)
+      ) {
+        setIsSelectOpen(false);
       }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // Effect to handle clicks outside the search dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setIsDropdownVisible(false); // Hide dropdown if clicked outside
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Debounced search function
+  const fetchSearchResults = useCallback(
+    async (query: string) => {
+      if (!query) {
+        setSearchResults([]);
+        setIsSearchLoading(false);
+        return;
+      }
+      setIsSearchLoading(true);
+      setIsDropdownVisible(true); // Show dropdown immediately when typing starts
+
+      try {
+        // Add model type to query params if provided
+        const categoryParam = modelType ? `&category=${modelType}s` : "";
+        const response = await fetch(
+          `/api/search?query=${encodeURIComponent(query)}${categoryParam}`
+        );
+        if (!response.ok) {
+          throw new Error("Network response was not ok");
+        }
+        const data: SearchResult[] = await response.json();
+        // Filter results by model type if provided
+        const filteredResults = modelType
+          ? data.filter((result) => result.type === modelType)
+          : data;
+        setSearchResults(filteredResults);
+      } catch (error) {
+        console.error("Failed to fetch search results:", error);
+        setSearchResults([]); // Clear results on error
+      } finally {
+        setIsSearchLoading(false);
+      }
+    },
+    [modelType]
+  );
+
+  // Effect for debounced search
+  useEffect(() => {
+    // Clear the previous timeout if it exists
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
     }
-    document.addEventListener("mousedown", handleClickOutside)
-    return () => document.removeEventListener("mousedown", handleClickOutside)
-  }, [])
+
+    if (searchQuery.trim()) {
+      setIsSearchLoading(true); // Show loading indicator while waiting for debounce
+      setIsDropdownVisible(true);
+      // Set a new timeout
+      debounceTimeoutRef.current = setTimeout(() => {
+        fetchSearchResults(searchQuery.trim());
+      }, 300); // 300ms debounce time
+    } else {
+      setSearchResults([]);
+      setIsSearchLoading(false);
+      setIsDropdownVisible(false);
+    }
+
+    // Cleanup function to clear timeout if component unmounts or query changes
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [searchQuery, fetchSearchResults]);
+
+  // Handle search result click
+  const handleResultClick = (result: SearchResult) => {
+    setIsDropdownVisible(false);
+    setSearchQuery("");
+    if (onSearchResultSelect) {
+      onSearchResultSelect(result);
+    }
+  };
+
+  // Handle input focus to show dropdown
+  const handleInputFocus = () => {
+    if (searchResults.length > 0 || isSearchLoading) {
+      setIsDropdownVisible(true);
+    }
+  };
 
   // Handle filter chip toggling
   const handleFilterClick = (value: string) => {
     if (activeFilters.includes(value)) {
-      onFilterChange(activeFilters.filter((filter) => filter !== value))
+      onFilterChange(activeFilters.filter((filter) => filter !== value));
     } else {
-      onFilterChange([...activeFilters, value])
+      onFilterChange([...activeFilters, value]);
     }
-  }
+  };
 
   // Get current sort option label from sort options (or fallback)
   const getCurrentSortLabel = useCallback(() => {
-    const option = filterOptions.find((option) => option.value === sortOrder)
-    return option ? option.label : "Sort By"
-  }, [filterOptions, sortOrder])
+    const option = filterOptions.find((option) => option.value === sortOrder);
+    return option ? option.label : "Sort By";
+  }, [filterOptions, sortOrder]);
 
   // Clear search input
   const clearSearch = () => {
-    setSearchQuery("")
+    setSearchQuery("");
     if (searchRef.current) {
-      searchRef.current.focus()
+      searchRef.current.focus();
     }
-  }
+  };
 
   return (
     <div className="relative bg-white rounded-2xl shadow-lg border border-gray-100/80 mb-8 backdrop-blur-sm z-50">
@@ -80,9 +209,27 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         <div className="absolute left-1/3 top-0 w-16 h-16 bg-amber-500/5 rounded-full blur-xl" />
 
         {/* Decorative lines */}
-        <svg className="absolute inset-0 w-full h-full opacity-[0.03]" viewBox="0 0 100 100" preserveAspectRatio="none">
-          <line x1="0" y1="0" x2="100" y2="100" stroke="currentColor" strokeWidth="0.5" />
-          <line x1="100" y1="0" x2="0" y2="100" stroke="currentColor" strokeWidth="0.5" />
+        <svg
+          className="absolute inset-0 w-full h-full opacity-[0.03]"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          <line
+            x1="0"
+            y1="0"
+            x2="100"
+            y2="100"
+            stroke="currentColor"
+            strokeWidth="0.5"
+          />
+          <line
+            x1="100"
+            y1="0"
+            x2="0"
+            y2="100"
+            stroke="currentColor"
+            strokeWidth="0.5"
+          />
         </svg>
       </div>
 
@@ -98,7 +245,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 : "bg-white border border-gray-200 text-gray-700 hover:border-green-300"
             }`}
           >
-            <Filter size={16} className={activeTab === "filter" ? "text-white" : "text-gray-500"} />
+            <Filter
+              size={16}
+              className={
+                activeTab === "filter" ? "text-white" : "text-gray-500"
+              }
+            />
             Filters {activeFilters.length > 0 && `(${activeFilters.length})`}
           </button>
           <button
@@ -109,7 +261,10 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 : "bg-white border border-gray-200 text-gray-700 hover:border-green-300"
             }`}
           >
-            <ArrowUpDown size={16} className={activeTab === "sort" ? "text-white" : "text-gray-500"} />
+            <ArrowUpDown
+              size={16}
+              className={activeTab === "sort" ? "text-white" : "text-gray-500"}
+            />
             Sort
           </button>
         </div>
@@ -122,9 +277,12 @@ const FilterSection: React.FC<FilterSectionProps> = ({
               initial={{ width: "100%" }}
               animate={{
                 width: "100%",
-                boxShadow: isSearchFocused ? "0 0 0 2px rgba(34, 197, 94, 0.2)" : "none",
+                boxShadow: isSearchFocused
+                  ? "0 0 0 2px rgba(34, 197, 94, 0.2)"
+                  : "none",
               }}
               className="relative w-full md:w-auto md:flex-1 max-w-md"
+              ref={searchRef}
             >
               <div
                 className={`relative flex items-center transition-all duration-300 rounded-full ${
@@ -144,25 +302,65 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                   placeholder="Search listings..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setIsSearchFocused(true)}
+                  onFocus={() => {
+                    setIsSearchFocused(true);
+                    handleInputFocus();
+                  }}
                   onBlur={() => setIsSearchFocused(false)}
                   className="w-full pl-10 pr-10 py-3 bg-transparent rounded-full focus:outline-none transition-all duration-200 text-gray-800 placeholder-gray-400"
                 />
-                <AnimatePresence>
-                  {searchQuery && (
-                    <motion.button
-                      initial={{ opacity: 0, scale: 0.8, rotate: -90 }}
-                      animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                      exit={{ opacity: 0, scale: 0.8, rotate: 90 }}
-                      transition={{ duration: 0.2 }}
+                <span className="absolute right-3.5 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  {isSearchLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : searchQuery ? (
+                    <X
+                      className="w-4 h-4 cursor-pointer hover:text-gray-600"
                       onClick={clearSearch}
-                      className="absolute right-3.5 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <X className="w-4 h-4" />
-                    </motion.button>
+                    />
+                  ) : (
+                    <Search className="w-4 h-4" />
                   )}
-                </AnimatePresence>
+                </span>
               </div>
+
+              {/* Search Results Dropdown */}
+              {showSearchResults && isDropdownVisible && (
+                <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
+                  {isSearchLoading && searchResults.length === 0 ? (
+                    <div className="p-2 text-center text-gray-500 flex items-center justify-center">
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      Searching...
+                    </div>
+                  ) : searchResults.length > 0 ? (
+                    <ul>
+                      {searchResults.map((result) => (
+                        <li
+                          key={`${result.type}-${result.id}`}
+                          className="border-b last:border-b-0"
+                        >
+                          <Link
+                            href={`/${result.type}/${result.id}`}
+                            onClick={() => handleResultClick(result)}
+                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            {result.name}{" "}
+                            <span className="text-xs text-gray-400">
+                              ({result.type})
+                            </span>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    !isSearchLoading &&
+                    searchQuery && (
+                      <div className="p-2 text-center text-gray-500">
+                        No results found.
+                      </div>
+                    )
+                  )}
+                </div>
+              )}
             </motion.div>
 
             {/* Sort Dropdown - Desktop */}
@@ -174,12 +372,17 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                 className="flex items-center justify-between gap-2 px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-700 hover:border-green-300 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-500/20 group min-w-[180px]"
               >
                 <div className="flex items-center gap-2">
-                  <SlidersHorizontal size={16} className="text-gray-500 group-hover:text-green-500 transition-colors" />
+                  <SlidersHorizontal
+                    size={16}
+                    className="text-gray-500 group-hover:text-green-500 transition-colors"
+                  />
                   <span className="font-medium">{getCurrentSortLabel()}</span>
                 </div>
                 <ChevronDown
                   size={16}
-                  className={`text-gray-500 transition-transform duration-300 ${isSelectOpen ? "rotate-180" : ""}`}
+                  className={`text-gray-500 transition-transform duration-300 ${
+                    isSelectOpen ? "rotate-180" : ""
+                  }`}
                 />
               </motion.button>
 
@@ -191,19 +394,28 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
                     transition={{ duration: 0.2, ease: "easeOut" }}
                     className="absolute z-50 w-full mt-2 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden"
-                    style={{ minWidth: "220px", maxHeight: "300px", overflowY: "auto" }}
+                    style={{
+                      minWidth: "220px",
+                      maxHeight: "300px",
+                      overflowY: "auto",
+                    }}
                   >
                     <div className="py-1">
                       {filterOptions.map((option) => (
                         <motion.button
                           key={option.value}
-                          whileHover={{ x: 4, backgroundColor: "rgba(34, 197, 94, 0.05)" }}
+                          whileHover={{
+                            x: 4,
+                            backgroundColor: "rgba(34, 197, 94, 0.05)",
+                          }}
                           onClick={() => {
-                            onSortChange(option.value)
-                            setIsSelectOpen(false)
+                            onSortChange(option.value);
+                            setIsSelectOpen(false);
                           }}
                           className={`w-full text-left px-4 py-3 flex items-center justify-between ${
-                            sortOrder === option.value ? "bg-green-50 text-green-600" : "text-gray-700"
+                            sortOrder === option.value
+                              ? "bg-green-50 text-green-600"
+                              : "text-gray-700"
                           }`}
                         >
                           <span>{option.label}</span>
@@ -211,7 +423,11 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                             <motion.div
                               initial={{ scale: 0, rotate: -45 }}
                               animate={{ scale: 1, rotate: 0 }}
-                              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                              transition={{
+                                type: "spring",
+                                stiffness: 500,
+                                damping: 30,
+                              }}
                               className="bg-green-100 rounded-full p-0.5"
                             >
                               <Check size={14} className="text-green-600" />
@@ -239,7 +455,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                       <button
                         key={option.value}
                         onClick={() => {
-                          onSortChange(option.value)
+                          onSortChange(option.value);
                         }}
                         className={`w-full text-left px-4 py-3.5 flex items-center justify-between transition-colors ${
                           sortOrder === option.value
@@ -293,7 +509,11 @@ const FilterSection: React.FC<FilterSectionProps> = ({
                       <motion.span
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 500,
+                          damping: 30,
+                        }}
                         className="w-2 h-2 rounded-full bg-white"
                       />
                     )}
@@ -350,8 +570,14 @@ const FilterSection: React.FC<FilterSectionProps> = ({
               <span>Showing results for: </span>
               <span className="font-medium text-gray-700">
                 {activeFilters.map((filter, i) => {
-                  const option = filterOptions.find((opt) => opt.value === filter)
-                  return option ? (i === 0 ? option.label : `, ${option.label}`) : ""
+                  const option = filterOptions.find(
+                    (opt) => opt.value === filter
+                  );
+                  return option
+                    ? i === 0
+                      ? option.label
+                      : `, ${option.label}`
+                    : "";
                 })}
               </span>
             </motion.div>
@@ -359,7 +585,7 @@ const FilterSection: React.FC<FilterSectionProps> = ({
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default FilterSection
+export default FilterSection;
