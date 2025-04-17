@@ -15,18 +15,17 @@ import {
   Send,
   Loader2,
 } from "lucide-react";
-import { submitContactForm } from "@/lib/actions/review.actions";
+import { MessageSubject } from "@/models/message.model";
+import { useAuth } from "@clerk/nextjs";
 
 const ContactForm: React.FC = () => {
+  const { userId } = useAuth();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
     phone: "",
-    subject: "General Inquiry" as
-      | "General Inquiry"
-      | "Advert has errors"
-      | "Want admin",
+    subject: "General Inquiry" as MessageSubject,
     message: "",
   });
   const [isPending, startTransition] = useTransition();
@@ -43,21 +42,98 @@ const ContactForm: React.FC = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const originalMessage = formData.message;
     startTransition(async () => {
-      const result = await submitContactForm(
-        new FormData(e.target as HTMLFormElement)
-      );
-      setSubmitResult(result);
-      if (result.success) {
-        setFormData({
-          firstName: "",
-          lastName: "",
-          email: "",
-          phone: "",
-          subject: "General Inquiry",
-          message: "",
+      try {
+        const response = await fetch("/api/messages", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        });
+        
+        const result = await response.json();
+        
+        setSubmitResult(result);
+        
+        if (result.success) {
+          setFormData({
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            subject: "General Inquiry",
+            message: "",
+          });
+
+          if (userId) {
+            try {
+              const notificationPayload = {
+                userId,
+                title: "Message Sent Successfully",
+                message: `Your message regarding "${formData.subject}" has been received:\n\n"${originalMessage}"`,
+                type: "message" as const,
+                category: "system" as const,
+                link: "/notifications",
+              };
+
+              const notificationResponse = await fetch("/api/notifications", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify(notificationPayload),
+              });
+
+              if (!notificationResponse.ok) {
+                console.warn("Failed to create notification record in DB.");
+              } else {
+                const notificationData = await notificationResponse.json();
+                
+                const subscriptionResponse = await fetch(`/api/notifications?userId=${userId}`);
+                if (subscriptionResponse.ok) {
+                  const subscriptionData = await subscriptionResponse.json();
+
+                  if (subscriptionData?.pushSubscription) {
+                    try {
+                      await fetch(subscriptionData.pushSubscription.endpoint, {
+                        method: "POST",
+                        headers: {
+                          "Content-Type": "application/json",
+                          Authorization: `vapid ${process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY}`,
+                        },
+                        body: JSON.stringify({
+                          title: "Message Sent Successfully",
+                          body: `Your message has been received.`,
+                          icon: "/icon.png",
+                          badge: "/badge.png",
+                          data: {
+                            url: "/notifications",
+                            notificationId: notificationData._id,
+                          },
+                        }),
+                      });
+                    } catch (pushError) {
+                      console.error("Failed to send push notification:", pushError);
+                    }
+                  }
+                } else {
+                   console.warn("Failed to fetch user subscription details.");
+                }
+              }
+            } catch (notificationError) {
+              console.error("Error handling notification:", notificationError);
+            }
+          }
+
+        }
+      } catch (error) {
+        setSubmitResult({
+          success: false,
+          message: "An unexpected error occurred. Please try again.",
         });
       }
     });
@@ -224,6 +300,7 @@ const ContactForm: React.FC = () => {
                       type="tel"
                       name="phone"
                       id="phone"
+                      required
                       className="w-full rounded-lg border border-gray-200 p-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                       onChange={handleChange}
                       value={formData.phone}
@@ -240,8 +317,10 @@ const ContactForm: React.FC = () => {
                     {(
                       [
                         "General Inquiry",
-                        "Advert has errors",
+                        "To promote Ads",
                         "Want admin",
+                        "Technical support",
+                        "Customer Support",
                       ] as const
                     ).map((option) => (
                       <button
@@ -319,7 +398,7 @@ const ContactForm: React.FC = () => {
                       {submitResult.errors && (
                         <ul className="mt-1 list-disc pl-5 text-xs text-red-600">
                           {submitResult.errors.map((error, index) => (
-                            <li key={index}>{error.message}</li>
+                            <li key={index}>{typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Unknown error'}</li>
                           ))}
                         </ul>
                       )}

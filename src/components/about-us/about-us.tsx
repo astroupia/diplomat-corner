@@ -4,8 +4,10 @@ import type React from "react";
 import { motion } from "framer-motion";
 import MaxWidthWrapper from "@/components/max-width-wrapper";
 import CardAbout from "./card-about";
-import ContactForm from "./contact-form";
+// import ContactForm from "./contact-form"; // No longer used here
 import Image from "next/image";
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 const AboutUs: React.FC = () => {
   return (
@@ -94,7 +96,8 @@ const AboutUs: React.FC = () => {
           </MaxWidthWrapper>
         </section>
 
-        {/* Team Section */}
+        {/* Team Section - Commented out */}
+        {/* 
         <section className="bg-white py-16">
           <MaxWidthWrapper>
             <motion.div
@@ -137,29 +140,66 @@ const AboutUs: React.FC = () => {
             </motion.div>
           </MaxWidthWrapper>
         </section>
+        */}
 
-        {/* Contact Form Section */}
-        <section className="py-16 bg-white">
-          <MaxWidthWrapper>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center mb-10"
+        {/* Reach Out Section */}
+       
+{/* Reach Out Section */}
+<section className="py-20">
+  <MaxWidthWrapper>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.7, ease: "easeOut" }}
+      className="relative overflow-hidden rounded-3xl bg-primary p-10 shadow-xl md:p-16"
+    >
+      {/* Pattern Overlay */}
+      <div className="pointer-events-none absolute inset-0 z-0 opacity-10">
+        <svg
+          className="h-full w-full text-white"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="0.4"
+        >
+          <defs>
+            <pattern
+              id="diagonalPattern"
+              width="40"
+              height="40"
+              patternUnits="userSpaceOnUse"
             >
-              <h2 className="mb-4 text-3xl font-bold text-gray-900">
-                Get In Touch
-              </h2>
-              <div className="mx-auto mb-6 h-1 w-24 rounded-full bg-primary"></div>
-              <p className="max-w-2xl mx-auto text-gray-600">
-                Have questions or feedback? We&apos;d love to hear from you.
-                Fill out the form below and our team will get back to you as
-                soon as possible.
-              </p>
-            </motion.div>
-            <ContactForm />
-          </MaxWidthWrapper>
-        </section>
+              <path d="M0 40 L40 0" />
+              <path d="M-10 30 L30 -10" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#diagonalPattern)" />
+        </svg>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center text-white">
+        <h2 className="text-4xl font-bold tracking-tight sm:text-5xl">
+          Let’s Work Together
+        </h2>
+        <p className="mt-4 text-lg text-white/90 max-w-2xl mx-auto">
+          Have questions or ready to make your next move? We’d love to hear from you. Let’s build something great together.
+        </p>
+
+        <div className="mt-8">
+          <Link href="/contact-us">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-primary shadow-lg transition duration-300 hover:scale-105 hover:shadow-xl">
+              Contact Us
+              <ArrowRight className="h-4 w-4" />
+            </span>
+          </Link>
+        </div>
+      </div>
+    </motion.div>
+  </MaxWidthWrapper>
+</section>
+
+
       </div>
     </div>
   );
