@@ -1,9 +1,27 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { createUser, updateUser } from "@/lib/actions/user.actions";
 import { connectToDatabase } from "@/lib/db-connect";
 import { NextResponse } from "next/server";
+
+// Define a more specific type for the Clerk user data
+interface ClerkUserData {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email_addresses: Array<{
+    email_address: string;
+    id: string;
+    verification: {
+      status: string;
+    };
+  }>;
+  image_url: string | null;
+  profile_image_url: string | null;
+  external_accounts?: Array<{
+    image_url?: string;
+  }>;
+}
 
 export async function POST(req: Request) {
   // You can find this in the Clerk Dashboard -> Webhooks -> choose the endpoint
@@ -51,100 +69,163 @@ export async function POST(req: Request) {
     return new NextResponse("Error occurred", { status: 400 });
   }
 
-  const { id } = evt.data;
   const eventType = evt.type;
-
   console.log(`Received event ${eventType}`);
 
   if (eventType === "user.created") {
-    const { id, email_addresses, first_name, last_name } = evt.data;
-    const user = {
-      clerkId: id,
-      email: email_addresses[0]?.email_address,
-      firstName: first_name || "",
-      lastName: last_name || "",
-      role: "customer",
-    };
-
     try {
-      console.log("Connecting to database...");
-      await connectToDatabase();
-      console.log("Connected to database. Creating user...");
+      // Extract data from the Clerk webhook payload and cast to our interface
+      const userData = evt.data as unknown as ClerkUserData;
+      const {
+        id,
+        first_name,
+        last_name,
+        email_addresses,
+        image_url,
+        profile_image_url,
+        external_accounts,
+      } = userData;
 
-      const newUser = await createUser(user);
-      console.log("New user created:", JSON.stringify(newUser));
-      return new Response(
-        JSON.stringify({ message: "User created successfully" }),
+      // Get primary email from the email addresses array
+      const primaryEmail = email_addresses?.[0]?.email_address || "";
+
+      // Get profile image - try profile_image_url first, then image_url, then from external accounts
+      let userImageUrl = profile_image_url || image_url || "";
+      if (!userImageUrl && external_accounts?.[0]?.image_url) {
+        userImageUrl = external_accounts[0].image_url;
+      }
+
+      // Prepare user data for our API
+      const userDbData = {
+        clerkId: id,
+        email: primaryEmail,
+        firstName: first_name || "",
+        lastName: last_name || "",
+        imageUrl: userImageUrl,
+        role: "customer",
+      };
+
+      console.log("Prepared user data:", JSON.stringify(userDbData));
+
+      // Call our API to create the user
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/users`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userDbData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to create user");
+      }
+
+      console.log("User created successfully:", JSON.stringify(result));
+      return NextResponse.json(
+        { message: "User created successfully", user: result.user },
         { status: 200 }
       );
     } catch (error) {
       console.error("Error creating user:", error);
       if (error instanceof Error) {
-        console.error("Error details:", error.message);
-        console.error("Error stack:", error.stack);
-        return new Response(
-          JSON.stringify({
-            error: "Failed to create user",
-            details: error.message,
-            stack: error.stack,
-          }),
-          { status: 500 }
-        );
-      } else {
-        console.error("Unknown error:", error);
-        return new Response(
-          JSON.stringify({
-            error: "Failed to create user",
-            details: "An unknown error occurred",
-          }),
+        return NextResponse.json(
+          { error: "Failed to create user", details: error.message },
           { status: 500 }
         );
       }
+      return NextResponse.json(
+        {
+          error: "Failed to create user",
+          details: "An unknown error occurred",
+        },
+        { status: 500 }
+      );
     }
   }
 
   if (eventType === "user.updated") {
-    const { id, first_name, last_name } = evt.data;
-
-    const user = {
-      firstName: first_name || "",
-      lastName: last_name || "",
-    };
-
     try {
-      console.log("Connecting to database...");
-      await connectToDatabase();
-      console.log("Connected to database. Updating user...");
+      // Extract data from the Clerk webhook payload and cast to our interface
+      const userData = evt.data as unknown as ClerkUserData;
+      const {
+        id,
+        first_name,
+        last_name,
+        email_addresses,
+        image_url,
+        profile_image_url,
+      } = userData;
 
-      const updatedUser = await updateUser(id, user);
-      console.log("User updated successfully:", JSON.stringify(updatedUser));
-      return NextResponse.json({ message: "User updated", user: updatedUser });
+      // Get primary email from the email addresses array
+      const primaryEmail = email_addresses?.[0]?.email_address;
+
+      // Get profile image
+      const userImageUrl = profile_image_url || image_url || "";
+
+      // Prepare user data for our API
+      const userDbData: {
+        clerkId: string;
+        firstName: string | null;
+        lastName: string | null;
+        imageUrl: string;
+        email?: string;
+      } = {
+        clerkId: id,
+        firstName: first_name,
+        lastName: last_name,
+        imageUrl: userImageUrl,
+      };
+
+      // Only include email if it exists
+      if (primaryEmail) {
+        userDbData.email = primaryEmail;
+      }
+
+      // Call our API to update the user
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/users`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(userDbData),
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || "Failed to update user");
+      }
+
+      console.log("User updated successfully:", JSON.stringify(result));
+      return NextResponse.json(
+        { message: "User updated successfully", user: result.user },
+        { status: 200 }
+      );
     } catch (error) {
       console.error("Error updating user:", error);
       if (error instanceof Error) {
-        console.error("Error details:", error.message);
-        console.error("Error stack:", error.stack);
         return NextResponse.json(
-          {
-            error: "Failed to update user",
-            details: error.message,
-            stack: error.stack,
-          },
-          { status: 500 }
-        );
-      } else {
-        console.error("Unknown error:", error);
-        return NextResponse.json(
-          {
-            error: "Failed to update user",
-            details: "An unknown error occurred",
-          },
+          { error: "Failed to update user", details: error.message },
           { status: 500 }
         );
       }
+      return NextResponse.json(
+        {
+          error: "Failed to update user",
+          details: "An unknown error occurred",
+        },
+        { status: 500 }
+      );
     }
   }
 
-  console.log(`Webhook with an ID of ${id} and type of ${eventType}`);
   return new NextResponse("Webhook processed", { status: 200 });
 }
