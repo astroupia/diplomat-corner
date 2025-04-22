@@ -21,10 +21,11 @@ import CarDetailLoadingSkeleton from "@/components/loading-effects/id-loading-ca
 import ReviewsSection from "@/components/reviews/reviews-section";
 import { motion } from "framer-motion";
 
-const paymentMethodLabels: Record<number, string> = {
-  1: "One-time Payment",
-  2: "Weekly",
-  3: "Monthly",
+const paymentMethodLabels: Record<string, string> = {
+  "Daily": "Daily",
+  "Weekly": "Weekly",
+  "Monthly": "Monthly",
+  "Annually": "Annually",
 };
 
 export default function CarDetails() {
@@ -171,11 +172,7 @@ export default function CarDetails() {
                     <p className="text-sm text-gray-500">Rental Rate</p>
                     <p className="font-medium text-gray-800">
                       {car.currency} {car.price.toLocaleString()} per{" "}
-                      {car.paymentMethod === 2
-                        ? "week"
-                        : car.paymentMethod === 3
-                        ? "month"
-                        : "day"}
+                      {paymentMethodLabels[car.paymentMethod]?.toLowerCase() || "day"}
                     </p>
                   </div>
                 </motion.div>

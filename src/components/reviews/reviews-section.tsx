@@ -135,6 +135,50 @@ export default function ReviewsSection({
       setAverageRating(
         Number.parseFloat((total / (reviews.length + 1)).toFixed(1))
       );
+
+      // Create notification for the seller
+      if (sellerId) {
+        try {
+          await fetch("/api/notifications", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: sellerId,
+              title: "New Review Received",
+              message: `You received a ${reviewData.rating}-star review for your ${productType}.`,
+              type: "message",
+              category: productType === "car" ? "car" : "house",
+              productType: productType === "car" ? "Car" : "House",
+              link: `/${productType}/${productId}`,
+            }),
+          });
+        } catch (notificationError) {
+          console.error("Error creating seller notification:", notificationError);
+        }
+      }
+
+      // Create notification for the user
+      try {
+        await fetch("/api/notifications", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            userId: user.id,
+            title: "Review Submitted",
+            message: `Your review for this ${productType} has been submitted successfully.`,
+            type: "message",
+            category: productType === "car" ? "car" : "house",
+            productType: productType === "car" ? "Car" : "House",
+            link: `/${productType}/${productId}`,
+          }),
+        });
+      } catch (notificationError) {
+        console.error("Error creating user notification:", notificationError);
+      }
     } catch (err) {
       console.error("Error submitting review:", err);
       throw err;
@@ -145,10 +189,17 @@ export default function ReviewsSection({
     if (!userId) return; // Don't proceed if no user is logged in
 
     try {
-      await fetch(`/api/reviews/${reviewId}/like`, {
+      const response = await fetch(`/api/reviews/${reviewId}/like`, {
         method: "POST",
       });
 
+      if (!response.ok) {
+        throw new Error("Failed to like review");
+      }
+
+      // Get the review that was liked
+      const reviewToLike = reviews.find(review => review._id === reviewId);
+      
       // Update the likes array locally by adding the current userId
       setReviews(
         reviews.map((review) =>
@@ -162,6 +213,29 @@ export default function ReviewsSection({
             : review
         )
       );
+
+      // Create notification for the review owner
+      if (reviewToLike && reviewToLike.userId !== userId) {
+        try {
+          await fetch("/api/notifications", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: reviewToLike.userId,
+              title: "Review Liked",
+              message: `Someone liked your review for this ${productType}.`,
+              type: "update",
+              category: productType === "car" ? "car" : "house",
+              productType: productType === "car" ? "Car" : "House",
+              link: `/${productType}/${productId}`,
+            }),
+          });
+        } catch (notificationError) {
+          console.error("Error creating like notification:", notificationError);
+        }
+      }
     } catch (err) {
       console.error("Error liking review:", err);
     }
@@ -169,9 +243,16 @@ export default function ReviewsSection({
 
   const handleDeleteReview = async (reviewId: string) => {
     try {
-      await fetch(`/api/reviews/${reviewId}`, {
+      const response = await fetch(`/api/reviews/${reviewId}`, {
         method: "DELETE",
       });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete review");
+      }
+
+      // Get the review that was deleted
+      const reviewToDelete = reviews.find(review => review._id === reviewId);
 
       // Remove the review from the list
       const updatedReviews = reviews.filter(
@@ -193,6 +274,52 @@ export default function ReviewsSection({
       }
 
       setHasUserReviewed(false);
+
+      // Create notification for the seller
+      if (sellerId && reviewToDelete) {
+        try {
+          await fetch("/api/notifications", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: sellerId,
+              title: "Review Deleted",
+              message: `A review for your ${productType} has been deleted.`,
+              type: "alert",
+              category: productType === "car" ? "car" : "house",
+              productType: productType === "car" ? "Car" : "House",
+              link: `/${productType}/${productId}`,
+            }),
+          });
+        } catch (notificationError) {
+          console.error("Error creating seller deletion notification:", notificationError);
+        }
+      }
+
+      // Create notification for the user
+      if (reviewToDelete) {
+        try {
+          await fetch("/api/notifications", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: reviewToDelete.userId,
+              title: "Review Deleted",
+              message: `Your review for this ${productType} has been deleted.`,
+              type: "alert",
+              category: productType === "car" ? "car" : "house",
+              productType: productType === "car" ? "Car" : "House",
+              link: `/${productType}/${productId}`,
+            }),
+          });
+        } catch (notificationError) {
+          console.error("Error creating user deletion notification:", notificationError);
+        }
+      }
     } catch (err) {
       console.error("Error deleting review:", err);
     }

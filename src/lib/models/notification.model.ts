@@ -45,7 +45,7 @@ const NotificationSchema = new Schema<INotification>(
       ],
       required: true,
     },
-    title: {
+  title: {
       type: String,
       required: true,
     },
