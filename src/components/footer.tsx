@@ -112,7 +112,7 @@ const Footer: React.FC = () => {
               Corner
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-3">&copy; 2024</p>
+          <p className="text-sm text-gray-500 mt-3">&copy; 2025</p>
         </div>
 
         {/* Mapped Footer Sections */}
