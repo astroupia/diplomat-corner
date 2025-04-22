@@ -25,6 +25,28 @@ export async function GET(req: NextRequest) {
     let houses: any[] = [];
 
     // Query cars if category is 'cars' or 'all'
+    if (category === "cars") {
+      cars = await Car.find(
+        { $text: { $search: query } },
+        { score: { $meta: "textScore" } }
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .limit(10)
+        .lean();
+    }
+    
+    // Query houses if category is 'houses' or 'all'
+    if (category === "houses") {
+      houses = await House.find(
+        { $text: { $search: query } },
+        { score: { $meta: "textScore" } }
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .limit(10)
+        .lean();
+    }
+    
+    // Query both cars and houses if category is 'all'
     if (category === "all") {
       cars = await Car.find(
         { $text: { $search: query } },
@@ -33,20 +55,15 @@ export async function GET(req: NextRequest) {
         .sort({ score: { $meta: "textScore" } })
         .limit(10)
         .lean();
-
-        houses = await House.find(
-          { $text: { $search: query } },
-          { score: { $meta: "textScore" } }
-        )
-          .sort({ score: { $meta: "textScore" } })
-          .limit(10)
-          .lean();
+        
+      houses = await House.find(
+        { $text: { $search: query } },
+        { score: { $meta: "textScore" } }
+      )
+        .sort({ score: { $meta: "textScore" } })
+        .limit(10)
+        .lean();
     }
-    if (category === "houses" || category === "all") {
-      
-    }
-
-    
 
     const results = [
       ...cars.map((car) => ({ id: car._id, name: car.name, type: "car" })),
