@@ -22,23 +22,30 @@ interface ReviewCardProps {
     rating: number;
     comment: string;
     createdAt: Date;
-    likes: number;
+    likes: string[];
     isOwn?: boolean;
   };
   onLike: (id: string) => void;
   onDelete?: (id: string) => void;
+  currentUserId?: string;
 }
 
 export default function ReviewCard({
   review,
   onLike,
   onDelete,
+  currentUserId,
 }: ReviewCardProps) {
   const [showOptions, setShowOptions] = useState(false);
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(
+    currentUserId ? review.likes.includes(currentUserId) : false
+  );
+  const likesCount =
+    review.likes.length +
+    (liked && !review.likes.includes(currentUserId || "") ? 1 : 0);
 
   const handleLike = () => {
-    if (!liked) {
+    if (!liked && currentUserId) {
       setLiked(true);
       onLike(review._id);
     }
@@ -137,12 +144,15 @@ export default function ReviewCard({
       <div className="flex items-center justify-end">
         <button
           onClick={handleLike}
+          disabled={!currentUserId || liked}
           className={`flex items-center text-sm ${
             liked ? "text-green-600" : "text-gray-500 hover:text-green-600"
-          } transition-colors`}
+          } transition-colors ${
+            !currentUserId || liked ? "cursor-default" : "cursor-pointer"
+          }`}
         >
           <ThumbsUp size={14} className="mr-1" />
-          <span>{review.likes + (liked ? 1 : 0)}</span>
+          <span>{likesCount}</span>
         </button>
       </div>
     </motion.div>

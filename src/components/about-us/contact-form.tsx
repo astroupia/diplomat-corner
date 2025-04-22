@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Phone,
@@ -15,7 +15,7 @@ import {
   Send,
   Loader2,
 } from "lucide-react";
-import { MessageSubject } from "@/models/message.model";
+import { MessageSubject } from "@/lib/models/message.model";
 import { useAuth } from "@clerk/nextjs";
 
 const ContactForm: React.FC = () => {
@@ -28,17 +28,49 @@ const ContactForm: React.FC = () => {
     subject: "General Inquiry" as MessageSubject,
     message: "",
   });
+  const [wordCount, setWordCount] = useState(0);
   const [isPending, startTransition] = useTransition();
   const [submitResult, setSubmitResult] = useState<{
     success: boolean;
     message: string;
     errors?: any[];
   } | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Add a window resize listener to check for mobile
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    // Check on initial load
+    checkIsMobile();
+
+    // Add event listener for resize
+    window.addEventListener("resize", checkIsMobile);
+
+    // Cleanup
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
+
+    if (name === "message") {
+      const words = value.trim() ? value.trim().split(/\s+/) : [];
+      const wordCount = words.length;
+      setWordCount(wordCount);
+
+      // If word count exceeds 300, truncate the message
+      if (wordCount > 300) {
+        const truncatedMessage = words.slice(0, 300).join(" ");
+        setFormData((prev) => ({ ...prev, message: truncatedMessage }));
+        return;
+      }
+    }
+
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
@@ -54,11 +86,11 @@ const ContactForm: React.FC = () => {
           },
           body: JSON.stringify(formData),
         });
-        
+
         const result = await response.json();
-        
+
         setSubmitResult(result);
-        
+
         if (result.success) {
           setFormData({
             firstName: "",
@@ -68,6 +100,7 @@ const ContactForm: React.FC = () => {
             subject: "General Inquiry",
             message: "",
           });
+          setWordCount(0);
 
           if (userId) {
             try {
@@ -92,8 +125,10 @@ const ContactForm: React.FC = () => {
                 console.warn("Failed to create notification record in DB.");
               } else {
                 const notificationData = await notificationResponse.json();
-                
-                const subscriptionResponse = await fetch(`/api/notifications?userId=${userId}`);
+
+                const subscriptionResponse = await fetch(
+                  `/api/notifications?userId=${userId}`
+                );
                 if (subscriptionResponse.ok) {
                   const subscriptionData = await subscriptionResponse.json();
 
@@ -117,18 +152,20 @@ const ContactForm: React.FC = () => {
                         }),
                       });
                     } catch (pushError) {
-                      console.error("Failed to send push notification:", pushError);
+                      console.error(
+                        "Failed to send push notification:",
+                        pushError
+                      );
                     }
                   }
                 } else {
-                   console.warn("Failed to fetch user subscription details.");
+                  console.warn("Failed to fetch user subscription details.");
                 }
               }
             } catch (notificationError) {
               console.error("Error handling notification:", notificationError);
             }
           }
-
         }
       } catch (error) {
         setSubmitResult({
@@ -146,69 +183,134 @@ const ContactForm: React.FC = () => {
       transition={{ duration: 0.6 }}
       className="relative overflow-hidden rounded-2xl bg-white shadow-md border border-gray-100"
     >
-      <div className="flex flex-wrap">
-        <div className="relative w-full bg-primary p-6 text-white md:w-2/5 lg:p-8">
+      <div className={`flex flex-wrap ${isMobile ? "flex-col-reverse" : ""}`}>
+        <div
+          className={`relative ${
+            isMobile
+              ? "w-full p-6"
+              : "w-full bg-primary p-6 text-white md:w-2/5 lg:p-8"
+          }`}
+        >
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
+            className={isMobile ? "mt-8 border-t border-gray-200 pt-8" : ""}
           >
-            <h2 className="mb-4 text-xl font-bold">Contact Information</h2>
-            <p className="mb-8 text-white/80 text-sm">
+            <h2
+              className={`mb-4 text-xl font-bold ${
+                isMobile ? "text-gray-900" : "text-white"
+              }`}
+            >
+              Contact Information
+            </h2>
+            <p
+              className={`mb-8 ${
+                isMobile ? "text-gray-600" : "text-white/80"
+              } text-sm`}
+            >
               Have questions or feedback? We&apos;re here to help!
             </p>
 
             <ul className="space-y-5">
               <li className="flex items-center">
-                <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+                <div
+                  className={`mr-3 flex h-8 w-8 items-center justify-center rounded-full ${
+                    isMobile ? "bg-primary/10 text-primary" : "bg-white/10"
+                  }`}
+                >
                   <Phone className="h-4 w-4" />
                 </div>
-                <span className="text-sm">+251 910 111 213</span>
+                <span
+                  className={`text-sm ${
+                    isMobile ? "text-gray-700" : "text-white"
+                  }`}
+                >
+                  +251 910 111 213
+                </span>
               </li>
               <li className="flex items-center">
-                <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+                <div
+                  className={`mr-3 flex h-8 w-8 items-center justify-center rounded-full ${
+                    isMobile ? "bg-primary/10 text-primary" : "bg-white/10"
+                  }`}
+                >
                   <Mail className="h-4 w-4" />
                 </div>
-                <span className="text-sm">contact@diplomatcorner.com</span>
+                <span
+                  className={`text-sm ${
+                    isMobile ? "text-gray-700" : "text-white"
+                  }`}
+                >
+                  contact@diplomatcorner.com
+                </span>
               </li>
               <li className="flex items-center">
-                <div className="mr-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/10">
+                <div
+                  className={`mr-3 flex h-8 w-8 items-center justify-center rounded-full ${
+                    isMobile ? "bg-primary/10 text-primary" : "bg-white/10"
+                  }`}
+                >
                   <MapPin className="h-4 w-4" />
                 </div>
-                <span className="text-sm">
+                <span
+                  className={`text-sm ${
+                    isMobile ? "text-gray-700" : "text-white"
+                  }`}
+                >
                   Addis Ababa, Dembel Kebede Building
                 </span>
               </li>
             </ul>
 
-            <div className="absolute bottom-6 left-6 flex space-x-3">
+            <div
+              className={`${
+                isMobile ? "mt-6 flex" : "absolute bottom-6 left-6 flex"
+              } space-x-3`}
+            >
               <a
                 href="#"
-                className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
+                className={`rounded-full ${
+                  isMobile
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "bg-white/10 hover:bg-white/20"
+                } p-2 transition-colors`}
               >
                 <Twitter className="h-4 w-4" />
               </a>
               <a
                 href="#"
-                className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
+                className={`rounded-full ${
+                  isMobile
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "bg-white/10 hover:bg-white/20"
+                } p-2 transition-colors`}
               >
                 <Instagram className="h-4 w-4" />
               </a>
               <a
                 href="#"
-                className="rounded-full bg-white/10 p-2 transition-colors hover:bg-white/20"
+                className={`rounded-full ${
+                  isMobile
+                    ? "bg-primary/10 text-primary hover:bg-primary/20"
+                    : "bg-white/10 hover:bg-white/20"
+                } p-2 transition-colors`}
               >
                 <Github className="h-4 w-4" />
               </a>
             </div>
           </motion.div>
 
-          {/* Decorative elements */}
-          <div className="absolute -bottom-16 -right-16 h-48 w-48 rounded-full border border-white/10 opacity-20"></div>
-          <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full border border-white/10 opacity-20"></div>
+          {/* Decorative elements - only show on non-mobile */}
+          {!isMobile && (
+            <>
+              <div className="absolute -bottom-16 -right-16 h-48 w-48 rounded-full border border-white/10 opacity-20"></div>
+              <div className="absolute -top-20 -left-20 h-64 w-64 rounded-full border border-white/10 opacity-20"></div>
+            </>
+          )}
         </div>
 
-        <div className="w-full p-6 md:w-3/5 lg:p-8">
+        <div className={`w-full p-6 ${!isMobile ? "md:w-3/5 lg:p-8" : ""}`}>
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -327,7 +429,7 @@ const ContactForm: React.FC = () => {
                         key={option}
                         type="button"
                         disabled={isPending}
-                        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
+                        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-colors mb-1 ${
                           formData.subject === option
                             ? "bg-primary text-white"
                             : "border border-gray-200 bg-white text-gray-700 hover:border-primary/50 hover:bg-gray-50"
@@ -359,23 +461,37 @@ const ContactForm: React.FC = () => {
                   >
                     Message
                   </label>
-                  <textarea
-                    name="message"
-                    id="message"
-                    rows={4}
-                    required
-                    className="w-full rounded-lg border border-gray-200 p-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                    onChange={handleChange}
-                    value={formData.message}
-                    disabled={isPending}
-                  />
+                  <div className="relative">
+                    <textarea
+                      name="message"
+                      id="message"
+                      rows={4}
+                      required
+                      className="w-full rounded-lg border border-gray-200 p-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                      onChange={handleChange}
+                      value={formData.message}
+                      disabled={isPending}
+                      maxLength={5000} // Safety character limit
+                    />
+                    <div
+                      className={`absolute bottom-2 right-2 text-xs font-medium rounded-md px-1.5 py-0.5 ${
+                        wordCount > 290
+                          ? wordCount >= 300
+                            ? "bg-red-100 text-red-700"
+                            : "bg-yellow-100 text-yellow-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {wordCount}/300 words
+                    </div>
+                  </div>
                 </div>
 
                 <div>
                   <button
                     type="submit"
                     disabled={isPending}
-                    className="flex items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-70"
+                    className="flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg bg-primary px-5 py-2 text-sm font-medium text-white transition-colors hover:bg-primary/90 disabled:opacity-70"
                   >
                     {isPending ? (
                       <>
@@ -398,7 +514,13 @@ const ContactForm: React.FC = () => {
                       {submitResult.errors && (
                         <ul className="mt-1 list-disc pl-5 text-xs text-red-600">
                           {submitResult.errors.map((error, index) => (
-                            <li key={index}>{typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : 'Unknown error'}</li>
+                            <li key={index}>
+                              {typeof error === "object" &&
+                              error !== null &&
+                              "message" in error
+                                ? String(error.message)
+                                : "Unknown error"}
+                            </li>
                           ))}
                         </ul>
                       )}

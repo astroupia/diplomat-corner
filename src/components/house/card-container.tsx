@@ -3,9 +3,9 @@
 import CardHouse from "@/components/house/card-house";
 import type { IHouse } from "@/lib/models/house.model";
 import React, { useEffect, useState } from "react";
-import LoadingSkeleton from "@/app/house/loading";
+import LoadingSkeleton from "@/app/(root)/house/loading";
 import { useAuth } from "@clerk/nextjs";
-import { ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Filter, House, SlidersHorizontal } from "lucide-react";
 import FilterSection from "../filter-section";
 import ListingBanner from "../listing-banner";
 
@@ -40,7 +40,6 @@ const CardContainer: React.FC = () => {
     { value: "3-bedroom", label: "3+ Bedrooms" },
     { value: "parking", label: "Parking" },
     { value: "furnished", label: "Furnished" },
-    { value: "pets-allowed", label: "Pets Allowed" },
   ];
 
   const allFilterOptions = [...filterOptions, ...filterChips];
@@ -172,15 +171,6 @@ const CardContainer: React.FC = () => {
   // Create comprehensive filter options
   const getFilterOptions = () => {
     // Sort options
-    const sortOptions = [
-      { value: "Default", label: "Sort: Default" },
-      { value: "Price Low to High", label: "Price: Low to High" },
-      { value: "Price High to Low", label: "Price: High to Low" },
-      { value: "Size Small to Large", label: "Size: Small to Large" },
-      { value: "Size Large to Small", label: "Size: Large to Small" },
-      { value: "Bedrooms (Ascending)", label: "Bedrooms: Fewest First" },
-      { value: "Bedrooms (Descending)", label: "Bedrooms: Most First" },
-    ];
 
     // Features filters
     const featureFilters = [
@@ -205,12 +195,7 @@ const CardContainer: React.FC = () => {
       { value: "For Sale", label: "For Sale" },
     ];
 
-    return [
-      ...sortOptions,
-      ...featureFilters,
-      ...houseTypeFilters,
-      ...adTypeFilters,
-    ];
+    return [...featureFilters, ...houseTypeFilters, ...adTypeFilters];
   };
 
   // Handle search result selection

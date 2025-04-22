@@ -46,6 +46,14 @@ export const images = {
     src: "./car_preview.jpg",
     alt: "preview house",
   },
+  dashen: {
+    src: "/assets/images/dashen.jpg",
+    alt: "dashen",
+  },
+  awash: {
+    src: "/assets/images/awash.jpg",
+    alt: "awash",
+  },
 };
 
 // Export a function to safely get an image

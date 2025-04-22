@@ -169,24 +169,26 @@ export default function SignInPage() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: animationComplete ? 1 : 0 }}
                   transition={{ delay: 0.9, duration: 0.6 }}
-                  className="mt-8 pt-6 border-t border-gray-100"
+                  className="flex flex-col items-center justify-center mt-8 pt-6 border-t border-gray-100"
                 >
                   <div className="flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
                     <CheckCircle className="h-4 w-4 text-green-500" />
                     <span>Secure authentication powered by Clerk</span>
                   </div>
-                  <div className="flex justify-center space-x-6">
-                    <Image
-                      src="/assets/images/sydek-logo.png"
-                      alt="sydek logo"
-                      width={30}
-                      height={30}
-                      className="rounded-lg opacity-50 hover:opacity-80 transition-opacity"
-                    />
-                  </div>
-                  <div className="pt-5 flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
-                    <FolderCode className="h-4 w-4 text-green-500" />
-                    <span>Developed By Sydek</span>
+                  <div className="m-auto flex items-center gap-x-6">
+                    <div className="pt-5 flex items-center justify-center gap-2 text-sm text-gray-500 mb-4">
+                      <FolderCode className="h-4 w-4 text-green-500" />
+                      <span>Developed By Sydek</span>
+                    </div>
+                    <div className="flex justify-center space-x-6">
+                      <Image
+                        src="/assets/images/sydek-logo.png"
+                        alt="sydek logo"
+                        width={30}
+                        height={30}
+                        className="rounded-lg opacity-50 hover:opacity-80 transition-opacity"
+                      />
+                    </div>
                   </div>
                 </motion.div>
               </div>

@@ -14,6 +14,10 @@ import ErrorDialog from "./dialogs/error-dialog";
 import ValidationDialog from "./dialogs/validation-dialog";
 import SuccessDialog from "./dialogs/success-dialog";
 
+interface ICarExtended extends ICar {
+  servicePrice?: number;
+}
+
 interface CarFormData {
   name: string;
   year: number;
@@ -30,13 +34,13 @@ interface CarFormData {
   servicePrice: number;
   description: string;
   advertisementType: "Rent" | "Sale";
-  paymentMethod: number;
+  paymentMethod: string;
   currency: string;
   tags: string;
 }
 
 interface ManageCarProps {
-  initialData?: ICar;
+  initialData?: ICarExtended;
   isEditMode?: boolean;
 }
 
@@ -65,7 +69,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
     description: initialData?.description || "",
     advertisementType:
       (initialData?.advertisementType as "Rent" | "Sale") || "Sale",
-    paymentMethod: initialData?.paymentMethod || 1,
+    paymentMethod: initialData?.paymentMethod || "Daily",
     currency: initialData?.currency || "ETB",
     tags: initialData?.tags || "",
   });
@@ -93,6 +97,19 @@ const ManageCar: React.FC<ManageCarProps> = ({
       setFormData((prev) => ({ ...prev, userId }));
     }
   }, [userId, isLoaded]);
+
+  useEffect(() => {
+    // When the advertisement type changes, set default payment method
+    if (formData.advertisementType === "Sale") {
+      setFormData((prev) => ({ ...prev, paymentMethod: "Daily" })); // Default for sale
+    } else if (
+      formData.advertisementType === "Rent" &&
+      formData.paymentMethod === "Daily"
+    ) {
+      // Only update if it's the default sale value
+      setFormData((prev) => ({ ...prev, paymentMethod: "Monthly" })); // Monthly for rent
+    }
+  }, [formData.advertisementType]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -134,7 +151,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
     }
   };
 
-  const handleOptionChange = (field: keyof CarFormData, value: string) => {
+  const handleOptionChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -159,12 +176,21 @@ const ManageCar: React.FC<ManageCarProps> = ({
       { name: "price", label: "Price" },
       { name: "mileage", label: "Mileage" },
       { name: "description", label: "Description" },
+      { name: "advertisementType", label: "Advertisement Type" },
     ];
 
-    const invalidFields = requiredFields.map((field) => ({
-      ...field,
-      valid: Boolean(formData[field.name as keyof CarFormData]),
-    }));
+    // Check if formData has any undefined values for required fields
+    const invalidFields = requiredFields.map((field) => {
+      const value = formData[field.name as keyof CarFormData];
+      return {
+        ...field,
+        valid:
+          value !== undefined &&
+          value !== null &&
+          (typeof value === "string" ? value.trim() !== "" : true) &&
+          (typeof value === "number" ? !isNaN(value) : true),
+      };
+    });
 
     setMissingFields(invalidFields);
     return invalidFields.every((field) => field.valid);
@@ -181,8 +207,27 @@ const ManageCar: React.FC<ManageCarProps> = ({
 
     try {
       const apiFormData = new FormData();
+
+      // Convert paymentMethod to numeric format expected by the server
+      let paymentMethodValue = "1"; // Default to Daily (1)
+
+      if (formData.paymentMethod === "Daily") paymentMethodValue = "1";
+      if (formData.paymentMethod === "Weekly") paymentMethodValue = "2";
+      if (formData.paymentMethod === "Monthly") paymentMethodValue = "3";
+      if (formData.paymentMethod === "Annually") paymentMethodValue = "4";
+
+      // Add all form data to API form data
       Object.entries(formData).forEach(([key, value]) => {
-        apiFormData.append(key, value.toString());
+        // Safely handle null or undefined values
+        if (value !== undefined && value !== null) {
+          if (key === "paymentMethod") {
+            apiFormData.append(key, paymentMethodValue);
+          } else {
+            apiFormData.append(key, String(value));
+          }
+        } else {
+          apiFormData.append(key, "");
+        }
       });
 
       if (selectedFile) {
@@ -222,7 +267,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
             speed: 0,
             milesPerGallon: 0,
             transmission: "Automatic",
-            fuel: "Gasoline",
+            fuel: "Diesel",
             bodyType: "Truck",
             condition: "",
             engine: "",
@@ -231,7 +276,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
             servicePrice: 0,
             description: "",
             advertisementType: "Sale",
-            paymentMethod: 1,
+            paymentMethod: "Daily",
             currency: "ETB",
             tags: "",
           });
@@ -277,31 +322,30 @@ const ManageCar: React.FC<ManageCarProps> = ({
           <main className="flex-1 bg-white rounded-xl shadow-sm p-6 border border-gray-200">
             {/* Navigation Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
-            {isEditMode ? (
-                
+              {isEditMode ? (
                 <button
                   onClick={() => router.back()}
                   className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
                 >
-                <ArrowLeft size={18} className="mr-2" />
+                  <ArrowLeft size={18} className="mr-2" />
                   Back to Cars
                 </button>
               ) : (
                 <Link href="/manage-product/car">
-                  <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors w-full sm:w-auto">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
                     <Car className="w-5 h-5" />
                     <span className="font-medium">Create Cars</span>
                   </button>
                 </Link>
               )}
               {!isEditMode && (
-                  <Link href="/manage-product/house">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
+                <Link href="/manage-product/house">
+                  <button className="flex items-center gap-2 px-4 py-2 bg-white text-primary border border-primary rounded-lg hover:bg-primary/5 transition-colors w-full sm:w-auto">
                     <Home className="w-5 h-5" />
                     <span className="font-medium">Create House</span>
                   </button>
-                  </Link>
-                )}
+                </Link>
+              )}
             </div>
 
             {/* Form Grid */}
@@ -380,7 +424,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
                       <button
                         key={option}
                         type="button"
-                        onClick={() =>
+                        onClick={(e) =>
                           handleOptionChange("transmission", option)
                         }
                         className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
@@ -406,12 +450,12 @@ const ManageCar: React.FC<ManageCarProps> = ({
                     Fuel Type
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {["Gasoline", "Diesel", "Electric", "Hybrid"].map(
+                    {["Diesel", "Petrol", "Electric", "Hybrid"].map(
                       (option) => (
                         <button
                           key={option}
                           type="button"
-                          onClick={() => handleOptionChange("fuel", option)}
+                          onClick={(e) => handleOptionChange("fuel", option)}
                           className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
                             formData.fuel === option
                               ? "bg-primary text-white border-primary"
@@ -441,7 +485,9 @@ const ManageCar: React.FC<ManageCarProps> = ({
                         <button
                           key={option}
                           type="button"
-                          onClick={() => handleOptionChange("bodyType", option)}
+                          onClick={(e) =>
+                            handleOptionChange("bodyType", option)
+                          }
                           className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
                             formData.bodyType === option
                               ? "bg-primary text-white border-primary"
@@ -675,6 +721,55 @@ const ManageCar: React.FC<ManageCarProps> = ({
                   />
                 </div>
 
+                {/* Advertisement Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Advertisement Type
+                  </label>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={(e) =>
+                        handleOptionChange("advertisementType", "Sale")
+                      }
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg border transition-colors ${
+                        formData.advertisementType === "Sale"
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                      }`}
+                    >
+                      <CheckCircle
+                        className={`w-5 h-5 ${
+                          formData.advertisementType === "Sale"
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }`}
+                      />
+                      <span className="text-sm font-medium">For Sale</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) =>
+                        handleOptionChange("advertisementType", "Rent")
+                      }
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg border transition-colors ${
+                        formData.advertisementType === "Rent"
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                      }`}
+                    >
+                      <CheckCircle
+                        className={`w-5 h-5 ${
+                          formData.advertisementType === "Rent"
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }`}
+                      />
+                      <span className="text-sm font-medium">For Rent</span>
+                    </button>
+                  </div>
+                </div>
+
                 {/* Service Price */}
                 {!isEditMode && (
                   <div className="bg-gray-100 p-3 rounded-lg">
@@ -704,7 +799,7 @@ const ManageCar: React.FC<ManageCarProps> = ({
                       <button
                         key={option}
                         type="button"
-                        onClick={() => handleOptionChange("currency", option)}
+                        onClick={(e) => handleOptionChange("currency", option)}
                         className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
                           formData.currency === option
                             ? "bg-primary text-white border-primary"
@@ -737,6 +832,43 @@ const ManageCar: React.FC<ManageCarProps> = ({
                   />
                 </div>
 
+                {/* Add payment period options that show only for Rent */}
+                {formData.advertisementType === "Rent" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Period
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { value: "Daily", label: "Daily" },
+                        { value: "Weekly", label: "Weekly" },
+                        { value: "Monthly", label: "Monthly" },
+                        { value: "Annually", label: "Annually" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={(e) =>
+                            handleOptionChange("paymentMethod", option.value)
+                          }
+                          className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
+                            formData.paymentMethod === option.value
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                          }`}
+                        >
+                          {formData.paymentMethod === option.value ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <Circle className="w-4 h-4" />
+                          )}
+                          <span className="text-sm">{option.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Submit Button */}
                 <button
                   type="button"
@@ -748,7 +880,16 @@ const ManageCar: React.FC<ManageCarProps> = ({
                       : "bg-primary hover:bg-primary/90"
                   }`}
                 >
-                  {isEditMode ? "Update" : "Create"}
+                  {isSending ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      {isEditMode ? "Updating..." : "Creating..."}
+                    </div>
+                  ) : isEditMode ? (
+                    "Update"
+                  ) : (
+                    "Create"
+                  )}
                 </button>
               </div>
             </div>

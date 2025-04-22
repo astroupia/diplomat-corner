@@ -1,9 +1,16 @@
 "use client";
 
 import { IHouse } from "@/lib/models/house.model";
-import { ArrowLeft, Car, CheckCircle, Circle, Home, PlayCircle, Upload } from "lucide-react";
+import {
+  ArrowLeft,
+  Car,
+  CheckCircle,
+  Circle,
+  Home,
+  PlayCircle,
+  Upload,
+} from "lucide-react";
 import Image from "next/image";
-
 
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
@@ -67,6 +74,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     currency: initialData?.currency || "ETB",
   });
 
+  const [isSending, setIsSending] = useState(false);
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [showValidationDialog, setShowValidationDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -140,7 +148,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     }
   };
 
-  const handleOptionChange = (field: keyof IHouse, value: string) => {
+  const handleOptionChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -162,31 +170,51 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
       { name: "parkingSpace", label: "Parking Space" },
       { name: "price", label: "Price" },
       { name: "description", label: "Description" },
+      { name: "advertisementType", label: "Advertisement Type" },
     ];
 
-    const invalidFields = requiredFields.map((field) => ({
-      ...field,
-      valid: Boolean(formData[field.name as keyof HouseFormData]),
-    }));
+    // Check if formData has any undefined values for required fields
+    const invalidFields = requiredFields.map((field) => {
+      const value = formData[field.name as keyof HouseFormData];
+      return {
+        ...field,
+        valid:
+          value !== undefined &&
+          value !== null &&
+          (typeof value === "string" ? value.trim() !== "" : true) &&
+          (typeof value === "number" ? !isNaN(value) : true),
+      };
+    });
 
     setMissingFields(invalidFields);
     return invalidFields.every((field) => field.valid);
   };
 
   const handleSend = async () => {
+    setIsSending(true);
+
     if (!validateForm()) {
       setShowValidationDialog(true);
+      setIsSending(false);
       return;
-
     }
 
     try {
       const apiFormData = new FormData();
       Object.entries(formData).forEach(([key, value]) => {
-        apiFormData.append(
-          key,
-          typeof value === "object" ? JSON.stringify(value) : value.toString()
-        );
+        // Safely handle null or undefined values
+        if (value !== undefined && value !== null) {
+          if (typeof value === "object") {
+            // If it's an object (like arrays), stringify it
+            apiFormData.append(key, JSON.stringify(value));
+          } else {
+            // Otherwise convert to string safely
+            apiFormData.append(key, String(value));
+          }
+        } else {
+          // For undefined or null values, append empty string
+          apiFormData.append(key, "");
+        }
       });
 
       if (selectedFile) {
@@ -250,7 +278,7 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
       setErrorDetails(error instanceof Error ? error.message : "Unknown error");
       setShowErrorDialog(true);
     } finally {
-
+      setIsSending(false);
     }
   };
 
@@ -264,6 +292,14 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
       return () => clearTimeout(timer);
     }
   }, [showErrorDialog, showSuccessDialog, showValidationDialog]);
+
+  useEffect(() => {
+    // When advertisement type changes to "Sale", we don't need payment terms
+    if (formData.advertisementType === "Sale") {
+      // Just keep the current payment method as it won't be used
+      // You could also set a default if needed
+    }
+  }, [formData.advertisementType]);
 
   if (!isLoaded) return <LoadingComponent />;
   if (!user) return <div>Please log in</div>;
@@ -281,12 +317,11 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
             {/* Navigation Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 mb-6">
               {isEditMode ? (
-                
                 <button
                   onClick={() => router.back()}
                   className="flex items-center text-gray-700 hover:text-green-600 mb-8 text-sm font-medium transition-colors duration-200"
                 >
-                <ArrowLeft size={18} className="mr-2" />
+                  <ArrowLeft size={18} className="mr-2" />
                   Back to Houses
                 </button>
               ) : (
@@ -298,12 +333,11 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                 </Link>
               )}
               {!isEditMode && (
-                  <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
-                    <Home className="w-5 h-5" />
-                    <span className="font-medium">Create House</span>
-                  </button>
-                )}
-              
+                <button className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors w-full sm:w-auto">
+                  <Home className="w-5 h-5" />
+                  <span className="font-medium">Create House</span>
+                </button>
+              )}
             </div>
 
             {/* Form Grid */}
@@ -577,57 +611,115 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Condition
-                  </label>
-                  <input
-                    type="text"
-                    name="condition"
-                    value={formData.condition}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                    placeholder="Excellent"
-                  />
+                      Condition
+                    </label>
+                    <input
+                      type="text"
+                      name="condition"
+                      value={formData.condition}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                      placeholder="Excellent"
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Maintenance
-                  </label>
-                  <input
-                    type="text"
-                    name="maintenance"
-                    value={formData.maintenance}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                    placeholder="Frequent"
-                  />
+                      Maintenance
+                    </label>
+                    <input
+                      type="text"
+                      name="maintenance"
+                      value={formData.maintenance}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                      placeholder="Frequent"
+                    />
                   </div>
                 </div>
 
                 {/* Price */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Price *
-                </label>
-                <input
-                  type="number"
-                  name="price"
-                  value={formData.price || ""}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
-                  placeholder="1000"
-                  required
-                />
+                    Price *
+                  </label>
+                  <input
+                    type="number"
+                    name="price"
+                    value={formData.price || ""}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-primary transition-colors"
+                    placeholder="1000"
+                    required
+                  />
+                </div>
+
+                {/* Advertisement Type */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Advertisement Type
+                  </label>
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleOptionChange("advertisementType", "Sale")
+                      }
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg border transition-colors ${
+                        formData.advertisementType === "Sale"
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                      }`}
+                    >
+                      <CheckCircle
+                        className={`w-5 h-5 ${
+                          formData.advertisementType === "Sale"
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }`}
+                      />
+                      <span className="text-sm font-medium">For Sale</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleOptionChange("advertisementType", "Rent")
+                      }
+                      className={`flex-1 flex items-center justify-center gap-2 px-3 py-3 rounded-lg border transition-colors ${
+                        formData.advertisementType === "Rent"
+                          ? "bg-primary text-white border-primary"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                      }`}
+                    >
+                      <CheckCircle
+                        className={`w-5 h-5 ${
+                          formData.advertisementType === "Rent"
+                            ? "opacity-100"
+                            : "opacity-0"
+                        }`}
+                      />
+                      <span className="text-sm font-medium">For Rent</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Service Price */}
-                 {!isEditMode && (<div className="flex items-center space-x-2 bg-gray-100 px-4 py-3 rounded-md">
-                 <span className="text-sm font-medium text-gray-700">
-                  Service Price:
-                </span>
-                <span className="text-lg font-semibold text-primary">
-                  150 ETB
-                </span>
-              </div>)}
+                {!isEditMode && (
+                  <div className="bg-gray-100 p-3 rounded-lg">
+                    <div className="flex items-center justify-between">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Service Price
+                      </label>
+                      <span className="px-3 py-1 bg-primary/20 text-primary rounded-md font-medium">
+                        150 ETB
+                      </span>
+                    </div>
+                    <input
+                      type="hidden"
+                      name="servicePrice"
+                      value={formData.servicePrice}
+                    />
+                  </div>
+                )}
 
                 {/* Currency */}
                 <div>
@@ -657,46 +749,59 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
                   </div>
                 </div>
 
-                {/* Payment Terms */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Payment Terms
-                  </label>
-                  <div className="flex flex-wrap gap-2">
-                    {["Monthly", "Quarterly", "Annual"].map((option) => (
-                      <button
-                        key={option}
-                        type="button"
-                        onClick={() =>
-                          handleOptionChange("paymentMethod", option)
-                        }
-                        className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
-                          formData.paymentMethod === option
-                            ? "bg-primary text-white border-primary"
-                            : "bg-white text-gray-700 border-gray-300 hover:border-primary"
-                        }`}
-                      >
-                        {formData.paymentMethod === option ? (
-                          <CheckCircle className="w-4 h-4" />
-                        ) : (
-                          <Circle className="w-4 h-4" />
-                        )}
-                        <span className="text-sm">{option}</span>
-                      </button>
-                    ))}
+                {/* Payment Terms - only show for Rent */}
+                {formData.advertisementType === "Rent" && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Payment Terms
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {["Monthly", "Quarterly", "Annual"].map((option) => (
+                        <button
+                          key={option}
+                          type="button"
+                          onClick={() =>
+                            handleOptionChange("paymentMethod", option)
+                          }
+                          className={`flex items-center gap-2 px-3 py-2 rounded-full border transition-colors ${
+                            formData.paymentMethod === option
+                              ? "bg-primary text-white border-primary"
+                              : "bg-white text-gray-700 border-gray-300 hover:border-primary"
+                          }`}
+                        >
+                          {formData.paymentMethod === option ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <Circle className="w-4 h-4" />
+                          )}
+                          <span className="text-sm">{option}</span>
+                        </button>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 {/* Submit Button */}
                 <button
                   type="button"
                   onClick={handleSend}
-                  className={`w-full py-3 rounded-lg font-medium text-white transition-colors bg-primary hover:bg-primary/90`}
+                  disabled={isSending}
+                  className={`w-full py-3 rounded-lg font-medium text-white transition-colors ${
+                    isSending
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-primary hover:bg-primary/90"
+                  }`}
                 >
-
-                  {isEditMode
-                    ? "Update"
-                    : "Create"}
+                  {isSending ? (
+                    <div className="flex items-center justify-center">
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      {isEditMode ? "Updating..." : "Creating..."}
+                    </div>
+                  ) : isEditMode ? (
+                    "Update"
+                  ) : (
+                    "Create"
+                  )}
                 </button>
               </div>
             </div>

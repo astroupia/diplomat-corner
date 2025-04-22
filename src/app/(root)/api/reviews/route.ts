@@ -8,11 +8,7 @@ export async function GET(request: Request) {
   try {
     await connectToDatabase();
 
-    const { userId } = await auth();
-    if (!userId) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
+    // Remove the authentication check for public access to reviews
     const { searchParams } = new URL(request.url);
     const productId = searchParams.get("productId");
 

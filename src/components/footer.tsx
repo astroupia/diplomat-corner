@@ -46,8 +46,8 @@ const footerSections: FooterSection[] = [
   {
     title: "Services",
     links: [
-      { label: "Car For Sale", href: "/car" },
-      { label: "House For Rent", href: "house" },
+      { label: "Cars", href: "/car" },
+      { label: "Houses", href: "house" },
       { label: "Grocery", href: "#" },
       { label: "Items For Sale", href: "#" },
       { label: "About Us", href: "/about-us" },
@@ -58,7 +58,8 @@ const footerSections: FooterSection[] = [
     links: [
       { label: "Terms and Services", href: "/terms-of-service" },
       { label: "Policy", href: "/privacy-policy" },
-      { label: "Shop", href: "/car" },
+      { label: "Shop Car", href: "/car" },
+      { label: "Shop House", href: "/house" },
       { label: "Log In", href: "/sign-in" },
     ],
   },

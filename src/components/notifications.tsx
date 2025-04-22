@@ -271,6 +271,7 @@ export default function Notifications() {
   >(null);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [isPolling, setIsPolling] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // Wrap subscribeToPushNotifications in useCallback
   const subscribeToPushNotifications = useCallback(async () => {
@@ -326,6 +327,7 @@ export default function Notifications() {
       const data = await response.json();
       setNotifications(data);
       setLastCheck(new Date());
+      setUnreadCount(data.filter((n: INotification) => !n.isRead).length);
     } catch (error) {
       console.error("Failed to fetch notifications:", error);
     } finally {
@@ -377,6 +379,11 @@ export default function Notifications() {
         });
 
         setLastCheck(new Date());
+        setUnreadCount(
+          (prev) =>
+            prev +
+            newNotifications.filter((n: INotification) => !n.isRead).length
+        );
       }
     } catch (error) {
       console.error("Error checking new notifications:", error);
@@ -391,6 +398,7 @@ export default function Notifications() {
     setIsPolling,
     setNotifications,
     setLastCheck,
+    setUnreadCount,
   ]);
 
   // Set up polling interval for new notifications
@@ -452,37 +460,34 @@ export default function Notifications() {
   });
 
   // Mark notification as read
-  const markAsRead = async (id: string) => {
+  const markAsRead = async (notification: INotification) => {
     try {
-      const response = await fetch("/api/notifications", {
+      setLoading(true);
+      const response = await fetch(`/api/notifications`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ notificationId: id }),
+        body: JSON.stringify({
+          notificationId: notification._id,
+        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to mark notification as read:", errorData);
-        throw new Error(
-          errorData.message || "Failed to mark notification as read"
+      if (response.ok) {
+        // Update the UI optimistically
+        setNotifications(
+          notifications.map((n) =>
+            n._id === notification._id ? { ...n, isRead: true } : n
+          )
         );
+        setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+      } else {
+        console.error("Failed to mark notification as read");
       }
-
-      // Update local state
-      setNotifications((prev) =>
-        prev.map((notification) =>
-          notification._id === id
-            ? { ...notification, isRead: true }
-            : notification
-        )
-      );
-
-      // The notifications state update will trigger the effect above
-      // which will update localStorage and dispatch the event
     } catch (error) {
       console.error("Error marking notification as read:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -532,30 +537,25 @@ export default function Notifications() {
   };
 
   // Delete notification
-  const deleteNotification = async (id: string) => {
+  const deleteNotification = async (notification: INotification) => {
     try {
-      const response = await fetch(`/api/notifications/${id}`, {
+      const response = await fetch(`/api/notifications/${notification._id}`, {
         method: "DELETE",
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to delete notification");
-      }
-
-      // Optimistically update the UI
-      setNotifications((prev) =>
-        prev.filter((notification) => notification._id !== id)
-      );
-
-      // If the deleted notification was expanded, collapse it
-      if (expandedNotification === id) {
-        setExpandedNotification(null);
+      if (response.ok) {
+        // Remove the notification from the UI
+        setNotifications(
+          notifications.filter((n) => n._id !== notification._id)
+        );
+        if (!notification.isRead) {
+          setUnreadCount((prev) => (prev > 0 ? prev - 1 : 0));
+        }
+      } else {
+        console.error("Failed to delete notification");
       }
     } catch (error) {
       console.error("Error deleting notification:", error);
-      // You might want to show a toast or alert here
-      alert("Failed to delete notification. Please try again.");
     }
   };
 
@@ -565,14 +565,9 @@ export default function Notifications() {
       setExpandedNotification(null);
     } else {
       setExpandedNotification(id);
-      markAsRead(id);
+      markAsRead(notifications.find((n) => n._id === id) as INotification);
     }
   };
-
-  // Get unread count
-  const unreadCount = notifications.filter(
-    (notification) => !notification.isRead
-  ).length;
 
   // Get icon for notification type
   const getNotificationIcon = (type: string, category?: string) => {
@@ -768,74 +763,85 @@ export default function Notifications() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
               <ul className="divide-y divide-gray-100">
                 <AnimatePresence mode="popLayout">
-                  {filteredNotifications.map((notification) => (
+                  {filteredNotifications.map((notification, index) => (
                     <motion.li
                       key={notification._id}
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.2 }}
-                      className={`relative ${
-                        notification.isRead ? "" : "bg-primary/5"
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className={`${
+                        expandedNotification === notification._id
+                          ? "bg-gray-50"
+                          : "bg-white"
+                      } border border-gray-200 rounded-lg p-4 mb-3 hover:shadow-md transition-all duration-300 cursor-pointer ${
+                        !notification.isRead
+                          ? "border-l-4 border-l-primary"
+                          : ""
                       }`}
+                      onClick={() => {
+                        if (expandedNotification === notification._id) {
+                          setExpandedNotification(null);
+                        } else {
+                          setExpandedNotification(notification._id);
+                          if (!notification.isRead) {
+                            markAsRead(notification);
+                          }
+                        }
+                      }}
                     >
-                      <div
-                        className="px-6 py-4 cursor-pointer"
-                        onClick={() => toggleExpanded(notification._id)}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div
-                            className={`p-2 rounded-full ${
+                      <div className="flex items-start gap-4">
+                        <div
+                          className={`p-2 rounded-full ${
+                            notification.isRead
+                              ? "bg-gray-100"
+                              : "bg-primary/10"
+                          }`}
+                        >
+                          <span
+                            className={
                               notification.isRead
-                                ? "bg-gray-100"
-                                : "bg-primary/10"
-                            }`}
+                                ? "text-gray-500"
+                                : "text-primary"
+                            }
                           >
-                            <span
-                              className={
+                            {getNotificationIcon(
+                              notification.type,
+                              notification.category
+                            )}
+                          </span>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between">
+                            <h3
+                              className={`text-sm font-medium ${
                                 notification.isRead
-                                  ? "text-gray-500"
-                                  : "text-primary"
-                              }
+                                  ? "text-gray-700"
+                                  : "text-gray-900"
+                              }`}
                             >
-                              {getNotificationIcon(
-                                notification.type,
-                                notification.category
-                              )}
-                            </span>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between">
-                              <h3
-                                className={`text-sm font-medium ${
-                                  notification.isRead
-                                    ? "text-gray-700"
-                                    : "text-gray-900"
+                              {notification.title}
+                            </h3>
+                            <div className="flex items-center ml-4">
+                              <span className="text-xs text-gray-500 whitespace-nowrap flex items-center">
+                                <Clock size={12} className="mr-1" />
+                                {new Date(
+                                  notification.createdAt
+                                ).toLocaleDateString()}
+                              </span>
+                              <ChevronDown
+                                size={16}
+                                className={`ml-2 text-gray-400 transition-transform ${
+                                  expandedNotification === notification._id
+                                    ? "rotate-180"
+                                    : ""
                                 }`}
-                              >
-                                {notification.title}
-                              </h3>
-                              <div className="flex items-center ml-4">
-                                <span className="text-xs text-gray-500 whitespace-nowrap flex items-center">
-                                  <Clock size={12} className="mr-1" />
-                                  {new Date(
-                                    notification.createdAt
-                                  ).toLocaleDateString()}
-                                </span>
-                                <ChevronDown
-                                  size={16}
-                                  className={`ml-2 text-gray-400 transition-transform ${
-                                    expandedNotification === notification._id
-                                      ? "rotate-180"
-                                      : ""
-                                  }`}
-                                />
-                              </div>
+                              />
                             </div>
-                            <p className="text-sm text-gray-500 mt-1 line-clamp-1">
-                              {notification.message}
-                            </p>
                           </div>
+                          <p className="text-sm text-gray-500 mt-1 line-clamp-1">
+                            {notification.message}
+                          </p>
                         </div>
                       </div>
 
@@ -867,7 +873,7 @@ export default function Notifications() {
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    deleteNotification(notification._id);
+                                    deleteNotification(notification);
                                   }}
                                   className="text-sm text-gray-500 hover:text-red-500 flex items-center"
                                 >

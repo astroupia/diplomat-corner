@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Car, MapPin, Fuel, Pencil } from "lucide-react";
+import { Car, MapPin, Fuel, Pencil, Calendar } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
@@ -14,7 +14,7 @@ const CarCard: React.FC<CarCardProps> = ({
   name,
   price = 0,
   mileage = 0,
-  milesPerGallon = 0,
+  year,
   speed = 0,
   transmission = "N/A",
   fuel = "N/A",
@@ -84,8 +84,8 @@ const CarCard: React.FC<CarCardProps> = ({
                 <span>{mileage?.toLocaleString() || "0"} Km</span>
               </div>
               <div className="flex items-center gap-1">
-                <Fuel size={16} />
-                <span>{milesPerGallon || 0} MPG</span>
+                <Calendar size={16} />
+                <span>{year || 0}</span>
               </div>
             </div>
             <div className="flex flex-wrap gap-2 mt-2">

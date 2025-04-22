@@ -161,20 +161,42 @@ const NavBar: React.FC = () => {
     };
   }, [searchQuery, fetchSearchResults]);
 
-  // Effect for scroll handling
+  // Effect for scroll handling - updated to close mobile menu on scroll
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
+
+      // Close mobile menu when scrolling
+      if (isMobileMenuOpen && Math.abs(currentScrollY - lastScrollY) > 10) {
+        setIsMobileMenuOpen(false);
+      }
+
+      // Handle navbar visibility
       if (currentScrollY > lastScrollY && currentScrollY > 50) {
         setIsVisible(false);
       } else {
         setIsVisible(true);
       }
+
       setLastScrollY(currentScrollY);
     };
+
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
-  }, [lastScrollY]);
+  }, [lastScrollY, isMobileMenuOpen]);
+
+  // Effect to add body class when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
+
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [isMobileMenuOpen]);
 
   // Effect to handle clicks outside the search component
   useEffect(() => {
@@ -319,186 +341,67 @@ const NavBar: React.FC = () => {
   }, [isLoaded, user]);
 
   return (
-    <nav
-      className={`bg-white border px-4 sm:px-6 py-2 fixed top-0 left-0 right-0 z-50 shadow-md m-0 transition-all duration-700 ease-out ${
-        isVisible
-          ? "opacity-100 translate-y-0"
-          : "opacity-0 -translate-y-full pointer-events-none"
-      }`}
-    >
-      <section className="w-full">
-        <MaxWidthWrapper>
-          <div className="flex items-center justify-between flex-wrap min-w-0">
-            {/* Left Section: Brand Logo */}
-            <div className="flex items-center flex-shrink-0">
-              <Link href="/" onClick={handleMobileMenuClose}>
-                <span className="text-black font-normal text-base">
-                  <div className="flex flex-col pl-2">
-                    <h3>Diplomat</h3>
-                    <span className="mt-[-5px] text-primary">Corner</span>
-                  </div>
-                </span>
-              </Link>
-            </div>
+    <>
+      {/* Overlay for mobile menu */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
-            {/* Hamburger Menu Button for Mobile */}
-            <div className="lg:hidden">
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="text-black"
-              >
-                <Menu className="w-6 h-6" />
-              </button>
-            </div>
-
-            {/* Middle Section: Navigation Links - Desktop */}
-            <div className="hidden lg:flex flex-1 justify-center gap-4 xl:gap-6 text-base text-black font-normal px-4 xl:px-6 min-w-0">
-              {navItems
-                .filter((item) => !item.isAuth || (item.isAuth && user))
-                .map((item) => (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="hover:text-primary transition whitespace-nowrap"
-                    onClick={handleMobileMenuClose}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
-            </div>
-
-            {/* Right Section: Search, Notifications, and Authentication */}
-            <div className="hidden lg:flex items-center gap-3 xl:gap-6 flex-shrink-0 min-w-0">
-              {/* Search Component */}
-              <div className="relative" ref={searchRef}>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onFocus={handleInputFocus}
-                    className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-40 xl:w-56 pr-8"
-                  />
-                  <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    {isSearchLoading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Search className="w-5 h-5" />
-                    )}
-                  </span>
-                </div>
-                {/* Dropdown */}
-                {isDropdownVisible && (
-                  <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
-                    {isSearchLoading && searchResults.length === 0 ? (
-                      <div className="p-2 text-center text-gray-500">
-                        Loading...
-                      </div>
-                    ) : searchResults.length > 0 ? (
-                      <ul>
-                        {searchResults.map((result) => (
-                          <li
-                            key={`${result.type}-${result.id}`}
-                            className="border-b last:border-b-0"
-                          >
-                            <Link
-                              href={`/${result.type}/${result.id}`}
-                              onClick={handleResultClick}
-                              className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            >
-                              {result.name}{" "}
-                              <span className="text-xs text-gray-400">
-                                ({result.type})
-                              </span>
-                            </Link>
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      !isSearchLoading &&
-                      searchQuery && (
-                        <div className="p-2 text-center text-gray-500">
-                          No results found.
-                        </div>
-                      )
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Authentication Buttons */}
-              <div className="flex items-center gap-3 xl:gap-6">
-                {!user ? (
-                  <Link href="/sign-up" onClick={handleMobileMenuClose}>
-                    <Button className="bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium px-4 xl:px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
-                      Get Started
-                    </Button>
-                  </Link>
-                ) : (
-                  <>
-                    <div className="relative group">
-                      <UserButton
-                        afterSignOutUrl="/"
-                        appearance={{
-                          elements: {
-                            rootBox:
-                              "transform hover:scale-110 transition-transform duration-200",
-                          },
-                        }}
-                      />
+      <nav
+        className={`bg-white border px-4 sm:px-6 py-2 fixed top-0 left-0 right-0 z-50 shadow-md m-0 transition-all duration-700 ease-out ${
+          isVisible
+            ? "opacity-100 translate-y-0"
+            : "opacity-0 -translate-y-full pointer-events-none"
+        }`}
+      >
+        <section className="w-full">
+          <MaxWidthWrapper>
+            <div className="flex items-center justify-between flex-wrap min-w-0">
+              {/* Left Section: Brand Logo */}
+              <div className="flex items-center flex-shrink-0">
+                <Link href="/" onClick={handleMobileMenuClose}>
+                  <span className="text-black font-normal text-base">
+                    <div className="flex flex-col pl-2">
+                      <h3>Diplomat</h3>
+                      <span className="mt-[-5px] text-primary">Corner</span>
                     </div>
-                    <Link href="/notifications" onClick={handleMobileMenuClose}>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="relative bg-gradient-to-r from-gray-50 to-white p-2 rounded-full border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300"
-                      >
-                        <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
-                        {unreadNotifications > 0 && (
-                          <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
-                            {unreadNotifications > 99
-                              ? "99+"
-                              : unreadNotifications}
-                          </span>
-                        )}
-                        <span className="sr-only">Notifications</span>
-                      </Button>
-                    </Link>
-                    <Link
-                      href="/manage-product/house"
-                      onClick={handleMobileMenuClose}
-                      className="relative overflow-hidden px-3 xl:px-4 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary text-gray-700 hover:text-primary transition-all duration-300 group"
-                    >
-                      <span className="relative z-10">Manage Products</span>
-                      <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
-                    </Link>
-                  </>
-                )}
+                  </span>
+                </Link>
               </div>
-            </div>
-          </div>
 
-          {/* Mobile Menu */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden mt-4 border-t border-gray-200">
-              <div className="flex flex-col gap-4 text-lg text-black font-semibold p-4">
-                {/* Navigation Links */}
+              {/* Hamburger Menu Button for Mobile */}
+              <div className="lg:hidden">
+                <button
+                  onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                  className="text-black"
+                >
+                  <Menu className="w-6 h-6" />
+                </button>
+              </div>
+
+              {/* Middle Section: Navigation Links - Desktop */}
+              <div className="hidden lg:flex flex-1 justify-center gap-4 xl:gap-6 text-base text-black font-normal px-4 xl:px-6 min-w-0">
                 {navItems
                   .filter((item) => !item.isAuth || (item.isAuth && user))
                   .map((item) => (
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="hover:text-primary transition"
+                      className="hover:text-primary transition whitespace-nowrap"
                       onClick={handleMobileMenuClose}
                     >
                       {item.label}
                     </Link>
                   ))}
+              </div>
 
-                {/* Search Component for Mobile */}
-                <div className="relative mt-4" ref={searchRef}>
+              {/* Right Section: Search, Notifications, and Authentication */}
+              <div className="hidden lg:flex items-center gap-3 xl:gap-6 flex-shrink-0 min-w-0">
+                {/* Search Component */}
+                <div className="relative" ref={searchRef}>
                   <div className="relative">
                     <input
                       type="text"
@@ -506,7 +409,7 @@ const NavBar: React.FC = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={handleInputFocus}
-                      className="w-full border border-primary rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary pr-8"
+                      className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-40 xl:w-56 pr-8"
                     />
                     <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
                       {isSearchLoading ? (
@@ -555,51 +458,51 @@ const NavBar: React.FC = () => {
                   )}
                 </div>
 
-                {/* Authentication Buttons for Mobile */}
-                <div className="flex flex-col gap-4 mt-4">
+                {/* Authentication Buttons */}
+                <div className="flex items-center gap-3 xl:gap-6">
                   {!user ? (
                     <Link href="/sign-up" onClick={handleMobileMenuClose}>
-                      <Button className="w-full bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                      <Button className="bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium px-4 xl:px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
                         Get Started
                       </Button>
                     </Link>
                   ) : (
                     <>
-                      <div className="flex items-center gap-4">
+                      <div className="relative group">
                         <UserButton
                           afterSignOutUrl="/"
                           appearance={{
                             elements: {
-                              rootBox: "w-full",
+                              rootBox:
+                                "transform hover:scale-110 transition-transform duration-200",
                             },
                           }}
                         />
-                        <Link
-                          href="/notifications"
-                          onClick={handleMobileMenuClose}
-                          className="flex-1"
-                        >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="w-full relative bg-gradient-to-r from-gray-50 to-white p-2 rounded-full border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300"
-                          >
-                            <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
-                            {unreadNotifications > 0 && (
-                              <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
-                                {unreadNotifications > 99
-                                  ? "99+"
-                                  : unreadNotifications}
-                              </span>
-                            )}
-                            <span className="sr-only">Notifications</span>
-                          </Button>
-                        </Link>
                       </div>
+                      <Link
+                        href="/notifications"
+                        onClick={handleMobileMenuClose}
+                      >
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="relative bg-gradient-to-r from-gray-50 to-white p-2 rounded-full border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300"
+                        >
+                          <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
+                          {unreadNotifications > 0 && (
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
+                              {unreadNotifications > 99
+                                ? "99+"
+                                : unreadNotifications}
+                            </span>
+                          )}
+                          <span className="sr-only">Notifications</span>
+                        </Button>
+                      </Link>
                       <Link
                         href="/manage-product/house"
                         onClick={handleMobileMenuClose}
-                        className="w-full text-center relative overflow-hidden px-4 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary text-gray-700 hover:text-primary transition-all duration-300 group"
+                        className="relative overflow-hidden px-3 xl:px-4 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary text-gray-700 hover:text-primary transition-all duration-300 group"
                       >
                         <span className="relative z-10">Manage Products</span>
                         <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
@@ -609,10 +512,142 @@ const NavBar: React.FC = () => {
                 </div>
               </div>
             </div>
-          )}
-        </MaxWidthWrapper>
-      </section>
-    </nav>
+
+            {/* Mobile Menu */}
+            {isMobileMenuOpen && (
+              <div className="lg:hidden mt-4 border-t border-gray-200 relative z-50">
+                <div className="flex flex-col gap-4 text-lg text-black font-normal p-4">
+                  {/* Navigation Links */}
+                  {navItems
+                    .filter((item) => !item.isAuth || (item.isAuth && user))
+                    .map((item) => (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        className="hover:text-primary transition"
+                        onClick={handleMobileMenuClose}
+                      >
+                        {item.label}
+                      </Link>
+                    ))}
+
+                  {/* Search Component for Mobile */}
+                  <div className="relative mt-4" ref={searchRef}>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        onFocus={handleInputFocus}
+                        className="w-full border border-primary rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-primary pr-8"
+                      />
+                      <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        {isSearchLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <Search className="w-5 h-5" />
+                        )}
+                      </span>
+                    </div>
+                    {/* Dropdown */}
+                    {isDropdownVisible && (
+                      <div className="absolute top-full mt-1 w-full bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto z-50">
+                        {isSearchLoading && searchResults.length === 0 ? (
+                          <div className="p-2 text-center text-gray-500">
+                            Loading...
+                          </div>
+                        ) : searchResults.length > 0 ? (
+                          <ul>
+                            {searchResults.map((result) => (
+                              <li
+                                key={`${result.type}-${result.id}`}
+                                className="border-b last:border-b-0"
+                              >
+                                <Link
+                                  href={`/${result.type}/${result.id}`}
+                                  onClick={handleResultClick}
+                                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                >
+                                  {result.name}{" "}
+                                  <span className="text-xs text-gray-400">
+                                    ({result.type})
+                                  </span>
+                                </Link>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : (
+                          !isSearchLoading &&
+                          searchQuery && (
+                            <div className="p-2 text-center text-gray-500">
+                              No results found.
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Authentication Buttons for Mobile */}
+                  <div className="flex flex-col gap-4 mt-4">
+                    {!user ? (
+                      <Link href="/sign-up" onClick={handleMobileMenuClose}>
+                        <Button className="w-full bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                          Get Started
+                        </Button>
+                      </Link>
+                    ) : (
+                      <>
+                        <div className="flex items-center gap-4">
+                          <UserButton
+                            afterSignOutUrl="/"
+                            appearance={{
+                              elements: {
+                                rootBox: "w-full",
+                              },
+                            }}
+                          />
+                          <Link
+                            href="/notifications"
+                            onClick={handleMobileMenuClose}
+                            className="flex-1"
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="w-full relative bg-gradient-to-r from-gray-50 to-white p-2 rounded-full border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300"
+                            >
+                              <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
+                              {unreadNotifications > 0 && (
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
+                                  {unreadNotifications > 99
+                                    ? "99+"
+                                    : unreadNotifications}
+                                </span>
+                              )}
+                              <span className="sr-only">Notifications</span>
+                            </Button>
+                          </Link>
+                        </div>
+                        <Link
+                          href="/manage-product/house"
+                          onClick={handleMobileMenuClose}
+                          className="w-full text-center relative overflow-hidden px-4 hover:border-primary py-2 rounded-lg bg-white border border-gray-200 text-gray-700 hover:text-primary transition-all duration-300 group"
+                        >
+                          <span className="relative z-10">Manage Products</span>
+                          <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
+                        </Link>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </MaxWidthWrapper>
+        </section>
+      </nav>
+    </>
   );
 };
 

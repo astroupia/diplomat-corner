@@ -79,7 +79,7 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pt-24 pb-16">
+    <div className="min-h-screen bg-gray-50 pt-5 pb-10">
       <div className="container mx-auto px-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -100,8 +100,6 @@ export default function Page() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2">
-           
-
             {/* Contact Form */}
             <motion.div
               initial={{ opacity: 0, x: 20 }}

@@ -7,7 +7,7 @@ export interface ICar {
   description: string;
   advertisementType: "Rent" | "Sale";
   price: number;
-  paymentMethod: number;
+  paymentMethod: "Daily" | "Weekly" | "Monthly" | "Annually";
   mileage: number;
   speed: number;
   milesPerGallon: number;
@@ -36,14 +36,18 @@ const carSchema = new Schema(
     description: { type: String, required: true },
     advertisementType: { type: String, required: true, enum: ["Rent", "Sale"] },
     price: { type: Number, required: true },
-    paymentMethod: { type: Number, required: true },
+    paymentMethod: {
+      type: String,
+      required: true,
+      enum: ["Daily", "Weekly", "Monthly", "Annually"],
+    },
     mileage: { type: Number, required: true },
     speed: { type: Number, default: 0 },
     milesPerGallon: { type: Number, default: 0 },
     timestamp: { type: String, required: true },
     year: { type: Number, default: 0 },
     transmission: { type: String, default: "Automatic" },
-    fuel: { type: String, default: "Gasoline" },
+    fuel: { type: String, default: "Diesel" },
     bodyType: { type: String },
     condition: { type: String, default: "" },
     engine: { type: String, default: "" },

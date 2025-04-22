@@ -5,7 +5,7 @@ export interface IHouse {
   name: string;
   userId: string;
   description: string;
-  advertisementType: string;
+  advertisementType: "Rent" | "Sale";
   price: number;
   paymentMethod: "Monthly" | "Quarterly" | "Annual";
   bedroom: number;

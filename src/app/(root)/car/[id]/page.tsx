@@ -3,12 +3,29 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import { CarFront, GaugeCircle, Fuel, Settings, ArrowLeft } from "lucide-react";
+import {
+  CarFront,
+  GaugeCircle,
+  Fuel,
+  Settings,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  DollarSign,
+  BadgeCheck,
+} from "lucide-react";
 import type { ICar } from "@/lib/models/car.model";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
 import { Button } from "@/components/ui/button";
 import CarDetailLoadingSkeleton from "@/components/loading-effects/id-loading-car";
 import ReviewsSection from "@/components/reviews/reviews-section";
+import { motion } from "framer-motion";
+
+const paymentMethodLabels: Record<number, string> = {
+  1: "One-time Payment",
+  2: "Weekly",
+  3: "Monthly",
+};
 
 export default function CarDetails() {
   const params = useParams<{ id: string }>();
@@ -93,10 +110,92 @@ export default function CarDetails() {
         </div>
 
         <div className="lg:w-1/3 mt-8 lg:mt-0">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">{car.name}</h1>
+          <div className="flex items-center justify-between mb-4">
+            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+              {car.name}
+            </h1>
+            <span
+              className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                car.advertisementType === "Rent"
+                  ? "bg-blue-100 text-blue-700"
+                  : "bg-green-100 text-green-700"
+              }`}
+            >
+              For {car.advertisementType}
+            </span>
+          </div>
+
           <p className="text-2xl text-green-600 font-semibold mb-6">
             {car.currency} {car.price.toLocaleString()}
           </p>
+
+          {car.advertisementType === "Rent" && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-100"
+            >
+              <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
+                <Clock className="mr-2 text-blue-500" size={20} />
+                Rental Information
+              </h3>
+
+              <div className="grid grid-cols-1 gap-3">
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                    <Calendar className="text-blue-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Payment Schedule</p>
+                    <p className="font-medium text-gray-800">
+                      {paymentMethodLabels[car.paymentMethod] ||
+                        "One-time Payment"}
+                    </p>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                    <DollarSign className="text-blue-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Rental Rate</p>
+                    <p className="font-medium text-gray-800">
+                      {car.currency} {car.price.toLocaleString()} per{" "}
+                      {car.paymentMethod === 2
+                        ? "week"
+                        : car.paymentMethod === 3
+                        ? "month"
+                        : "day"}
+                    </p>
+                  </div>
+                </motion.div>
+
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-blue-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                    <BadgeCheck className="text-blue-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Availability</p>
+                    <p className="font-medium text-gray-800">Available Now</p>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+          )}
 
           <div className="grid grid-cols-2 gap-4 text-gray-700 mb-8">
             <div className="flex items-center gap-2">
@@ -161,12 +260,12 @@ export default function CarDetails() {
             </div>
           </div>
 
-          <Button
+          <button
             onClick={() => setIsDialogOpen(true)}
-            className="w-full bg-green-600 text-white font-semibold py-3 px-6 rounded-md hover:bg-green-500 transition-colors duration-200"
+            className="w-full bg-primary text-white font-semibold py-3 px-6 rounded-md hover:bg-primary/80 transition-colors duration-200"
           >
             Inquire Now
-          </Button>
+          </button>
           {/* Contact Seller Dialog */}
           <ContactSellerDialog
             isOpen={isDialogOpen}

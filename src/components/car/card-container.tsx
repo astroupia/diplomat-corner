@@ -3,9 +3,9 @@
 import Card from "@/components/car/car-card";
 import type { ICar } from "@/lib/models/car.model";
 import React, { useEffect, useState } from "react";
-import LoadingSkeleton from "@/app/car/loading";
+import LoadingSkeleton from "@/app/(root)/car/loading";
 import { useAuth, useUser } from "@clerk/nextjs";
-import { ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
+import { Car, ChevronDown, Filter, SlidersHorizontal } from "lucide-react";
 import FilterSection, { FilterOption } from "../filter-section";
 import ListingBanner from "@/components/listing-banner";
 
@@ -129,7 +129,7 @@ const CardContainer: React.FC = () => {
           }
 
           // Check fuel type filters
-          if (["Gasoline", "Diesel", "Electric", "Hybrid"].includes(filter)) {
+          if (["Petrol", "Diesel", "Electric", "Hybrid"].includes(filter)) {
             return car.fuel === filter;
           }
 
@@ -161,13 +161,7 @@ const CardContainer: React.FC = () => {
   // Create comprehensive filter options
   const getFilterOptions = () => {
     // Sort options
-    const sortOptions = [
-      { value: "Default", label: "Default" },
-      { value: "Price Low to High", label: "Price: Low to High" },
-      { value: "Price High to Low", label: "Price: High to Low" },
-      { value: "Mileage Low to High", label: "Mileage: Low to High" },
-      { value: "Mileage High to Low", label: "Mileage: High to Low" },
-    ];
+    const sortOptions = [{ value: "Default", label: "Default" }];
 
     // Body type filters
     const bodyTypeFilters = [
@@ -192,18 +186,11 @@ const CardContainer: React.FC = () => {
       { value: "Manual", label: "Manual" },
     ];
 
-    // Price range filters
-    const priceFilters = [
-      { value: "Budget", label: "Budget (<500k)" },
-      { value: "Premium", label: "Premium (≥500k)" },
-    ];
-
     return [
       ...sortOptions,
       ...bodyTypeFilters,
       ...fuelTypeFilters,
       ...transmissionFilters,
-      ...priceFilters,
     ];
   };
 
@@ -222,7 +209,6 @@ const CardContainer: React.FC = () => {
   if (loading) {
     return <LoadingSkeleton />;
   }
-
   if (error) {
     return (
       <div className="text-center py-10">

@@ -1,18 +1,17 @@
-"use client"
+"use client";
 
-import { motion } from "framer-motion"
-import { Loader2 } from "lucide-react"
-import type { ReactNode } from "react"
-import Link from "next/link"
-import { ArrowLeft } from "lucide-react"
+import { motion } from "framer-motion";
+import { Loader2 } from "lucide-react";
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 
 interface DetailPageSkeletonProps {
-  icon: ReactNode
-  backLink: string
-  backText: string
-  loadingText: string
-  progress: number
-  children: ReactNode
+  icon: ReactNode;
+  backLink: string;
+  backText: string;
+  loadingText: string;
+  progress: number;
 }
 
 export default function DetailPageSkeleton({
@@ -21,7 +20,6 @@ export default function DetailPageSkeleton({
   backText,
   loadingText,
   progress,
-  children,
 }: DetailPageSkeletonProps) {
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">
@@ -46,8 +44,6 @@ export default function DetailPageSkeleton({
           </div>
         </div>
 
-        {children}
-
         {/* Floating animation */}
         <div className="fixed bottom-10 right-10">
           <motion.div
@@ -62,11 +58,13 @@ export default function DetailPageSkeleton({
           >
             <div className="relative">
               <div className="absolute -inset-2 bg-primary/20 rounded-full blur-xl"></div>
-              <div className="relative bg-white p-4 rounded-full shadow-lg">{icon}</div>
+              <div className="relative bg-white p-4 rounded-full shadow-lg">
+                {icon}
+              </div>
             </div>
           </motion.div>
         </div>
       </div>
     </div>
-  )
+  );
 }
