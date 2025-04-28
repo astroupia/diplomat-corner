@@ -259,6 +259,12 @@ const NavBar: React.FC = () => {
       name: "",
       type: "car",
     },
+    // {
+    //   label: "Items For Sale",
+    //   href: "https://groups.google.com/g/diplomatcorner?pli=1",
+    //   name: "",
+    //   type: "car",
+    // },
   ];
 
   // Effect to setup notification polling and WebSocket connection
