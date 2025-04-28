@@ -59,14 +59,6 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({
         duration: 0.8,
       },
     },
-    shake: {
-      rotate: [0, -10, 10, -10, 0],
-      transition: {
-        duration: 0.5,
-        repeat: 0,
-        ease: "easeInOut",
-      },
-    },
   };
 
   return (
@@ -111,18 +103,16 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({
           <motion.div
             className="flex justify-center mb-6"
             variants={iconVariants}
-            initial="hidden"
-            animate={["visible", "shake"]}
           >
             <div className="relative">
               <div className="absolute inset-0 bg-red-500/20 rounded-full blur-xl"></div>
               <div className="relative bg-red-100 rounded-full p-4">
-                <XCircle className="h-16 w-16 text-red-600" />
+                <AlertTriangle className="h-16 w-16 text-red-600" />
               </div>
             </div>
           </motion.div>
 
-          {/* Warning animation */}
+          {/* X animation */}
           <motion.div
             className="absolute top-6 right-6"
             animate={{
@@ -136,18 +126,12 @@ const ErrorScreen: React.FC<ErrorScreenProps> = ({
               repeatDelay: 3,
             }}
           >
-            <AlertTriangle className="h-6 w-6 text-red-500/50" />
+            <XCircle className="h-6 w-6 text-red-500/50" />
           </motion.div>
 
           {/* Title and message */}
-          <motion.h1
-            className="text-2xl font-bold text-center text-red-600 mb-3"
-            variants={itemVariants}
-          >
-            {title}
-          </motion.h1>
-
           <motion.div className="text-center" variants={itemVariants}>
+            <h1 className="text-2xl font-bold text-red-600 mb-2">{title}</h1>
             {errorCode && (
               <div className="inline-block px-3 py-1 bg-red-100 text-red-600 rounded-full text-sm font-medium mb-3">
                 Error {errorCode}

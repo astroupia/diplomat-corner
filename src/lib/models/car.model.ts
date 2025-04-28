@@ -1,26 +1,30 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface ICar {
-  _id?: string;
+  _id: string;
   name: string;
-  year?: number;
-  mileage: number;
-  speed?: number;
-  milesPerGallon?: number;
-  transmission?: string;
-  fuel?: string;
-  bodyType?: string;
-  condition?: string;
-  engine?: string;
-  maintenance?: string;
-  price: number;
-  description: string;
-  advertisementType: string;
-  paymentMethod?: string;
-  currency?: string;
-  tags?: string;
-  imageUrl?: string;
   userId: string;
+  description: string;
+  advertisementType: "Rent" | "Sale";
+  price: number;
+  paymentMethod: "Daily" | "Weekly" | "Monthly" | "Annually";
+  mileage: number;
+  speed: number;
+  milesPerGallon: number;
+  timestamp: string;
+  year: number;
+  transmission: string;
+  fuel: string;
+  bodyType: string;
+  condition: string;
+  engine: string;
+  maintenance: string;
+  currency: string;
+  tags: string;
+  imageUrl?: string;
+  paymentId: string;
+  visiblity: "Private" | "Public";
+  status: "Pending" | "Active";
   createdAt?: Date;
   updatedAt?: Date;
 }
