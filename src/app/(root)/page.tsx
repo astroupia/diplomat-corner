@@ -96,7 +96,8 @@ const HeroSection = () => {
                   international flights.
                 </p>
                 <Link
-                  href="#"
+                  href="https://www.ethiopianairlines.com/"
+                  target="_blank"
                   className="inline-flex items-center gap-2 bg-white/90 backdrop-blur-sm text-primary px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md hover:bg-white transition-colors duration-300 text-sm"
                 >
                   Learn More
@@ -192,7 +193,7 @@ const HeroSection = () => {
                 >
                   <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl"></div>
                   <Link
-                    href="#"
+                    href={showCar ? "/car" : "/house"}
                     className="text-white hover:text-primary group-hover:text-primary relative flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 bg-transparent backdrop-blur-sm rounded-full shadow-lg border-2 border-white/80 group-hover:bg-white hover:bg-primary transition-colors duration-300"
                   >
                     <div className="text-center">
@@ -258,33 +259,38 @@ const HeroSection = () => {
 const FeaturedProducts = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovering, setIsHovering] = useState(false);
+  const [featuredProducts, setFeaturedProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Create arrays of keys for the featured products section
-  const featuredImageKeys = [
-    "air",
-    "air2",
-    "building",
-    "cash",
-    "car",
-    "half",
-    "women",
-  ];
-  const productKeys = [
-    "house1",
-    "car1",
-    "house2",
-    "car2",
-    "car3",
-    "house1",
-    "car1",
-  ];
-
-  const totalProducts = Math.min(featuredImageKeys.length, productKeys.length);
+  const totalProducts = featuredProducts.length;
   const productsPerView = { mobile: 1, tablet: 2, desktop: 4 };
 
   // Determine how many products to show based on screen size
   const [itemsToShow, setItemsToShow] = useState(productsPerView.desktop);
+
+  // Fetch featured products
+  useEffect(() => {
+    const fetchFeaturedProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/featured-products");
+
+        if (!response.ok) {
+          throw new Error("Failed to fetch featured products");
+        }
+
+        const data = await response.json();
+        setFeaturedProducts(data);
+      } catch (error) {
+        console.error("Error fetching featured products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchFeaturedProducts();
+  }, []);
 
   useEffect(() => {
     const handleResize = () => {
@@ -316,7 +322,7 @@ const FeaturedProducts = () => {
 
   // Auto-scroll when not hovering
   useEffect(() => {
-    if (isHovering) return;
+    if (isHovering || totalProducts <= itemsToShow) return;
 
     const interval = setInterval(() => {
       nextSlide();
@@ -324,6 +330,11 @@ const FeaturedProducts = () => {
 
     return () => clearInterval(interval);
   }, [isHovering, currentIndex, itemsToShow, totalProducts, nextSlide]);
+
+  // Format price with currency
+  const formatPrice = (price: number, currency: string = "ETB") => {
+    return `${currency} ${price.toLocaleString()}`;
+  };
 
   return (
     <section className="py-4 sm:py-5 md:py-6 bg-gray-50/50">
@@ -343,6 +354,7 @@ const FeaturedProducts = () => {
               onClick={prevSlide}
               className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-primary hover:text-white transition-colors"
               aria-label="Previous products"
+              disabled={totalProducts <= itemsToShow}
             >
               <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
@@ -350,113 +362,148 @@ const FeaturedProducts = () => {
               onClick={nextSlide}
               className="p-1.5 sm:p-2 rounded-full bg-white border border-gray-200 text-gray-700 hover:bg-primary hover:text-white transition-colors"
               aria-label="Next products"
+              disabled={totalProducts <= itemsToShow}
             >
               <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
 
-        <div
-          className="relative overflow-hidden"
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
-          ref={carouselRef}
-        >
-          <div
-            className="flex transition-transform duration-500 ease-out"
-            style={{
-              transform: `translateX(-${currentIndex * (100 / itemsToShow)}%)`,
-            }}
-          >
-            {featuredImageKeys.map((imageKey, index) => {
-              const productKey = productKeys[index] as keyof typeof products;
-              const image = images[imageKey as keyof typeof images];
-              const product = getProduct(productKey);
-
-              return (
-                <div
-                  key={index}
-                  className="flex-none w-full sm:w-1/2 lg:w-1/4 px-2 sm:px-3"
-                  style={{ width: `${100 / itemsToShow}%` }}
-                >
-                  <motion.div
-                    whileHover={{ y: -5 }}
-                    className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
-                  >
-                    <div className="relative group h-48 sm:h-64 overflow-hidden">
-                      <Image
-                        width={400}
-                        height={300}
-                        src={image.src || "/placeholder.svg"}
-                        alt={image.alt}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                      <div className="absolute top-3 left-3">
-                        <span className="bg-primary/90 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
-                          #{product.tag}
-                        </span>
-                      </div>
-
-                      <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-                        <div className="flex justify-between items-center">
-                          <Link
-                            href="#"
-                            className="bg-white/90 backdrop-blur-sm text-primary text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full hover:bg-white transition-colors duration-300"
-                          >
-                            View Details
-                          </Link>
-                          <button className="w-7 h-7 sm:w-8 sm:h-8 flex items-center justify-center rounded-full bg-white/90 backdrop-blur-sm text-primary hover:bg-white transition-colors duration-300">
-                            <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                          </button>
-                        </div>
-                      </div>
+        {loading ? (
+          // Loading skeleton
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl overflow-hidden shadow-sm"
+              >
+                <div className="h-48 sm:h-64 bg-gray-200 animate-pulse"></div>
+                <div className="p-3 sm:p-4">
+                  <div className="h-4 bg-gray-200 rounded animate-pulse mb-2"></div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-1">
+                      <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
                     </div>
-
-                    <div className="p-3 sm:p-4">
-                      <h3 className="font-medium text-gray-900 mb-1 text-sm sm:text-base">
-                        {product.tag}
-                      </h3>
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-1">
-                          <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-500" />
-                          <span className="text-gray-800 text-xs sm:text-sm font-medium">
-                            {product.rating}
-                          </span>
-                          <span className="text-gray-500 text-[10px] sm:text-xs">
-                            ({product.reviews})
-                          </span>
-                        </div>
-                        <span className="text-primary font-semibold text-sm sm:text-base">
-                          {product.price}
-                        </span>
-                      </div>
-                    </div>
-                  </motion.div>
+                    <div className="h-4 w-12 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
+        ) : (
+          <div
+            className="relative overflow-hidden"
+            onMouseEnter={() => setIsHovering(true)}
+            onMouseLeave={() => setIsHovering(false)}
+            ref={carouselRef}
+          >
+            {featuredProducts.length === 0 ? (
+              <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+                <p className="text-gray-500">
+                  No featured products available at the moment
+                </p>
+              </div>
+            ) : (
+              <>
+                <div
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{
+                    transform: `translateX(-${
+                      currentIndex * (100 / itemsToShow)
+                    }%)`,
+                  }}
+                >
+                  {featuredProducts.map((product, index) => (
+                    <div
+                      key={product._id}
+                      className="flex-none w-full sm:w-1/2 lg:w-1/4 px-2 sm:px-3"
+                      style={{ width: `${100 / itemsToShow}%` }}
+                    >
+                      <motion.div
+                        whileHover={{ y: -5 }}
+                        className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300"
+                      >
+                        <div className="relative group h-48 sm:h-64 overflow-hidden">
+                          <Image
+                            width={400}
+                            height={300}
+                            src={product.imageUrl || "/placeholder.svg"}
+                            alt={product.name}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                          />
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
 
-          {/* Pagination dots */}
-          <div className="flex justify-center mt-4 sm:mt-6 gap-1 sm:gap-1.5">
-            {Array.from({ length: Math.ceil(totalProducts / itemsToShow) }).map(
-              (_, i) => (
-                <button
-                  key={i}
-                  onClick={() => setCurrentIndex(i * itemsToShow)}
-                  className={`h-2 rounded-full transition-all duration-300 ${
-                    Math.floor(currentIndex / itemsToShow) === i
-                      ? "bg-primary w-5 sm:w-6"
-                      : "bg-gray-300 hover:bg-gray-400 w-2"
-                  }`}
-                  aria-label={`Go to slide ${i + 1}`}
-                />
-              )
+                          <div className="absolute top-3 left-3">
+                            <span className="bg-primary/90 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm">
+                              #{product.type}
+                            </span>
+                          </div>
+
+                          <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
+                            <div className="flex justify-between items-center">
+                              <Link
+                                href={`/${product.type}/${product._id}`}
+                                className="bg-white/90 backdrop-blur-sm text-primary text-xs sm:text-sm px-2 py-1 sm:px-3 sm:py-1.5 rounded-full hover:bg-white transition-colors duration-300"
+                              >
+                                View Details
+                              </Link>
+                              <div className="flex items-center bg-white/90 backdrop-blur-sm rounded-full px-2 text-xs">
+                                <span className="text-yellow-500">
+                                  {product.totalLikes}
+                                </span>
+                                <Heart className="w-3.5 h-3.5 sm:w-4 sm:h-4 ml-1 text-primary" />
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="p-3 sm:p-4">
+                          <h3 className="font-medium text-gray-900 mb-1 text-sm sm:text-base truncate">
+                            {product.name}
+                          </h3>
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-1">
+                              <Star className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-500 fill-yellow-500" />
+                              <span className="text-gray-800 text-xs sm:text-sm font-medium">
+                                {product.averageRating.toFixed(1)}
+                              </span>
+                              <span className="text-gray-500 text-[10px] sm:text-xs">
+                                ({product.totalReviews})
+                              </span>
+                            </div>
+                            <span className="text-primary font-semibold text-sm sm:text-base">
+                              {formatPrice(product.price)}
+                            </span>
+                          </div>
+                        </div>
+                      </motion.div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Pagination dots */}
+                {totalProducts > itemsToShow && (
+                  <div className="flex justify-center mt-4 sm:mt-6 gap-1 sm:gap-1.5">
+                    {Array.from({
+                      length: Math.ceil(totalProducts / itemsToShow),
+                    }).map((_, i) => (
+                      <button
+                        key={i}
+                        onClick={() => setCurrentIndex(i * itemsToShow)}
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          Math.floor(currentIndex / itemsToShow) === i
+                            ? "bg-primary w-5 sm:w-6"
+                            : "bg-gray-300 hover:bg-gray-400 w-2"
+                        }`}
+                        aria-label={`Go to slide ${i + 1}`}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </div>
-        </div>
+        )}
       </MaxWidthWrapper>
     </section>
   );
@@ -541,7 +588,7 @@ const SingleAdSection = () => {
                   Reach thousands of potential customers daily.
                 </p>
                 <Link
-                  href="#"
+                  href="/contact-us"
                   className="inline-flex items-center gap-1 sm:gap-2 bg-white/90 backdrop-blur-sm text-primary px-3 py-1.5 sm:px-4 sm:py-2 rounded-full shadow-md hover:bg-white transition-colors duration-300 text-xs sm:text-sm"
                 >
                   Learn More

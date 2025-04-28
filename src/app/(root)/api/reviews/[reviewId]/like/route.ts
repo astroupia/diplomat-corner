@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/db-connect";
 import Review from "@/lib/models/review.model";
+import Notification from "@/lib/models/notification.model";
 import { auth } from "@clerk/nextjs/server";
 
 export async function POST(
@@ -37,17 +38,13 @@ export async function POST(
       // Send notification to review owner
       if (review.userId !== userId) {
         try {
-          await fetch(`/api/notifications`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: review.userId,
-              title: "New Like on Your Review",
-              message: `Someone liked your review.`,
-              type: "update",
-              category: "review",
-              link: `/${review.productType}/${review.productId}`,
-            }),
+          await Notification.create({
+            userId: review.userId,
+            title: "New Like on Your Review",
+            message: `Someone liked your review.`,
+            type: "update",
+            category: "system",
+            link: `/product/${review.productId}`,
           });
         } catch (error) {
           console.error("Failed to send notification:", error);

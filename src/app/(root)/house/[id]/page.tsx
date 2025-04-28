@@ -14,37 +14,29 @@ import {
   DollarSign,
   BadgeCheck,
   Home,
+  Square,
+  CalendarDays,
+  Sofa,
+  CalendarCheck,
 } from "lucide-react";
+import type { IHouse } from "@/lib/models/house.model";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
+import { Button } from "@/components/ui/button";
 import HouseDetailLoadingSkeleton from "@/components/loading-effects/id-loading-house";
 import ReviewsSection from "@/components/reviews/reviews-section";
 import { motion } from "framer-motion";
 
-interface House {
-  _id: string;
-  name: string;
-  advertisementType: string;
-  currency: string;
-  price: number;
-  imageUrl?: string;
-  bedroom: number;
-  bathroom: number;
-  size: number;
-  parkingSpace: number;
-  description: string;
-  paymentMethod: string;
-  houseType: string;
-  condition: string;
-  maintenance: string;
-  essentials: string[];
-  userId: string;
-}
+const paymentMethodLabels: Record<string, string> = {
+  Monthly: "Monthly",
+  Quarterly: "Quarterly",
+  Annual: "Annual",
+};
 
 export default function HouseDetails() {
-  const params = useParams();
+  const params = useParams<{ id: string }>();
   const router = useRouter();
   const id = params.id as string;
-  const [house, setHouse] = useState<House | null>(null);
+  const [house, setHouse] = useState<IHouse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -64,7 +56,7 @@ export default function HouseDetails() {
         setLoading(false);
       }
     };
-    fetchHouse();
+    if (id) fetchHouse();
   }, [id]);
 
   if (loading) {
@@ -86,10 +78,6 @@ export default function HouseDetails() {
       </div>
     );
   }
-  const openDialog = () => {
-    setIsDialogOpen(true);
-  };
-  const closeDialog = () => setIsDialogOpen(false);
 
   return (
     <div className="container mx-auto px-4 py-5 max-w-6xl">
@@ -101,8 +89,11 @@ export default function HouseDetails() {
         Back to Houses
       </button>
 
-      <div className="lg:flex lg:space-x-12">
+      {/* Desktop: Side-by-side layout, Mobile: Stacked layout with specific order */}
+      <div className="block lg:flex lg:space-x-12">
+        {/* Left Column on Desktop / First + Third on Mobile */}
         <div className="lg:w-2/3">
+          {/* 1. Picture - First on both desktop and mobile */}
           <Image
             src={house.imageUrl || "/c.jpg"}
             alt={house.name}
@@ -111,41 +102,50 @@ export default function HouseDetails() {
             className="w-full h-auto object-cover rounded-md mb-8"
             priority
           />
-          <div>
+
+          {/* 3. Description - Visible only on desktop here, third on mobile (see below) */}
+          <div className="hidden lg:block">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Description
             </h2>
             <p className="text-gray-600 leading-relaxed">{house.description}</p>
           </div>
 
-          {/* Reviews Section */}
-          <ReviewsSection
-            productId={id}
-            productType="house"
-            sellerId={house.userId}
-          />
+          {/* 4. Reviews - Visible only on desktop here, fourth on mobile (see below) */}
+          <div className="hidden lg:block">
+            <ReviewsSection
+              productId={id}
+              productType="house"
+              sellerId={house.userId}
+            />
+          </div>
         </div>
 
-        <div className="lg:w-1/3 mt-8 lg:mt-0">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-              {house.name}
-            </h1>
-            <span
-              className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                house.advertisementType === "Rent"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              For {house.advertisementType}
-            </span>
+        {/* Right Column on Desktop / Second on Mobile */}
+        <div className="lg:w-1/3 mt-8 lg:mt-0 order-2">
+          <div className="mb-4">
+            <div className="flex justify-between items-start">
+              <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                {house.name}
+              </h1>
+              <div className="flex-shrink-0 ml-2">
+                <span
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                    house.advertisementType === "Rent"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  For {house.advertisementType}
+                </span>
+              </div>
+            </div>
           </div>
+
           <p className="text-2xl text-green-600 font-semibold mb-6">
             {house.currency} {house.price.toLocaleString()}
           </p>
 
-          {/* Payment Method Section - only show for Rent */}
           {house.advertisementType === "Rent" && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -170,7 +170,8 @@ export default function HouseDetails() {
                   <div>
                     <p className="text-sm text-gray-500">Payment Schedule</p>
                     <p className="font-medium text-gray-800">
-                      {house.paymentMethod}
+                      {paymentMethodLabels[house.paymentMethod] ||
+                        "One-time Payment"}
                     </p>
                   </div>
                 </motion.div>
@@ -187,13 +188,9 @@ export default function HouseDetails() {
                     <p className="text-sm text-gray-500">Rental Rate</p>
                     <p className="font-medium text-gray-800">
                       {house.currency} {house.price.toLocaleString()} per{" "}
-                      {house.paymentMethod === "Monthly"
-                        ? "month"
-                        : house.paymentMethod === "Quarterly"
-                        ? "quarter"
-                        : house.paymentMethod === "Annual"
-                        ? "year"
-                        : "payment term"}
+                      {paymentMethodLabels[
+                        house.paymentMethod
+                      ]?.toLowerCase() || "month"}
                     </p>
                   </div>
                 </motion.div>
@@ -204,13 +201,11 @@ export default function HouseDetails() {
                   transition={{ type: "spring", stiffness: 400, damping: 10 }}
                 >
                   <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                    <Home className="text-blue-600" size={18} />
+                    <BadgeCheck className="text-blue-600" size={18} />
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Property Type</p>
-                    <p className="font-medium text-gray-800">
-                      {house.houseType}
-                    </p>
+                    <p className="text-sm text-gray-500">Availability</p>
+                    <p className="font-medium text-gray-800">Available Now</p>
                   </div>
                 </motion.div>
               </div>
@@ -227,8 +222,8 @@ export default function HouseDetails() {
               <span className="text-sm">{house.bathroom} Bathrooms</span>
             </div>
             <div className="flex items-center gap-2">
-              <Ruler size={18} className="text-gray-500" />
-              <span className="text-sm">{house.size.toLocaleString()} ft²</span>
+              <Square size={18} className="text-gray-500" />
+              <span className="text-sm">{house.size.toLocaleString()} m²</span>
             </div>
             <div className="flex items-center gap-2">
               <Car size={18} className="text-gray-500" />
@@ -238,53 +233,181 @@ export default function HouseDetails() {
 
           <div className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              Additional Details
+              Specifications
             </h2>
-            <div className="space-y-3 text-gray-700">
-              {/* Only show Payment Method for sale ads in this section */}
-              {house.advertisementType === "Sale" && (
-                <p>
-                  <strong className="font-medium">Payment Method:</strong>{" "}
-                  {house.paymentMethod}
-                </p>
+            <div className="grid grid-cols-1 gap-4">
+              {house.houseType && (
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Home className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">House Type</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.houseType}
+                    </p>
+                  </div>
+                </motion.div>
               )}
-              <p>
-                <strong className="font-medium">House Type:</strong>{" "}
-                {house.houseType}
-              </p>
+              {house.bedroom > 0 && (
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Bed className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Bedrooms</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.bedroom}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              {house.bathroom > 0 && (
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Bath className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Bathrooms</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.bathroom}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              {house.size > 0 && (
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Square className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Area</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.size} m²
+                    </p>
+                  </div>
+                </motion.div>
+              )}
+              {house.parkingSpace > 0 && (
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Car className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Parking Spaces</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.parkingSpace}
+                    </p>
+                  </div>
+                </motion.div>
+              )}
               {house.condition && (
-                <p>
-                  <strong className="font-medium">Condition:</strong>{" "}
-                  {house.condition}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <BadgeCheck className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Condition</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.condition}
+                    </p>
+                  </div>
+                </motion.div>
               )}
               {house.maintenance && (
-                <p>
-                  <strong className="font-medium">Maintenance:</strong>{" "}
-                  {house.maintenance}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Clock className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Maintenance</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.maintenance}
+                    </p>
+                  </div>
+                </motion.div>
               )}
               {house.essentials && house.essentials.length > 0 && (
-                <p>
-                  <strong className="font-medium">Essentials:</strong>{" "}
-                  {house.essentials.join(", ")}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Sofa className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Essentials</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {house.essentials.join(", ")}
+                    </p>
+                  </div>
+                </motion.div>
               )}
             </div>
           </div>
+
           <button
-            onClick={openDialog}
+            onClick={() => setIsDialogOpen(true)}
             className="w-full bg-primary text-white font-semibold py-3 px-6 rounded-md hover:bg-primary/80 transition-colors duration-200"
           >
             Inquire Now
           </button>
+
+          {/* Contact Seller Dialog */}
           <ContactSellerDialog
             isOpen={isDialogOpen}
-            onClose={closeDialog}
+            onClose={() => setIsDialogOpen(false)}
             productType="house"
             sellerName="the seller"
           />
         </div>
+      </div>
+
+      {/* Mobile-only sections for correct ordering */}
+      <div className="lg:hidden mt-8">
+        {/* 3. Description - Third on mobile */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Description
+          </h2>
+          <p className="text-gray-600 leading-relaxed">{house.description}</p>
+        </div>
+
+        {/* 4. Reviews - Fourth on mobile */}
+        <ReviewsSection
+          productId={id}
+          productType="house"
+          sellerId={house.userId}
+        />
       </div>
     </div>
   );

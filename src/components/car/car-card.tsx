@@ -99,9 +99,9 @@ const CarCard: React.FC<CarCardProps> = ({
                 {bodyType}
               </span>
             </div>
-            <p className="text-gray-500 text-sm mt-2 truncate">
-              Listed by {displayName}
-            </p>
+            {/* <p className="text-gray-500 text-sm mt-2 truncate">
+              Listed by {displayName}s
+            </p> */}
           </div>
         </div>
       </Link>

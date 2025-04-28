@@ -47,12 +47,17 @@ export async function POST(request: Request) {
 
     // Validate notification type
     const validTypes = [
+      "message",
+      "alert",
+      "update",
+      "system",
+      "security",
+      "request",
+      "approval",
       "info",
       "success",
       "warning",
       "error",
-      "update",
-      "request",
     ];
     if (!validTypes.includes(type)) {
       return NextResponse.json(

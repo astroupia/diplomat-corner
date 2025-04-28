@@ -7,7 +7,11 @@ export type NotificationType =
   | "system"
   | "security"
   | "request"
-  | "approval";
+  | "approval"
+  | "info"
+  | "success"
+  | "warning"
+  | "error";
 export type NotificationCategory = "car" | "house" | "account" | "system";
 
 export interface INotification extends Document {
@@ -42,10 +46,14 @@ const NotificationSchema = new Schema<INotification>(
         "security",
         "request",
         "approval",
+        "info",
+        "success",
+        "warning",
+        "error",
       ],
       required: true,
     },
-  title: {
+    title: {
       type: String,
       required: true,
     },

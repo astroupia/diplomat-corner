@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import Review from "@/lib/models/review.model";
+import Notification from "@/lib/models/notification.model";
 import { connectToDatabase } from "@/lib/db-connect";
 import { IReview } from "@/types/reviews";
 
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { rating, comment, productId, targetUserId } = body;
+    const { rating, comment, productId, targetUserId, productType } = body;
 
     if (!rating || !productId || !targetUserId) {
       return NextResponse.json(
@@ -69,6 +70,38 @@ export async function POST(request: Request) {
     });
 
     await review.save();
+
+    // Create notification for the seller
+    if (targetUserId) {
+      try {
+        await Notification.create({
+          userId: targetUserId,
+          title: "New Review Received",
+          message: `You received a ${rating}-star review for your product.`,
+          type: "message",
+          category: productType === "car" ? "car" : "house",
+          productType: productType === "car" ? "Car" : "House",
+          link: `/${productType}/${productId}`,
+        });
+      } catch (notificationError) {
+        console.error("Error creating seller notification:", notificationError);
+      }
+    }
+
+    // Create notification for the reviewer
+    try {
+      await Notification.create({
+        userId: userId,
+        title: "Review Submitted",
+        message: `Your review has been submitted successfully.`,
+        type: "message",
+        category: productType === "car" ? "car" : "house",
+        productType: productType === "car" ? "Car" : "House",
+        link: `/${productType}/${productId}`,
+      });
+    } catch (notificationError) {
+      console.error("Error creating user notification:", notificationError);
+    }
 
     const populatedReview = await Review.findById(review._id).populate(
       "user",

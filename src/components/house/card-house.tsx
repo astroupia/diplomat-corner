@@ -90,9 +90,9 @@ const CardHouse: React.FC<CardProps> = ({
                 <span>{parkingSpace} Parking</span>
               </div>
             </div>
-            <p className="text-gray-500 text-sm mt-2 truncate">
+            {/* <p className="text-gray-500 text-sm mt-2 truncate">
               Listed by {displayName}
-            </p>
+            </p> */}
           </div>
         </div>
       </Link>

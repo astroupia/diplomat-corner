@@ -22,10 +22,10 @@ import ReviewsSection from "@/components/reviews/reviews-section";
 import { motion } from "framer-motion";
 
 const paymentMethodLabels: Record<string, string> = {
-  "Daily": "Daily",
-  "Weekly": "Weekly",
-  "Monthly": "Monthly",
-  "Annually": "Annually",
+  Daily: "Daily",
+  Weekly: "Weekly",
+  Monthly: "Monthly",
+  Annually: "Annually",
 };
 
 export default function CarDetails() {
@@ -85,8 +85,11 @@ export default function CarDetails() {
         Back to Cars
       </button>
 
-      <div className="lg:flex lg:space-x-12">
+      {/* Desktop: Side-by-side layout, Mobile: Stacked layout with specific order */}
+      <div className="block lg:flex lg:space-x-12">
+        {/* Left Column on Desktop / First + Third on Mobile */}
         <div className="lg:w-2/3">
+          {/* 1. Picture - First on both desktop and mobile */}
           <Image
             src={car.imageUrl || "/car.jpg"}
             alt={car.name}
@@ -95,35 +98,44 @@ export default function CarDetails() {
             className="w-full h-auto object-cover rounded-md mb-8"
             priority
           />
-          <div>
+
+          {/* 3. Description - Visible only on desktop here, third on mobile (see below) */}
+          <div className="hidden lg:block">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Description
             </h2>
             <p className="text-gray-600 leading-relaxed">{car.description}</p>
           </div>
 
-          {/* Reviews Section */}
-          <ReviewsSection
-            productId={id}
-            productType="car"
-            sellerId={car.userId}
-          />
+          {/* 4. Reviews - Visible only on desktop here, fourth on mobile (see below) */}
+          <div className="hidden lg:block">
+            <ReviewsSection
+              productId={id}
+              productType="car"
+              sellerId={car.userId}
+            />
+          </div>
         </div>
 
-        <div className="lg:w-1/3 mt-8 lg:mt-0">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-3xl font-bold text-gray-900 leading-tight">
-              {car.name}
-            </h1>
-            <span
-              className={`text-xs font-medium px-2.5 py-1 rounded-full ${
-                car.advertisementType === "Rent"
-                  ? "bg-blue-100 text-blue-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              For {car.advertisementType}
-            </span>
+        {/* Right Column on Desktop / Second on Mobile */}
+        <div className="lg:w-1/3 mt-8 lg:mt-0 order-2">
+          <div className="mb-4">
+            <div className="flex justify-between items-start">
+              <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                {car.name}
+              </h1>
+              <div className="flex-shrink-0 ml-2">
+                <span
+                  className={`text-xs font-medium px-2.5 py-1 rounded-full ${
+                    car.advertisementType === "Rent"
+                      ? "bg-blue-100 text-blue-700"
+                      : "bg-green-100 text-green-700"
+                  }`}
+                >
+                  For {car.advertisementType}
+                </span>
+              </div>
+            </div>
           </div>
 
           <p className="text-2xl text-green-600 font-semibold mb-6">
@@ -172,7 +184,8 @@ export default function CarDetails() {
                     <p className="text-sm text-gray-500">Rental Rate</p>
                     <p className="font-medium text-gray-800">
                       {car.currency} {car.price.toLocaleString()} per{" "}
-                      {paymentMethodLabels[car.paymentMethod]?.toLowerCase() || "day"}
+                      {paymentMethodLabels[car.paymentMethod]?.toLowerCase() ||
+                        "day"}
                     </p>
                   </div>
                 </motion.div>
@@ -219,40 +232,108 @@ export default function CarDetails() {
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
               Specifications
             </h2>
-            <div className="space-y-3 text-gray-700">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {car.engine && (
-                <p>
-                  <strong className="font-medium">Engine:</strong> {car.engine}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <GaugeCircle className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Engine</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {car.engine}
+                    </p>
+                  </div>
+                </motion.div>
               )}
               {car.transmission && (
-                <p>
-                  <strong className="font-medium">Transmission:</strong>{" "}
-                  {car.transmission}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Settings className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Transmission</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {car.transmission}
+                    </p>
+                  </div>
+                </motion.div>
               )}
               {car.fuel && (
-                <p>
-                  <strong className="font-medium">Fuel Type:</strong> {car.fuel}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Fuel className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Fuel Type</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {car.fuel}
+                    </p>
+                  </div>
+                </motion.div>
               )}
               {car.bodyType && (
-                <p>
-                  <strong className="font-medium">Body Type:</strong>{" "}
-                  {car.bodyType}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <CarFront className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Body Type</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {car.bodyType}
+                    </p>
+                  </div>
+                </motion.div>
               )}
               {car.condition && (
-                <p>
-                  <strong className="font-medium">Condition:</strong>{" "}
-                  {car.condition}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <BadgeCheck className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Condition</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {car.condition}
+                    </p>
+                  </div>
+                </motion.div>
               )}
               {car.maintenance && (
-                <p>
-                  <strong className="font-medium">Maintenance:</strong>{" "}
-                  {car.maintenance}
-                </p>
+                <motion.div
+                  className="flex items-center p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mr-3">
+                    <Clock className="text-gray-600" size={18} />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-500">Maintenance</p>
+                    <p className="font-medium text-gray-800 break-words">
+                      {car.maintenance}
+                    </p>
+                  </div>
+                </motion.div>
               )}
             </div>
           </div>
@@ -271,6 +352,24 @@ export default function CarDetails() {
             sellerName="the seller"
           />
         </div>
+      </div>
+
+      {/* Mobile-only sections for correct ordering */}
+      <div className="lg:hidden mt-8">
+        {/* 3. Description - Third on mobile */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Description
+          </h2>
+          <p className="text-gray-600 leading-relaxed">{car.description}</p>
+        </div>
+
+        {/* 4. Reviews - Fourth on mobile */}
+        <ReviewsSection
+          productId={id}
+          productType="car"
+          sellerId={car.userId}
+        />
       </div>
     </div>
   );

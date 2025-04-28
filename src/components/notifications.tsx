@@ -272,6 +272,7 @@ export default function Notifications() {
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [deletingIds, setDeletingIds] = useState<string[]>([]);
 
   // Wrap subscribeToPushNotifications in useCallback
   const subscribeToPushNotifications = useCallback(async () => {
@@ -539,9 +540,15 @@ export default function Notifications() {
   // Delete notification
   const deleteNotification = async (notification: INotification) => {
     try {
-      const response = await fetch(`/api/notifications/${notification._id}`, {
-        method: "DELETE",
-      });
+      // Add ID to deletingIds to show loading state
+      setDeletingIds((prev) => [...prev, notification._id]);
+
+      const response = await fetch(
+        `/api/notifications?id=${notification._id}`,
+        {
+          method: "DELETE",
+        }
+      );
 
       if (response.ok) {
         // Remove the notification from the UI
@@ -556,6 +563,9 @@ export default function Notifications() {
       }
     } catch (error) {
       console.error("Error deleting notification:", error);
+    } finally {
+      // Remove ID from deletingIds regardless of success/failure
+      setDeletingIds((prev) => prev.filter((id) => id !== notification._id));
     }
   };
 
@@ -876,9 +886,21 @@ export default function Notifications() {
                                     deleteNotification(notification);
                                   }}
                                   className="text-sm text-gray-500 hover:text-red-500 flex items-center"
+                                  disabled={deletingIds.includes(
+                                    notification._id
+                                  )}
                                 >
-                                  <Trash2 size={16} className="mr-1" />
-                                  Delete
+                                  {deletingIds.includes(notification._id) ? (
+                                    <>
+                                      <div className="w-4 h-4 mr-2 border-2 border-gray-300 border-t-red-500 rounded-full animate-spin"></div>
+                                      Deleting...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Trash2 size={16} className="mr-1" />
+                                      Delete
+                                    </>
+                                  )}
                                 </button>
                               </div>
                             </div>
