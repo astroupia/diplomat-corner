@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import type { IHouse } from "@/lib/models/house.model";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
-import { Button } from "@/components/ui/button";
 import HouseDetailLoadingSkeleton from "@/components/loading-effects/id-loading-house";
 import ReviewsSection from "@/components/reviews/reviews-section";
 import { motion } from "framer-motion";

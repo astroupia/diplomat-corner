@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import type { ICar } from "@/lib/models/car.model";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
-import { Button } from "@/components/ui/button";
 import CarDetailLoadingSkeleton from "@/components/loading-effects/id-loading-car";
 import ReviewsSection from "@/components/reviews/reviews-section";
 import { motion } from "framer-motion";
