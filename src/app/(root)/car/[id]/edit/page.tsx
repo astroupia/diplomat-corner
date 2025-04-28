@@ -49,7 +49,9 @@ export default function EditCarPage() {
 
   if (loading) return <LoadingScreen />;
   if (permissionDenied)
-    return <PermissionDeniedScreen message="You do not have permission to edit this car." />;
+    return (
+      <PermissionDeniedScreen message="You do not have permission to edit this car." />
+    );
   if (error) return <ErrorScreen message={error} />;
   if (!car) return <NotFoundScreen />;
 

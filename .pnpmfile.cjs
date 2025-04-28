@@ -1,11 +1,18 @@
 function readPackage(pkg) {
-  // Resolve the conflict between knip and @eslint-community/eslint-utils
+  // Fix specific package issues
+  if (pkg.dependencies && pkg.dependencies["@eslint-community/eslint-utils"]) {
+    // Force a specific version if needed
+    pkg.dependencies["@eslint-community/eslint-utils"] = "4.6.0";
+  }
+
+  // Resolve dependency conflicts for knip
   if (pkg.name === "knip") {
-    // If there's a conflict in peerDependencies, modify them
+    // Fix peer dependencies if needed
     if (pkg.peerDependencies) {
-      delete pkg.peerDependencies["@eslint-community/eslint-utils"];
+      // Adjust peer dependencies as needed
     }
   }
+
   return pkg;
 }
 
