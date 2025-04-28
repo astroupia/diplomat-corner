@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm install && npm run build",
+  "buildCommand": "pnpm install && pnpm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install",
+  "installCommand": "pnpm install",
   "framework": "nextjs",
   "public": false,
   "regions": ["fra1"],
