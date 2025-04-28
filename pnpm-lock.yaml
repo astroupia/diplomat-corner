@@ -61,7 +61,7 @@ importers:
         version: 3.6.0
       diplomat_corner:
         specifier: 'file:'
-        version: file:(@types/react-dom@19.1.2(@types/react@19.1.2))(@types/react@19.1.2)(tailwindcss@3.4.17)
+        version: file:(@types/react-dom@19.1.2(@types/react@19.1.2))(@types/react@19.1.2)
       framer-motion:
         specifier: ^11.15.0
         version: 11.18.2(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -98,9 +98,12 @@ importers:
       tailwind-merge:
         specifier: ^2.6.0
         version: 2.6.0
+      tailwindcss:
+        specifier: ^3.4.1
+        version: 3.4.1
       tailwindcss-animate:
         specifier: ^1.0.7
-        version: 1.0.7(tailwindcss@3.4.17)
+        version: 1.0.7(tailwindcss@3.4.1)
       uuid:
         specifier: ^11.1.0
         version: 11.1.0
@@ -138,9 +141,6 @@ importers:
       postcss:
         specifier: ^8
         version: 8.5.3
-      tailwindcss:
-        specifier: ^3.4.1
-        version: 3.4.17
       typescript:
         specifier: ^5
         version: 5.8.3
@@ -2299,6 +2299,10 @@ packages:
     resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
     engines: {node: '>= 0.8.0'}
 
+  lilconfig@2.1.0:
+    resolution: {integrity: sha512-utWOt/GHzuUxnLKxB6dk81RoOeoNeHgbrXiuGk4yyF5qlRz+iIVWu56E2fqGHFrXz0QNUhLB/8nKqvRH66JKGQ==}
+    engines: {node: '>=10'}
+
   lilconfig@3.1.3:
     resolution: {integrity: sha512-/vlFKAoH5Cgt3Ie+JLhRbwOsCQePABiU3tJ1egGvyQ+33R/vcwM2Zl2QR/LzjsBeItPt3oSVXapn+m4nQDvpzw==}
     engines: {node: '>=14'}
@@ -3102,8 +3106,8 @@ packages:
     peerDependencies:
       tailwindcss: '>=3.0.0 || insiders'
 
-  tailwindcss@3.4.17:
-    resolution: {integrity: sha512-w33E2aCvSDP0tW9RZuNXadXlkHXqFzSkQew/aIa2i/Sj8fThxwovwlXHSPXTbAHwEIhBFXAedUhP2tueAKP8Og==}
+  tailwindcss@3.4.1:
+    resolution: {integrity: sha512-qAYmXRfk3ENzuPBakNK0SRrUDipP8NQnEY6772uDhflcQz5EhRdD7JNZxyrFHVQNCwULPBn6FNPp9brpO7ctcA==}
     engines: {node: '>=14.0.0'}
     hasBin: true
 
@@ -4800,7 +4804,7 @@ snapshots:
 
   didyoumean@1.2.2: {}
 
-  diplomat_corner@file:(@types/react-dom@19.1.2(@types/react@19.1.2))(@types/react@19.1.2)(tailwindcss@3.4.17):
+  diplomat_corner@file:(@types/react-dom@19.1.2(@types/react@19.1.2))(@types/react@19.1.2):
     dependencies:
       '@clerk/nextjs': 6.15.1(next@15.3.0(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(svix@1.64.1)
       '@radix-ui/react-avatar': 1.1.4(@types/react-dom@19.1.2(@types/react@19.1.2))(@types/react@19.1.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4831,7 +4835,8 @@ snapshots:
       svix: 1.64.1
       swiper: 11.2.6
       tailwind-merge: 2.6.0
-      tailwindcss-animate: 1.0.7(tailwindcss@3.4.17)
+      tailwindcss: 3.4.1
+      tailwindcss-animate: 1.0.7(tailwindcss@3.4.1)
       uuid: 11.1.0
       web-push: 3.6.7
       zod: 3.24.3
@@ -4854,7 +4859,7 @@ snapshots:
       - snappy
       - socks
       - supports-color
-      - tailwindcss
+      - ts-node
 
   dlv@1.1.3: {}
 
@@ -5718,6 +5723,8 @@ snapshots:
     dependencies:
       prelude-ls: 1.2.1
       type-check: 0.4.0
+
+  lilconfig@2.1.0: {}
 
   lilconfig@3.1.3: {}
 
@@ -6603,11 +6610,11 @@ snapshots:
 
   tailwind-merge@2.6.0: {}
 
-  tailwindcss-animate@1.0.7(tailwindcss@3.4.17):
+  tailwindcss-animate@1.0.7(tailwindcss@3.4.1):
     dependencies:
-      tailwindcss: 3.4.17
+      tailwindcss: 3.4.1
 
-  tailwindcss@3.4.17:
+  tailwindcss@3.4.1:
     dependencies:
       '@alloc/quick-lru': 5.2.0
       arg: 5.0.2
@@ -6618,7 +6625,7 @@ snapshots:
       glob-parent: 6.0.2
       is-glob: 4.0.3
       jiti: 1.21.7
-      lilconfig: 3.1.3
+      lilconfig: 2.1.0
       micromatch: 4.0.8
       normalize-path: 3.0.0
       object-hash: 3.0.0
