@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import webpack from "webpack";
+import path from "path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -19,6 +20,12 @@ const nextConfig: NextConfig = {
   },
 
   webpack(config, { isServer }) {
+    // Add path aliases explicitly for webpack
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      "@": path.resolve(__dirname, "./src"),
+    };
+
     // Custom rule for image imports (excluding public folder images)
     config.module?.rules?.push({
       test: /\.(png|jpe?g|gif|svg|webp|bmp|ico)$/i,

@@ -2,13 +2,13 @@
 
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import ManageCar from "../../../../../components/manage-car";
+import ManageCar from "@/components/manage-car";
 import { useUser } from "@clerk/nextjs";
 import { ICar } from "@/lib/models/car.model";
-import LoadingScreen from "../../../../../components/error/loading-screen";
-import ErrorScreen from "../../../../../components/error/error-screen";
-import NotFoundScreen from "../../../../../components/error/not-found-screen";
-import PermissionDeniedScreen from "../../../../../components/error/permission-denied";
+import LoadingScreen from "@/components/error/loading-screen";
+import ErrorScreen from "@/components/error/error-screen";
+import NotFoundScreen from "@/components/error/not-found-screen";
+import PermissionDeniedScreen from "@/components/error/permission-denied";
 
 export default function EditCarPage() {
   const { id } = useParams();
