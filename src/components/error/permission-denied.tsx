@@ -3,21 +3,23 @@
 import type React from "react";
 
 import { motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { ShieldAlert, ArrowLeft, LockIcon, ChevronRight } from "lucide-react";
+import { ShieldAlert, Home, RefreshCw, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 interface PermissionDeniedScreenProps {
   message?: string;
-  showRequestAccess?: boolean;
-  onRequestAccess?: () => void;
+  onRetry?: () => void;
+  showHomeButton?: boolean;
+  showBackButton?: boolean;
   title?: string;
 }
 
 const PermissionDeniedScreen: React.FC<PermissionDeniedScreenProps> = ({
-  message = "You do not have permission to access this page.",
-  showRequestAccess = false,
-  onRequestAccess,
+  message = "You don't have permission to access this resource.",
+  onRetry,
+  showHomeButton = true,
+  showBackButton = true,
   title = "Access Denied",
 }) => {
   const router = useRouter();
@@ -45,7 +47,7 @@ const PermissionDeniedScreen: React.FC<PermissionDeniedScreenProps> = ({
     },
   };
 
-  const shieldVariants = {
+  const iconVariants = {
     hidden: { scale: 0.8, opacity: 0 },
     visible: {
       scale: 1,
@@ -65,7 +67,7 @@ const PermissionDeniedScreen: React.FC<PermissionDeniedScreenProps> = ({
         {/* Background decorative elements */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <motion.div
-            className="absolute top-1/4 left-1/4 w-64 h-64 bg-yellow-500/5 rounded-full blur-3xl"
+            className="absolute top-1/4 left-1/4 w-64 h-64 bg-amber-500/5 rounded-full blur-3xl"
             animate={{
               x: [0, 10, 0],
               y: [0, -10, 0],
@@ -77,7 +79,7 @@ const PermissionDeniedScreen: React.FC<PermissionDeniedScreenProps> = ({
             }}
           />
           <motion.div
-            className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-yellow-500/10 rounded-full blur-3xl"
+            className="absolute bottom-1/3 right-1/4 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl"
             animate={{
               x: [0, -10, 0],
               y: [0, 10, 0],
@@ -97,72 +99,59 @@ const PermissionDeniedScreen: React.FC<PermissionDeniedScreenProps> = ({
           initial="hidden"
           animate="visible"
         >
-          {/* Shield icon with animation */}
+          {/* Error icon with animation */}
           <motion.div
             className="flex justify-center mb-6"
-            variants={shieldVariants}
+            variants={iconVariants}
           >
             <div className="relative">
-              <div className="absolute inset-0 bg-yellow-500/20 rounded-full blur-xl"></div>
-              <div className="relative bg-yellow-100 rounded-full p-4">
-                <ShieldAlert className="h-16 w-16 text-yellow-600" />
+              <div className="absolute inset-0 bg-amber-500/20 rounded-full blur-xl"></div>
+              <div className="relative bg-amber-100 rounded-full p-4">
+                <ShieldAlert className="h-16 w-16 text-amber-600" />
               </div>
             </div>
           </motion.div>
 
-          {/* Lock animation */}
-          <motion.div
-            className="absolute top-6 right-6"
-            animate={{
-              rotate: [0, 10, -10, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Number.POSITIVE_INFINITY,
-              repeatType: "reverse",
-              ease: "easeInOut",
-              repeatDelay: 3,
-            }}
-          >
-            <LockIcon className="h-6 w-6 text-yellow-500/50" />
-          </motion.div>
-
           {/* Title and message */}
-          <motion.h1
-            className="text-2xl font-bold text-center text-yellow-600 mb-3"
-            variants={itemVariants}
-          >
-            {title}
-          </motion.h1>
-
-          <motion.p
-            className="text-muted-foreground text-center mb-8"
-            variants={itemVariants}
-          >
-            {message}
-          </motion.p>
+          <motion.div className="text-center" variants={itemVariants}>
+            <h1 className="text-2xl font-bold text-amber-600 mb-2">{title}</h1>
+            <p className="text-muted-foreground mb-8">{message}</p>
+          </motion.div>
 
           {/* Buttons */}
           <motion.div
             className="flex flex-col sm:flex-row gap-4 justify-center"
             variants={itemVariants}
           >
-            <Button
-              variant="outline"
-              onClick={() => router.back()}
-              className="group flex items-center gap-2 transition-all duration-300"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-              <span>Go Back</span>
-            </Button>
-
-            {showRequestAccess && onRequestAccess && (
+            {showBackButton && (
               <Button
-                onClick={onRequestAccess}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white group flex items-center gap-2 transition-all duration-300"
+                variant="outline"
+                onClick={() => router.back()}
+                className="group flex items-center gap-2 transition-all duration-300"
               >
-                <span>Request Access</span>
-                <ChevronRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+                <span>Go Back</span>
+              </Button>
+            )}
+
+            {showHomeButton && (
+              <Button
+                variant="outline"
+                onClick={() => router.push("/")}
+                className="group flex items-center gap-2 transition-all duration-300"
+              >
+                <Home className="h-4 w-4 group-hover:scale-110 transition-transform" />
+                <span>Home</span>
+              </Button>
+            )}
+
+            {onRetry && (
+              <Button
+                onClick={onRetry}
+                className="bg-amber-600 hover:bg-amber-700 text-white group flex items-center gap-2 transition-all duration-300"
+              >
+                <RefreshCw className="h-4 w-4 group-hover:animate-spin" />
+                <span>Try Again</span>
               </Button>
             )}
           </motion.div>
