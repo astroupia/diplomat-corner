@@ -27,10 +27,4 @@ coverage
 test
 __tests__
 **/*.test.*
-**/*.spec.*
-
-# Vercel specific files
-.vercel
-npm-debug.log
-yarn-debug.log
-yarn-error.log 
+**/*.spec.* 

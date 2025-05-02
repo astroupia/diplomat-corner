@@ -2,14 +2,9 @@
   "name": "diplomat_corner",
   "version": "0.1.0",
   "private": true,
-  "engines": {
-    "node": "20.x"
-  },
   "scripts": {
     "dev": "next dev",
-    "build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
-    "vercel-build": "NODE_OPTIONS='--max-old-space-size=4096' next build",
-    "debug-build": "NODE_OPTIONS='--max-old-space-size=4096 --trace-warnings' next build",
+    "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
