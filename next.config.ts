@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -15,6 +16,11 @@ const nextConfig: NextConfig = {
   // Disable ESLint during build to avoid errors
   eslint: {
     ignoreDuringBuilds: true,
+  },
+
+  // Add experimental flag to fix module resolution
+  experimental: {
+    esmExternals: false,
   },
 };
 

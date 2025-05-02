@@ -17,9 +17,9 @@ import {
   ChevronRight,
 } from "lucide-react";
 import type { ICar } from "@/lib/models/car.model";
-import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
-import CarDetailLoadingSkeleton from "@/components/loading-effects/id-loading-car";
-import ReviewsSection from "@/components/reviews/reviews-section";
+import { ContactSellerDialog } from "@/components/dialogs";
+import { CarDetailLoadingSkeleton } from "@/components/loading-effects";
+import { ReviewsSection } from "@/components/reviews";
 import { motion, AnimatePresence } from "framer-motion";
 
 const paymentMethodLabels: Record<string, string> = {
