@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -18,9 +17,15 @@ const nextConfig: NextConfig = {
     ignoreDuringBuilds: true,
   },
 
-  // Add experimental flag to fix module resolution
-  experimental: {
-    esmExternals: false,
+  // Optimization settings
+  swcMinify: true, // Use SWC instead of Terser for minification
+
+  // Keep webpack config minimal
+  webpack: (config) => {
+    // Turn off persistent caching to avoid serialization issues
+    config.cache = false;
+
+    return config;
   },
 };
 

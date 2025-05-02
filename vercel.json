@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "rm -rf .next node_modules/.cache && NODE_OPTIONS='--max_old_space_size=4096' npm run build",
   "outputDirectory": ".next",
-  "installCommand": "npm install",
+  "installCommand": "npm install --no-fund --no-audit",
   "framework": "nextjs",
   "public": false,
   "regions": ["fra1"],
