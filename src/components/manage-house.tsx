@@ -9,6 +9,8 @@ import {
   Home,
   PlayCircle,
   Upload,
+  Trash2,
+  Plus,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -39,6 +41,13 @@ interface HouseFormData {
   essentials: string[];
   currency: string;
   imageUrl?: string;
+}
+
+interface ImageData {
+  file: File | null;
+  preview: string | null;
+  isNew: boolean;
+  id?: string; // For existing images, to track which one to remove
 }
 
 interface ManageHouseProps {
@@ -84,11 +93,12 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     { name: string; label: string; valid: boolean }[]
   >([]);
   const [createdHouseId, setCreatedHouseId] = useState<string>("");
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // New multiple images handling
+  const [images, setImages] = useState<ImageData[]>([]);
+  const [removedImageUrls, setRemovedImageUrls] = useState<string[]>([]);
+
   const [selectedReceipt, setSelectedReceipt] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(
-    initialData?.imageUrl || null
-  );
   const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const receiptInputRef = useRef<HTMLInputElement>(null);
@@ -104,6 +114,32 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     "Jacuzzi",
     "Steam",
   ];
+
+  // Initialize images from existing data
+  useEffect(() => {
+    if (isEditMode && initialData) {
+      if (initialData.imageUrls && initialData.imageUrls.length > 0) {
+        // If there are multiple images
+        const initialImages = initialData.imageUrls.map((url, index) => ({
+          file: null,
+          preview: url,
+          isNew: false,
+          id: `existing-${index}`,
+        }));
+        setImages(initialImages);
+      } else if (initialData.imageUrl) {
+        // If there's only one image
+        setImages([
+          {
+            file: null,
+            preview: initialData.imageUrl,
+            isNew: false,
+            id: "existing-main",
+          },
+        ]);
+      }
+    }
+  }, [isEditMode, initialData]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -122,17 +158,59 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
     }));
   };
 
+  // Updated to handle multiple images
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setSelectedFile(file);
-      // Create preview URL
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    if (e.target.files && e.target.files.length > 0) {
+      const newImages: ImageData[] = [];
+
+      // Convert FileList to array
+      const filesArray = Array.from(e.target.files);
+
+      // Process each file
+      filesArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          newImages.push({
+            file: file,
+            preview: reader.result as string,
+            isNew: true,
+            id: `new-${Date.now()}-${Math.random()
+              .toString(36)
+              .substring(2, 9)}`,
+          });
+
+          // Update state after reading the last file
+          if (newImages.length === filesArray.length) {
+            setImages((prev) => [...prev, ...newImages]);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
+  };
+
+  // Add method to add more images
+  const handleAddMoreImages = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Add method to remove an image
+  const handleRemoveImage = (index: number) => {
+    setImages((prevImages) => {
+      const updatedImages = [...prevImages];
+      const removedImage = updatedImages[index];
+
+      // If it's an existing image (not a new upload), track it for deletion
+      if (!removedImage.isNew && removedImage.preview) {
+        setRemovedImageUrls((prev) => [...prev, removedImage.preview!]);
+      }
+
+      // Remove the image from the array
+      updatedImages.splice(index, 1);
+      return updatedImages;
+    });
   };
 
   const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -186,6 +264,16 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
       };
     });
 
+    // Also check if at least one image is included
+    const hasImages = images.length > 0;
+    if (!hasImages) {
+      invalidFields.push({
+        name: "images",
+        label: "House Images",
+        valid: false,
+      });
+    }
+
     setMissingFields(invalidFields);
     return invalidFields.every((field) => field.valid);
   };
@@ -201,6 +289,8 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
 
     try {
       const apiFormData = new FormData();
+
+      // Add all form fields
       Object.entries(formData).forEach(([key, value]) => {
         // Safely handle null or undefined values
         if (value !== undefined && value !== null) {
@@ -217,8 +307,28 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
         }
       });
 
-      if (selectedFile) {
-        apiFormData.append("file", selectedFile);
+      // Add multiple images
+      images.forEach((image, index) => {
+        if (image.file) {
+          apiFormData.append(`files`, image.file);
+        }
+      });
+
+      // Add existing image URLs for those that weren't changed
+      const existingImages = images
+        .filter((img) => !img.isNew && img.preview)
+        .map((img) => img.preview);
+
+      if (existingImages.length > 0) {
+        apiFormData.append("existingImageUrls", JSON.stringify(existingImages));
+      }
+
+      // Add removed image URLs to be deleted on server
+      if (removedImageUrls.length > 0) {
+        apiFormData.append(
+          "removedImageUrls",
+          JSON.stringify(removedImageUrls)
+        );
       }
 
       if (selectedReceipt) {
@@ -259,9 +369,8 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
             essentials: [],
             currency: "ETB",
           });
-          setSelectedFile(null);
+          setImages([]);
           setSelectedReceipt(null);
-          setImagePreview(null);
           setReceiptPreview(null);
           if (fileInputRef.current) {
             fileInputRef.current.value = "";
@@ -492,60 +601,83 @@ const ManageHouse: React.FC<ManageHouseProps> = ({
               <div className="lg:col-span-4 space-y-6">
                 {/* File Uploads */}
                 <div className="space-y-4">
-                  {/* House Image Upload */}
+                  {/* House Images Upload */}
                   <div className="space-y-2">
                     <label className="block text-sm font-medium text-gray-700 mb-1">
-                      House Image
+                      House Images
                     </label>
-                    <div
-                      className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors relative overflow-hidden cursor-pointer"
-                      onClick={() => fileInputRef.current?.click()}
-                    >
-                      {imagePreview ? (
-                        <>
+
+                    {/* Image Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      {images.map((image, index) => (
+                        <div
+                          key={image.id || index}
+                          className="h-40 relative border border-gray-300 rounded-lg overflow-hidden group"
+                        >
                           <Image
-                            src={imagePreview}
-                            alt="House preview"
-                            className="absolute inset-0 w-full h-full object-cover"
-                            width={500}
-                            height={300}
+                            src={image.preview || "/placeholder-image.jpg"}
+                            alt={`House image ${index + 1}`}
+                            width={400}
+                            height={400}
+                            className="w-full h-full object-cover"
+                            priority
                           />
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                            <Upload className="w-8 h-8 text-white" />
-                            <p className="mt-2 text-sm text-white">
-                              Click to change image
-                            </p>
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveImage(index)}
+                              className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
                           </div>
-                        </>
-                      ) : (
-                        <>
-                          <Upload className="w-8 h-8 text-gray-400" />
-                          <p className="mt-2 text-sm text-gray-500">
-                            Click to upload house image
-                          </p>
-                        </>
-                      )}
+                        </div>
+                      ))}
+
+                      {/* Add More Images Button */}
+                      <div
+                        className="h-40 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg hover:border-primary transition-colors cursor-pointer"
+                        onClick={handleAddMoreImages}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddMoreImages();
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        aria-label="Add more house images"
+                      >
+                        <Plus className="w-8 h-8 text-gray-400" />
+                        <p className="mt-2 text-sm text-gray-500">
+                          Add More Images
+                        </p>
+                      </div>
                     </div>
+
                     <input
                       type="file"
-                      name="houseImage"
+                      name="files"
                       accept="image/*"
                       onChange={handleFileChange}
                       ref={fileInputRef}
                       className="hidden"
+                      multiple
                     />
+
                     <button
                       type="button"
-                      onClick={() => fileInputRef.current?.click()}
+                      onClick={handleAddMoreImages}
                       className="mt-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors text-sm"
                     >
-                      Choose House Image
+                      Choose House Images
                     </button>
-                    {selectedFile && (
-                      <span className="ml-2 text-sm text-gray-600">
-                        {selectedFile.name}
-                      </span>
-                    )}
+                    <p className="text-sm text-gray-500 mt-1">
+                      You can upload multiple images.{" "}
+                      {images.length > 0
+                        ? `${images.length} image(s) selected.`
+                        : ""}
+                    </p>
                   </div>
 
                   {/* Receipt Upload */}

@@ -22,6 +22,7 @@ export interface ICar {
   currency: string;
   tags: string;
   imageUrl?: string;
+  imageUrls?: string[];
   paymentId: string;
   visiblity: "Private" | "Public";
   status: "Pending" | "Active";
@@ -55,6 +56,7 @@ const carSchema = new Schema(
     currency: { type: String, default: "ETB" },
     tags: { type: String, default: "" },
     imageUrl: { type: String },
+    imageUrls: [{ type: String }],
     paymentId: {
       type: String,
       required: true,

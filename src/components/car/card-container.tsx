@@ -63,17 +63,22 @@ const CardContainer: React.FC = () => {
             advertisementType: car.advertisementType || "Sale",
           }));
 
+          // Filter out pending cars - only show active listings
+          const activeCars = validatedCars.filter(
+            (car: ICar) => car.status === "Active"
+          );
+
           // Separate user cars from all cars
           if (userId) {
-            const userOwnedCars = validatedCars.filter(
+            const userOwnedCars = activeCars.filter(
               (car: ICar) => car.userId === userId
             );
             setUserCars(userOwnedCars);
           }
 
-          setCars(validatedCars);
-          setFullCars(validatedCars); // Store the full set of cars for filtering
-          setHasMore(validatedCars.length > displayLimit);
+          setCars(activeCars);
+          setFullCars(activeCars); // Store the full set of cars for filtering
+          setHasMore(activeCars.length > displayLimit);
         } else {
           throw new Error(
             data.error || "Invalid data format: Expected an array of cars"
@@ -121,6 +126,14 @@ const CardContainer: React.FC = () => {
       const filteredCars = fullCars.filter((car) => {
         // Each filter can be from different categories
         return filters.some((filter) => {
+          // Check advertisement type filters
+          if (filter === "For Rent") {
+            return car.advertisementType === "Rent";
+          }
+          if (filter === "For Sale") {
+            return car.advertisementType === "Sale";
+          }
+
           // Check body type filters
           if (
             ["Sedan", "SUV", "Truck", "Hatchback", "Minivan"].includes(filter)
@@ -160,6 +173,12 @@ const CardContainer: React.FC = () => {
 
   // Create comprehensive filter options
   const getFilterOptions = () => {
+    // Advertisement type filters (add these at the top)
+    const adTypeFilters = [
+      { value: "For Rent", label: "For Rent" },
+      { value: "For Sale", label: "For Sale" },
+    ];
+
     // Sort options
     const sortOptions = [{ value: "Default", label: "Default" }];
 
@@ -187,6 +206,7 @@ const CardContainer: React.FC = () => {
     ];
 
     return [
+      ...adTypeFilters,
       ...sortOptions,
       ...bodyTypeFilters,
       ...fuelTypeFilters,

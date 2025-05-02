@@ -60,17 +60,22 @@ const CardContainer: React.FC = () => {
 
         const data = await response.json();
         if (Array.isArray(data)) {
+          // Filter out pending houses - only show active listings
+          const activeHouses = data.filter(
+            (house: IHouse) => house.status === "Active"
+          );
+
           // Separate user houses from all houses
           if (userId) {
-            const userOwnedHouses = data.filter(
+            const userOwnedHouses = activeHouses.filter(
               (house) => house.userId === userId
             );
             setUserHouses(userOwnedHouses);
           }
 
-          setHouses(data);
-          setFullHouses(data); // Store the full set of houses for filtering
-          setHasMore(data.length > displayLimit);
+          setHouses(activeHouses);
+          setFullHouses(activeHouses); // Store the full set of houses for filtering
+          setHasMore(activeHouses.length > displayLimit);
         } else {
           throw new Error("Invalid data format: Expected an array");
         }
@@ -116,6 +121,14 @@ const CardContainer: React.FC = () => {
       const filteredHouses = fullHouses.filter((house) => {
         // Each filter can be from different categories
         return filters.some((filter) => {
+          // Check advertisement type filters
+          if (filter === "For Rent") {
+            return house.advertisementType === "Rent";
+          }
+          if (filter === "For Sale") {
+            return house.advertisementType === "Sale";
+          }
+
           // Check bedroom filters
           if (filter === "1-bedroom") {
             return house.bedroom === 1;
@@ -146,11 +159,6 @@ const CardContainer: React.FC = () => {
             return house.parkingSpace > 0;
           }
 
-          // Check advertisement type filters
-          if (filter === "For Rent" || filter === "For Sale") {
-            return house.advertisementType === filter.replace("For ", "");
-          }
-
           // Check house type filters
           if (
             filter === "House" ||
@@ -170,7 +178,11 @@ const CardContainer: React.FC = () => {
 
   // Create comprehensive filter options
   const getFilterOptions = () => {
-    // Sort options
+    // Advertisement type filters - add these at the top
+    const adTypeFilters = [
+      { value: "For Rent", label: "For Rent" },
+      { value: "For Sale", label: "For Sale" },
+    ];
 
     // Features filters
     const featureFilters = [
@@ -189,13 +201,7 @@ const CardContainer: React.FC = () => {
       { value: "Guest House", label: "Guest House" },
     ];
 
-    // Advertisement type filters
-    const adTypeFilters = [
-      { value: "For Rent", label: "For Rent" },
-      { value: "For Sale", label: "For Sale" },
-    ];
-
-    return [...featureFilters, ...houseTypeFilters, ...adTypeFilters];
+    return [...adTypeFilters, ...featureFilters, ...houseTypeFilters];
   };
 
   // Handle search result selection

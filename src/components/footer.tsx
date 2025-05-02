@@ -5,7 +5,7 @@ import Link from "next/link";
 import { SignUpButton, SignInButton, useAuth } from "@clerk/nextjs";
 import { ArrowRight } from "lucide-react";
 import Image from "next/image";
-import { FolderCode } from "lucide-react";
+import { FolderIcon as FolderCode } from "lucide-react";
 
 // Define types for our link data
 interface FooterLink {
@@ -23,17 +23,18 @@ const FooterLink: React.FC<FooterLink> = ({ label, href }) => (
   <li>
     <Link
       href={href}
-      className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group"
+      className="text-white/80 hover:text-white transition-colors duration-300 flex items-center group"
     >
       <span className="relative overscroll-auto">
         <span className="inline-block overflow-hidden whitespace-nowrap transform transition-transform duration-300 group-hover:translate-x-1">
           {label}
         </span>
-        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
       </span>
     </Link>
   </li>
 );
+
 // Define our footer sections data
 const footerSections: FooterSection[] = [
   {
@@ -100,23 +101,25 @@ const Footer: React.FC = () => {
   const { isSignedIn } = useAuth();
 
   return (
-    <footer className="bg-white/80 backdrop-blur-md border-t border-primary/10 py-10">
+    <footer className="bg-gradient-to-b from-[#5B8F2D]/90 to-[#5B8F2D]/95 py-10 backdrop-filter backdrop-blur-sm shadow-inner shadow-[#4a7825]/10">
       <div className="container mx-auto px-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-8">
         {/* Logo Section */}
         <div className="flex flex-col justify-start">
           <div className="flex flex-col">
-            <h3 className="text-lg tracking-tight">Diplomat</h3>
-            <span className="mt-[-5px] text-primary font-bold tracking-wider">
+            <h3 className="text-white text-lg font-semibold tracking-wide">
+              Diplomat
+            </h3>
+            <span className="mt-[-5px] text-white/80 font-bold tracking-wider">
               Corner
             </span>
           </div>
-          <p className="text-sm text-gray-500 mt-3">&copy; 2025</p>
+          <p className="text-sm text-white/70 mt-3">&copy; 2025</p>
         </div>
 
         {/* Mapped Footer Sections */}
         {footerSections.map((section) => (
           <div key={section.title}>
-            <h2 className="text-lg font-semibold text-primary mb-4 tracking-wide">
+            <h2 className="text-lg font-semibold text-white mb-4 tracking-wide">
               {section.title}
             </h2>
             <ul className="space-y-2">
@@ -129,34 +132,34 @@ const Footer: React.FC = () => {
 
         {/* Account Section */}
         <div>
-          <h2 className="text-lg font-semibold text-primary mb-4 tracking-wide">
+          <h2 className="text-lg font-semibold text-white mb-4 tracking-wide">
             Account
           </h2>
           <ul className="space-y-3">
             {!isSignedIn ? (
               <>
                 <li>
-                  <div className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group">
+                  <div className="text-white/80 hover:text-white transition-colors duration-300 flex items-center group">
                     <SignInButton>
                       <button className="relative overflow-hidden group flex items-center">
                         <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
                           Sign In
                         </span>
                         <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
                       </button>
                     </SignInButton>
                   </div>
                 </li>
                 <li>
-                  <div className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group">
+                  <div className="text-white/80 hover:text-white transition-colors duration-300 flex items-center group">
                     <SignUpButton>
                       <button className="relative overflow-hidden group flex items-center">
                         <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
                           Sign Up
                         </span>
                         <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                        <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
                       </button>
                     </SignUpButton>
                   </div>
@@ -166,14 +169,14 @@ const Footer: React.FC = () => {
               <li>
                 <Link
                   href="/manage-products"
-                  className="text-gray-600 hover:text-primary transition-colors duration-300 flex items-center group"
+                  className="text-white/80 hover:text-white transition-colors duration-300 flex items-center group"
                 >
                   <span className="relative overflow-hidden">
                     <span className="inline-block transform transition-transform duration-300 group-hover:translate-x-1">
                       Add Products
                     </span>
                     <ArrowRight className="w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-all duration-300" />
-                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-primary transition-all duration-300 group-hover:w-full"></span>
+                    <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
                   </span>
                 </Link>
               </li>
@@ -183,9 +186,9 @@ const Footer: React.FC = () => {
       </div>
 
       {/* Footer Bottom */}
-      <div className="container mx-auto px-4 mt-8 pt-6 border-t border-gray-100">
+      <div className="container mx-auto px-4 mt-8 pt-6 border-t border-white/15">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-white/70">
             Diplomat Corner — All rights reserved.
           </p>
           <div className="flex items-center gap-4">
@@ -193,9 +196,9 @@ const Footer: React.FC = () => {
               href="https://sydek.dev"
               target="_blank"
               rel="noopener noreferrer"
-              className="group flex items-center gap-2 text-sm text-gray-500 hover:text-primary transition-colors"
+              className="group flex items-center gap-2 text-sm text-white/70 hover:text-white transition-colors"
             >
-              <FolderCode className="h-4 w-4 text-primary group-hover:scale-110 transition-transform" />
+              <FolderCode className="h-4 w-4 text-white group-hover:scale-110 transition-transform" />
               <span>Developed By Sydek</span>
             </Link>
             <Link
@@ -209,7 +212,7 @@ const Footer: React.FC = () => {
                 alt="sydek logo"
                 width={30}
                 height={30}
-                className="rounded-lg opacity-50 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110"
+                className="rounded-lg opacity-70 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110"
               />
             </Link>
           </div>

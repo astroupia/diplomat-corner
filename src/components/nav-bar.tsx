@@ -1,13 +1,13 @@
 "use client";
 
+import type React from "react";
+
 import { UserButton, useUser } from "@clerk/nextjs";
 import Link from "next/link";
 import { Button } from "./ui/button";
 import { useState, useEffect, useRef, useCallback } from "react";
 import MaxWidthWrapper from "./max-width-wrapper";
-import { Bell, Loader2, Megaphone, Menu, Search } from "lucide-react";
-import Image from "next/image";
-import { INotification } from "@/types/notifications";
+import { Bell, Loader2, Menu, Search } from "lucide-react";
 
 // Define the type for search results based on your API response
 interface SearchResult {
@@ -50,7 +50,7 @@ const NavBar: React.FC = () => {
     if (typeof window !== "undefined") {
       const storedCount = localStorage.getItem("unreadNotificationsCount");
       if (storedCount) {
-        setUnreadNotifications(parseInt(storedCount));
+        setUnreadNotifications(Number.parseInt(storedCount));
       }
     }
 
@@ -286,7 +286,7 @@ const NavBar: React.FC = () => {
           if (data.count > 0) {
             // Update the count
             setUnreadNotifications(
-              (prev) => parseInt(prev.toString()) + data.count
+              (prev) => Number.parseInt(prev.toString()) + data.count
             );
 
             // Dispatch event for other components
@@ -357,7 +357,7 @@ const NavBar: React.FC = () => {
       )}
 
       <nav
-        className={`bg-white border px-4 sm:px-6 py-2 fixed top-0 left-0 right-0 z-50 shadow-md m-0 transition-all duration-700 ease-out ${
+        className={`bg-gradient-to-r from-[#5B8F2D]/95 to-[#5B8F2D]/90 backdrop-filter backdrop-blur-sm border-b border-[#4a7825]/40 px-4 sm:px-6 py-3 fixed top-0 left-0 right-0 z-50 shadow-sm m-0 transition-all duration-700 ease-out ${
           isVisible
             ? "opacity-100 translate-y-0"
             : "opacity-0 -translate-y-full pointer-events-none"
@@ -369,10 +369,12 @@ const NavBar: React.FC = () => {
               {/* Left Section: Brand Logo */}
               <div className="flex items-center flex-shrink-0">
                 <Link href="/" onClick={handleMobileMenuClose}>
-                  <span className="text-black font-normal text-base">
+                  <span className="text-white font-semibold text-sm">
                     <div className="flex flex-col pl-2">
-                      <h3>Diplomat</h3>
-                      <span className="mt-[-5px] text-primary">Corner</span>
+                      <h3 className="tracking-wide">Diplomat</h3>
+                      <span className="mt-[-5px] text-white/80 font-bold">
+                        Corner
+                      </span>
                     </div>
                   </span>
                 </Link>
@@ -382,24 +384,25 @@ const NavBar: React.FC = () => {
               <div className="lg:hidden">
                 <button
                   onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                  className="text-black"
+                  className="text-white p-1 rounded-md hover:bg-[#4a7825] transition-colors"
                 >
                   <Menu className="w-6 h-6" />
                 </button>
               </div>
 
               {/* Middle Section: Navigation Links - Desktop */}
-              <div className="hidden lg:flex flex-1 justify-center gap-4 xl:gap-6 text-base text-black font-normal px-4 xl:px-6 min-w-0">
+              <div className="hidden lg:flex flex-1 justify-center gap-4 xl:gap-6 text-base text-white font-medium px-4 xl:px-6 min-w-0">
                 {navItems
                   .filter((item) => !item.isAuth || (item.isAuth && user))
                   .map((item) => (
                     <Link
                       key={item.label}
                       href={item.href}
-                      className="hover:text-primary transition whitespace-nowrap"
+                      className="hover:text-white/80 transition whitespace-nowrap relative group py-1"
                       onClick={handleMobileMenuClose}
                     >
                       {item.label}
+                      <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-white transition-all duration-300 group-hover:w-full"></span>
                     </Link>
                   ))}
               </div>
@@ -415,9 +418,9 @@ const NavBar: React.FC = () => {
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onFocus={handleInputFocus}
-                      className="border border-primary rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-primary w-40 xl:w-56 pr-8"
+                      className="border border-[#4a7825]/40 bg-white/90 rounded-full px-4 py-1 text-sm outline-none focus:ring-2 focus:ring-white/30 w-40 xl:w-56 pr-8"
                     />
-                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <span className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-600">
                       {isSearchLoading ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : (
@@ -468,7 +471,7 @@ const NavBar: React.FC = () => {
                 <div className="flex items-center gap-3 xl:gap-6">
                   {!user ? (
                     <Link href="/sign-up" onClick={handleMobileMenuClose}>
-                      <Button className="bg-gradient-to-r from-primary to-white-600 hover:from-white-600 hover:to-primary text-white font-medium px-4 xl:px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                      <Button className="bg-white text-[#5B8F2D] hover:bg-white/90 font-medium px-4 xl:px-6 py-2 rounded-full transition-all duration-300 transform hover:scale-105 hover:shadow-lg border border-[#4a7825]/40">
                         Get Started
                       </Button>
                     </Link>
@@ -492,11 +495,11 @@ const NavBar: React.FC = () => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="relative bg-gradient-to-r from-gray-50 to-white p-2 rounded-full border border-gray-200 hover:border-primary hover:shadow-md transition-all duration-300"
+                          className="relative bg-white/15 hover:bg-white/25 p-2 rounded-full border border-white/20 hover:border-white/40 hover:shadow-md transition-all duration-300"
                         >
-                          <Bell className="h-5 w-5 text-gray-700 group-hover:text-primary transition-colors" />
+                          <Bell className="h-5 w-5 text-white group-hover:text-white/80 transition-colors" />
                           {unreadNotifications > 0 && (
-                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full text-[10px] text-white flex items-center justify-center animate-pulse">
+                            <span className="absolute -top-1 -right-1 w-4 h-4 bg-white text-[#5B8F2D] rounded-full text-[10px] flex items-center justify-center animate-pulse">
                               {unreadNotifications > 99
                                 ? "99+"
                                 : unreadNotifications}
@@ -508,10 +511,9 @@ const NavBar: React.FC = () => {
                       <Link
                         href="/manage-product/house"
                         onClick={handleMobileMenuClose}
-                        className="relative overflow-hidden px-3 xl:px-4 py-2 rounded-lg bg-white border border-gray-200 hover:border-primary text-gray-700 hover:text-primary transition-all duration-300 group"
+                        className="relative overflow-hidden px-3 xl:px-4 py-2 rounded-lg bg-white/15 border border-white/20 text-white hover:bg-white/25 hover:border-white/40 transition-all duration-300 group"
                       >
                         <span className="relative z-10">Manage Products</span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-gray-50 to-white transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-left"></div>
                       </Link>
                     </>
                   )}
@@ -521,8 +523,8 @@ const NavBar: React.FC = () => {
 
             {/* Mobile Menu */}
             {isMobileMenuOpen && (
-              <div className="lg:hidden mt-4 border-t border-gray-200 relative z-50">
-                <div className="flex flex-col gap-4 text-lg text-black font-normal p-4">
+              <div className="lg:hidden mt-4 border-t border-white/30 relative z-50">
+                <div className="flex flex-col gap-4 text-lg text-white font-normal p-4">
                   {/* Navigation Links */}
                   {navItems
                     .filter((item) => !item.isAuth || (item.isAuth && user))
@@ -530,7 +532,7 @@ const NavBar: React.FC = () => {
                       <Link
                         key={item.label}
                         href={item.href}
-                        className="hover:text-primary transition"
+                        className="hover:text-white/80 transition flex items-center"
                         onClick={handleMobileMenuClose}
                       >
                         {item.label}

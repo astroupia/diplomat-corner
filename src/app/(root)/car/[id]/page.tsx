@@ -13,12 +13,14 @@ import {
   Clock,
   DollarSign,
   BadgeCheck,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import type { ICar } from "@/lib/models/car.model";
 import ContactSellerDialog from "@/components/dialogs/contact-seller-dialog";
 import CarDetailLoadingSkeleton from "@/components/loading-effects/id-loading-car";
 import ReviewsSection from "@/components/reviews/reviews-section";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const paymentMethodLabels: Record<string, string> = {
   Daily: "Daily",
@@ -36,6 +38,10 @@ export default function CarDetails() {
   const [error, setError] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
+  // State for image carousel
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+
   useEffect(() => {
     const fetchCar = async () => {
       try {
@@ -45,6 +51,15 @@ export default function CarDetails() {
         }
         const data = await response.json();
         setCar(data);
+
+        // Set up image URLs array
+        if (data.imageUrls && data.imageUrls.length > 0) {
+          setImageUrls(data.imageUrls);
+        } else if (data.imageUrl) {
+          setImageUrls([data.imageUrl]);
+        } else {
+          setImageUrls(["/car.jpg"]); // Default image
+        }
       } catch (err) {
         setError((err as Error).message);
       } finally {
@@ -53,6 +68,22 @@ export default function CarDetails() {
     };
     if (id) fetchCar();
   }, [id]);
+
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === imageUrls.length - 1 ? 0 : prevIndex + 1
+    );
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? imageUrls.length - 1 : prevIndex - 1
+    );
+  };
+
+  const selectImage = (index: number) => {
+    setCurrentImageIndex(index);
+  };
 
   if (loading) {
     return <CarDetailLoadingSkeleton />;
@@ -88,15 +119,93 @@ export default function CarDetails() {
       <div className="block lg:flex lg:space-x-12">
         {/* Left Column on Desktop / First + Third on Mobile */}
         <div className="lg:w-2/3">
-          {/* 1. Picture - First on both desktop and mobile */}
-          <Image
-            src={car.imageUrl || "/car.jpg"}
-            alt={car.name}
-            width={800}
-            height={400}
-            className="w-full h-auto object-cover rounded-md mb-8"
-            priority
-          />
+          {/* Image Carousel */}
+          <div className="relative rounded-xl overflow-hidden mb-8">
+            {/* Main image */}
+            <div className="relative h-[400px] w-full">
+              <AnimatePresence initial={false} mode="wait">
+                <motion.div
+                  key={currentImageIndex}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="absolute inset-0"
+                >
+                  <Image
+                    src={imageUrls[currentImageIndex]}
+                    alt={`${car.name} - image ${currentImageIndex + 1}`}
+                    fill
+                    className="object-cover"
+                    priority
+                  />
+                </motion.div>
+              </AnimatePresence>
+            </div>
+
+            {/* Navigation arrows - only show if more than one image */}
+            {imageUrls.length > 1 && (
+              <>
+                <button
+                  onClick={prevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-colors z-10"
+                  aria-label="Previous image"
+                >
+                  <ChevronLeft size={24} />
+                </button>
+                <button
+                  onClick={nextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-colors z-10"
+                  aria-label="Next image"
+                >
+                  <ChevronRight size={24} />
+                </button>
+              </>
+            )}
+
+            {/* Thumbnail navigation - only show if more than one image */}
+            {imageUrls.length > 1 && (
+              <div className="flex justify-center mt-4 space-x-2">
+                {imageUrls.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => selectImage(index)}
+                    className={`h-2 w-2 rounded-full transition-all ${
+                      currentImageIndex === index
+                        ? "bg-primary w-4"
+                        : "bg-gray-300"
+                    }`}
+                    aria-label={`View image ${index + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+
+            {/* Thumbnail strip */}
+            {imageUrls.length > 1 && (
+              <div className="flex mt-4 overflow-x-auto pb-2 space-x-2 scrollbar-thin scrollbar-thumb-gray-300">
+                {imageUrls.map((url, index) => (
+                  <div
+                    key={index}
+                    onClick={() => selectImage(index)}
+                    className={`flex-shrink-0 w-20 h-20 rounded-md cursor-pointer overflow-hidden ${
+                      currentImageIndex === index
+                        ? "ring-2 ring-primary"
+                        : "opacity-70"
+                    }`}
+                  >
+                    <Image
+                      src={url}
+                      alt={`${car.name} thumbnail ${index + 1}`}
+                      width={100}
+                      height={100}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           {/* 3. Description - Visible only on desktop here, third on mobile (see below) */}
           <div className="hidden lg:block">

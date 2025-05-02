@@ -3,19 +3,21 @@ import { connectToDatabase } from "@/lib/db-connect";
 import House from "@/lib/models/house.model";
 import Payment from "@/lib/models/payment.model";
 import { auth } from "@clerk/nextjs/server";
-import { v4 as uuidv4 } from "uuid"; // For generating random filenames
+import { v4 as uuidv4 } from "uuid";
 
-const CPANEL_API_URL = "https://diplomatcorner.net:2083";
-const CPANEL_USERNAME = "diplomvv";
-const CPANEL_API_TOKEN = "2JL5W3RUMNY0KOX451GL2PPY4L8RX9RS";
-const PUBLIC_DOMAIN = "https://diplomatcorner.net";
+const CPANEL_API_URL =
+  process.env.CPANEL_API_URL || "https://diplomatcorner.net:2083";
+const CPANEL_USERNAME = process.env.CPANEL_USERNAME || "diplomvv";
+const CPANEL_API_TOKEN =
+  process.env.CPANEL_API_TOKEN || "2JL5W3RUMNY0KOX451GL2PPY4L8RX9RS";
+const PUBLIC_DOMAIN = process.env.PUBLIC_DOMAIN || "https://diplomatcorner.net";
 
 interface HouseFormData {
   name: string;
   bedroom: number;
   size: number;
   bathroom: number;
-  parkingSpace: number; // Added parkingSpace
+  parkingSpace: number;
   condition: string;
   maintenance: string;
   price: number;
@@ -36,6 +38,7 @@ interface HouseFormData {
     paymentId: string;
     uploadedAt: Date;
   };
+  imageUrls: string[];
 }
 
 interface ApiResponse {
@@ -53,7 +56,6 @@ async function uploadImage(
   const extension = file.name.split(".").pop();
   const randomFileName = `${uuidv4()}.${extension}`;
 
-  // Use nested folder structure for receipts
   const uploadFolder =
     folder === "receipts" ? "public_images/receipts" : folder;
 
@@ -61,7 +63,9 @@ async function uploadImage(
   apiFormData.append("dir", `/public_html/${uploadFolder}/`);
   apiFormData.append("file-1", file, randomFileName);
 
-  const authHeader = `cpanel ${CPANEL_USERNAME}:${CPANEL_API_TOKEN.trim()}`;
+  const authHeader = `cpanel ${CPANEL_USERNAME}:${
+    CPANEL_API_TOKEN?.trim() || ""
+  }`;
 
   try {
     const response = await fetch(
@@ -99,7 +103,6 @@ export async function POST(
   req: NextRequest
 ): Promise<NextResponse<ApiResponse>> {
   try {
-    // Verify user authentication
     const userId = (await auth()).userId;
     if (!userId) {
       return NextResponse.json(
@@ -108,15 +111,24 @@ export async function POST(
       );
     }
 
-    // Connect to database
     await connectToDatabase();
 
-    // Parse form data
     const formData = await req.formData();
-    const file = formData.get("file") as File;
+
+    const files: File[] = [];
+    formData.getAll("files").forEach((file) => {
+      if (file instanceof File) {
+        files.push(file);
+      }
+    });
+
+    const singleFile = formData.get("file") as File | null;
+    if (singleFile) {
+      files.push(singleFile);
+    }
+
     const receiptFile = formData.get("receipt") as File;
 
-    // Generate payment ID
     const paymentId = `${Date.now()}-${uuidv4()}`;
 
     const houseData: HouseFormData = {
@@ -124,7 +136,7 @@ export async function POST(
       bedroom: Number(formData.get("bedroom")),
       size: Number(formData.get("size")),
       bathroom: Number(formData.get("bathroom")),
-      parkingSpace: Number(formData.get("parkingSpace")), // Added parkingSpace
+      parkingSpace: Number(formData.get("parkingSpace")),
       condition: formData.get("condition") as string,
       maintenance: formData.get("maintenance") as string,
       price: Number(formData.get("price")),
@@ -145,9 +157,9 @@ export async function POST(
       paymentId,
       visiblity: "Private",
       status: "Pending",
+      imageUrls: [],
     };
 
-    // Validate required fields
     if (
       !houseData.name ||
       !houseData.bedroom ||
@@ -163,9 +175,9 @@ export async function POST(
       );
     }
 
-    // Upload house image if provided
-    let imageUrl: string | undefined;
-    if (file) {
+    const imageUrls: string[] = [];
+
+    for (const file of files) {
       console.log("Uploading image to cPanel...");
       const uploadResult = await uploadImage(file, "public_images");
       if (!uploadResult.success) {
@@ -175,11 +187,13 @@ export async function POST(
           { status: 500 }
         );
       }
-      imageUrl = uploadResult.publicUrl;
-      console.log("Image uploaded successfully. Public URL:", imageUrl);
+      imageUrls.push(uploadResult.publicUrl!);
+      console.log(
+        "Image uploaded successfully. Public URL:",
+        uploadResult.publicUrl
+      );
     }
 
-    // Upload receipt if provided
     let receiptUrl: string | undefined;
     if (receiptFile) {
       console.log("Uploading receipt to cPanel...");
@@ -195,11 +209,11 @@ export async function POST(
       console.log("Receipt uploaded successfully. Public URL:", receiptUrl);
     }
 
-    // Save house with image URL and receipt details
-    console.log("Saving house to MongoDB with image URL:", imageUrl);
+    console.log("Saving house to MongoDB with image URLs:", imageUrls);
     const houseToSave = new House({
       ...houseData,
-      imageUrl,
+      imageUrl: imageUrls.length > 0 ? imageUrls[0] : undefined,
+      imageUrls: imageUrls,
       paymentReceipt: receiptUrl
         ? {
             url: receiptUrl,
@@ -211,7 +225,6 @@ export async function POST(
     const result = await houseToSave.save();
     console.log("House saved successfully. ID:", result._id);
 
-    // Create payment record
     await Payment.create({
       paymentId,
       servicePrice: Number(formData.get("servicePrice")),

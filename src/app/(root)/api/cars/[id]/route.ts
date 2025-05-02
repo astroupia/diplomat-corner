@@ -84,8 +84,43 @@ export async function PUT(
     }
 
     const formData = await request.formData();
-    const file = formData.get("file") as File;
+
+    // Handle multiple files
+    const files: File[] = [];
+    formData.getAll("files").forEach((file) => {
+      if (file instanceof File) {
+        files.push(file);
+      }
+    });
+
+    // For backward compatibility
+    const singleFile = formData.get("file") as File | null;
+    if (singleFile) {
+      files.push(singleFile);
+    }
+
     const receiptFile = formData.get("receipt") as File;
+
+    // Parse existing/removed image URLs
+    let existingImageUrls: string[] = [];
+    try {
+      const existingImageUrlsStr = formData.get("existingImageUrls") as string;
+      if (existingImageUrlsStr) {
+        existingImageUrls = JSON.parse(existingImageUrlsStr);
+      }
+    } catch (e) {
+      console.error("Error parsing existingImageUrls:", e);
+    }
+
+    let removedImageUrls: string[] = [];
+    try {
+      const removedImageUrlsStr = formData.get("removedImageUrls") as string;
+      if (removedImageUrlsStr) {
+        removedImageUrls = JSON.parse(removedImageUrlsStr);
+      }
+    } catch (e) {
+      console.error("Error parsing removedImageUrls:", e);
+    }
 
     const carData = {
       name: formData.get("name") as string,
@@ -102,7 +137,22 @@ export async function PUT(
       price: Number(formData.get("price")),
       description: formData.get("description") as string,
       advertisementType: formData.get("advertisementType") as "Rent" | "Sale",
-      paymentMethod: Number(formData.get("paymentMethod")),
+      paymentMethod: (() => {
+        const paymentValue = formData.get("paymentMethod") as string;
+        // Map numeric values to string values expected by the schema
+        switch (paymentValue) {
+          case "1":
+            return "Daily";
+          case "2":
+            return "Weekly";
+          case "3":
+            return "Monthly";
+          case "4":
+            return "Annually";
+          default:
+            return paymentValue as "Daily" | "Weekly" | "Monthly" | "Annually";
+        }
+      })(),
       currency: formData.get("currency") as string,
       tags: formData.get("tags") as string,
       updatedAt: new Date(),
@@ -135,9 +185,26 @@ export async function PUT(
       );
     }
 
-    // Upload car image if provided
-    let imageUrl = existingCar.imageUrl;
-    if (file) {
+    // Start with existing image URLs if available, or create an empty array
+    let imageUrls: string[] = existingCar.imageUrls || [];
+
+    // Remove the specified images
+    if (removedImageUrls.length > 0) {
+      imageUrls = imageUrls.filter((url) => !removedImageUrls.includes(url));
+    }
+
+    // Add the existing images from the form
+    if (existingImageUrls.length > 0) {
+      // Ensure we don't have duplicates
+      existingImageUrls.forEach((url) => {
+        if (!imageUrls.includes(url)) {
+          imageUrls.push(url);
+        }
+      });
+    }
+
+    // Upload any new car images
+    for (const file of files) {
       const uploadResult = await uploadImage(file, "public_images");
       if (!uploadResult.success) {
         return NextResponse.json(
@@ -145,7 +212,7 @@ export async function PUT(
           { status: 500 }
         );
       }
-      imageUrl = uploadResult.publicUrl;
+      imageUrls.push(uploadResult.publicUrl!);
     }
 
     // Upload receipt if provided
@@ -161,12 +228,13 @@ export async function PUT(
       receiptUrl = uploadResult.publicUrl || "";
     }
 
-    // Update car
+    // Update car with both single imageUrl and imageUrls
     const updatedCar = await Car.findByIdAndUpdate(
       id,
       {
         ...carData,
-        imageUrl,
+        imageUrl: imageUrls.length > 0 ? imageUrls[0] : existingCar.imageUrl, // Use first image as primary
+        imageUrls: imageUrls,
       },
       { new: true }
     );

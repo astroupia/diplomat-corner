@@ -18,6 +18,7 @@ export interface IHouse {
   essentials: string[];
   currency: string;
   imageUrl?: string;
+  imageUrls?: string[];
   createdAt?: Date;
   updatedAt?: Date;
   paymentId: string;
@@ -51,6 +52,7 @@ const houseSchema = new Schema(
     essentials: [{ type: String }],
     currency: { type: String },
     imageUrl: { type: String },
+    imageUrls: [{ type: String }],
     paymentId: {
       type: String,
       required: true,
