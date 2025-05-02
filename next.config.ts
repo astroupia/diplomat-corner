@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": path.resolve(__dirname, "./src"),
+      "@/public": path.resolve(__dirname, "./public"),
     };
 
     // Custom rule for image imports (excluding public folder images)
