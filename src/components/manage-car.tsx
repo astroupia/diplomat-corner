@@ -47,7 +47,7 @@ const ManageCar = () => {
                 <Tv size={20} className="mr-2" />
                 Adverts
               </li>
-              <Link href="/Ad">
+              <Link href="/advertisment">
                 <li className="pl-4 flex flex-row items-center text-primary">
                   <Plus size={16} className="mr-2" />
                   Add Adverts
@@ -70,7 +70,7 @@ const ManageCar = () => {
                   <span className="font-semibold">Car For Sale</span>
                 </button>
               </Link>
-              <Link href="/Product">
+              <Link href="/manage-product/house" >
                 <button className="flex items-center justify-center space-x-2 bg-white text-primary px-6 py-3 rounded-lg shadow-md border border-primary w-full sm:w-auto">
                   <Home size={20} />
                   <span className="font-semibold">House For Rent</span>

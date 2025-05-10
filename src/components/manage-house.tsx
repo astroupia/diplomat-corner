@@ -66,7 +66,7 @@ const ManageHouse = () => {
                 <Tv />
                 Adverts
               </li>
-              <Link href="/Ad">
+              <Link href="/advertisment">
                 <li className="pl-4 flex flex-row text-primary">
                   <Plus />
                   Add Adverts
@@ -84,13 +84,13 @@ const ManageHouse = () => {
           <main className="flex-1 bg-white border-2 border-primary rounded-3xl shadow-md p-4 lg:p-6 ">
             {/* Buttons for Product Type */}
             <div className="flex flex-col pl-7 sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 mb-6 h-30">
-              <Link href="/CarProduct">
+              <Link href="/manage-product/car" >
                 <button className="flex items-center justify-center space-x-2 bg-white  text-primary px-6 py-3 border border-primary rounded-lg shadow-md w-full sm:w-auto hover:bg-secondary ">
                   <Car size={20} />
                   <span className="font-semibold">Car For Sale</span>
                 </button>
               </Link>
-              <Link href="/Product">
+              <Link href="#">
                 <button className="flex items-center justify-center space-x-2 bg-secondary text-primary px-6 py-3 rounded-lg shadow-md border border-primary w-full sm:w-auto ">
                   <Home size={20} />
                   <span className="font-semibold">House For Rent</span>

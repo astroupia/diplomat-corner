@@ -87,11 +87,11 @@ const NavBar = () => {
                   <>
                     <UserButton />
                     {/* Notification Icon */}
-                    <Link href="#" className="text-primary">
+                    <Link href="/notifications" className="text-primary">
                       <Megaphone className="w-6 h-6" />
                     </Link>
                     <Link
-                      href="/Product"
+                      href="/manage-product/house"
                       className="px-2 hover:text-primary transition"
                     >
                       Manage Products
