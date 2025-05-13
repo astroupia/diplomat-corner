@@ -6,30 +6,27 @@ export interface IUser extends Document {
   firstName: string;
   lastName: string;
   address?: string;
-  phone?: string;
-  role: "customer" | "admin" | "owner";
+  imageUrl: string;
+  role: "customer" | "admin";
   timestamp: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
-const UserSchema: Schema = new Schema(
-  {
-    clerkId: { type: String, required: true, unique: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    address: { type: String, required: false },
-    phone: { type: String, required: false },
-    role: {
-      type: String,
-      required: true,
-      enum: ["customer", "admin", "owner"],
-    },
-    timestamp: { type: String, required: true },
+const UserSchema: Schema = new Schema({
+  clerkId: { type: String, required: true, unique: true },
+  firstName: { type: String, required: true },
+  lastName: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  address: { type: String, required: false },
+  imageUrl: { type: String, required: false },
+  role: {
+    type: String,
+    required: true,
+    enum: ["customer", "admin"],
   },
-  { timestamps: true }
-);
+  timestamp: { type: String, required: true },
+});
 
 export default mongoose.models.User ||
   mongoose.model<IUser>("User", UserSchema);

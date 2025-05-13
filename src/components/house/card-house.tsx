@@ -1,47 +1,110 @@
-import React from "react";
-import { Bed, Bath, Ruler } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { Bath, Bed, Car, Ruler, Pencil } from "lucide-react";
 import Image from "next/image";
-import { House } from "../../../public/assets/images";
+import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
+import { IHouse } from "@/lib/models/house.model";
 
-interface CardProps {
-  address: string;
-  price: number;
-  bedrooms: number;
-  bathrooms: number;
-  size: number;
+interface CardProps extends IHouse {
+  listedBy?: string;
 }
 
 const CardHouse: React.FC<CardProps> = ({
-  address,
+  _id,
+  name,
   price,
-  bedrooms,
-  bathrooms,
+  bedroom,
+  bathroom,
   size,
+  parkingSpace,
+  currency,
+  imageUrl,
+  advertisementType,
+  listedBy = "Admin",
+  userId,
 }) => {
+  const { user } = useUser();
+  const isOwner = user?.id === userId;
+  const [displayName, setDisplayName] = useState(listedBy || "Admin");
+
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const response = await fetch(`/api/users/${userId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.success && data.user) {
+            setDisplayName(
+              data.user.name || data.user.email || listedBy || "Admin"
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching user info:", error);
+      }
+    };
+
+    if (userId && userId !== "admin") {
+      fetchUserInfo();
+    }
+  }, [userId, listedBy]);
+
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
-      <Image src={House} alt="Property" className="w-full h-48 object-cover" />
-      <div className="p-4">
-        <h2 className="text-lg font-semibold">{address}</h2>
-        <p className="text-green-600 text-xl font-bold">
-          ${price.toLocaleString()}
-        </p>
-        <div className="flex justify-between text-gray-700 mt-2">
-          <div className="flex items-center gap-1">
-            <Bed size={18} />
-            <span>{bedrooms}</span>
+    <div className="relative">
+      <Link href={`/house/${_id}`} className="block">
+        <div className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300">
+          <div className="relative">
+            <Image
+              width={300}
+              height={200}
+              src={imageUrl || "/assets/images/house.jpg"}
+              alt="House Image"
+              className="w-full h-48 object-cover"
+            />
+            <span className="absolute top-2 right-2 bg-primary text-white text-xs font-semibold px-2 py-1 rounded-full">
+              {advertisementType}
+            </span>
           </div>
-          <div className="flex items-center gap-1">
-            <Bath size={18} />
-            <span>{bathrooms}</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Ruler size={18} />
-            <span>{size.toLocaleString()} ft²</span>
+          <div className="p-4">
+            <h2 className="text-lg font-semibold text-gray-800 truncate">
+              {name}
+            </h2>
+            <p className="text-green-600 text-xl font-bold mt-1">
+              {currency} {price.toLocaleString()}
+            </p>
+            <div className="flex flex-wrap justify-between text-gray-600 mt-2 gap-2">
+              <div className="flex items-center gap-1">
+                <Bed size={16} />
+                <span>{bedroom} Beds</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Bath size={16} />
+                <span>{bathroom} Baths</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Ruler size={16} />
+                <span>{size.toLocaleString()} ft²</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Car size={16} />
+                <span>{parkingSpace} Parking</span>
+              </div>
+            </div>
+            {/* <p className="text-gray-500 text-sm mt-2 truncate">
+              Listed by {displayName}
+            </p> */}
           </div>
         </div>
-        <p className="text-gray-500 text-sm mt-2">List by Admin</p>
-      </div>
+      </Link>
+      {isOwner && (
+        <Link
+          href={`/house/${_id}/edit`}
+          className="absolute top-2 left-2 bg-white text-primary p-2 rounded-full shadow-md hover:bg-gray-100 transition-colors duration-200"
+          title="Edit property"
+        >
+          <Pencil size={16} />
+        </Link>
+      )}
     </div>
   );
 };
